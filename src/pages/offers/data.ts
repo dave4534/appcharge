@@ -29,8 +29,7 @@ export const statusLabels: Record<OfferStatus, string> = {
 export const audienceLabel = (o: Offer) =>
   o.audienceSize ? `${o.audience} (${o.audienceSize.toLocaleString('en-US')})` : o.audience
 
-// Listed in priority order. A popup's priority is its position in this list across
-// every offer type, which is why the reward calendars sit at 2, 3, 5 and 6.
+// Listed in priority order. Each offer type is ranked from 1 within this list.
 export const initialOffers: Offer[] = [
   {
     id: 'starter-bundle',

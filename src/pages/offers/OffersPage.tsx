@@ -7,7 +7,7 @@ import { initialOffers, statusLabels, typeLabels, type OfferStatus, type OfferTy
 import './offers.css'
 
 type View = 'list' | 'timeline'
-type SortKey = 'priority' | 'name' | 'start'
+type SortKey = 'priority' | 'start' | 'audience'
 type TypeFilter = OfferType | 'all'
 type StatusFilter = OfferStatus | 'all'
 
@@ -16,8 +16,8 @@ const audiences = [...new Set(initialOffers.map((o) => o.audience))]
 
 const sortOptions: { value: SortKey; label: string }[] = [
   { value: 'priority', label: 'Priority' },
-  { value: 'name', label: 'Name' },
   { value: 'start', label: 'Start date' },
+  { value: 'audience', label: 'Audience' },
 ]
 const typeOptions: { value: TypeFilter; label: string }[] = [
   { value: 'all', label: 'All offers' },
@@ -39,7 +39,11 @@ export function OffersPage() {
   const [status, setStatus] = useState<StatusFilter>('all')
   const [audience, setAudience] = useState('all')
 
-  const priorityOf = (id: string) => order.indexOf(id) + 1
+  // Priority is ranked within each offer type, so every type starts at 1.
+  const priorityOf = (id: string) => {
+    const offerType = offersById.get(id)!.type
+    return order.filter((x) => offersById.get(x)!.type === offerType).indexOf(id) + 1
+  }
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
@@ -52,7 +56,7 @@ export function OffersPage() {
           (audience === 'all' || o.audience === audience) &&
           (!q || o.name.toLowerCase().includes(q)),
       )
-    if (sort === 'name') return matches.sort((a, b) => a.name.localeCompare(b.name))
+    if (sort === 'audience') return matches.sort((a, b) => a.audience.localeCompare(b.audience))
     // Offers without dates sort last.
     if (sort === 'start') return matches.sort((a, b) => (a.start ?? '9999').localeCompare(b.start ?? '9999'))
     return matches
@@ -129,7 +133,7 @@ export function OffersPage() {
         <h2>Popup offers</h2>
         <span>
           Showing {type === 'all' ? 'all offers' : typeLabels[type].plural}, {visible.length} of {initialOffers.length}.
-          Priority numbers count every popup offer.
+          Priority 1 shows first within each offer type.
         </span>
       </div>
 
