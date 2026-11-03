@@ -1,4 +1,5 @@
 import type { CalendarSettings } from '../calendar/settings'
+import type { RewardWeek } from '../calendar/rewards/rules'
 
 export type OfferType = 'reward-calendar' | 'bundle' | 'promotion'
 export type OfferStatus = 'live' | 'scheduled' | 'draft'
@@ -16,6 +17,8 @@ export type Offer = {
   status: OfferStatus
   // Everything entered on the Settings step, kept so a draft can be reopened.
   settings?: CalendarSettings
+  // The reward for each day of each week, set on the Rewards step.
+  rewards?: RewardWeek[]
 }
 
 export const typeLabels: Record<OfferType, { singular: string; plural: string }> = {

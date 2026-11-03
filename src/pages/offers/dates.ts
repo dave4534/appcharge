@@ -53,3 +53,9 @@ export const formatLong = (iso: string) => {
   const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
   return `${weekday} ${d} ${MONTHS[m - 1]} ${y}`
 }
+
+// "Nov 11 2026"
+export const formatUs = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number)
+  return `${MONTHS[m - 1]} ${d} ${y}`
+}

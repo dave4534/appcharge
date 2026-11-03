@@ -50,7 +50,7 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
 
       <Card
         title="Schedule"
-        hint="When the calendar is available to players. Its length (1 to 10 weeks) is set on the Rewards step."
+        hint="When the calendar is available to players. Its length follows these dates (up to 10 weeks) and can be adjusted on the Rewards step."
       >
         <div className="schedule-grid">
           <DateField

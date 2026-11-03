@@ -1,7 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
+import { Toast } from './design-system/components'
 import { TopBar } from './components/TopBar'
 import { navSections } from './components/nav'
+import { loadOffers, saveOffers } from './lib/storage'
 import { CalendarEditor } from './pages/calendar/CalendarEditor'
 import { initialOffers, type Offer } from './pages/offers/data'
 import { OffersPage } from './pages/offers/OffersPage'
@@ -14,8 +16,18 @@ type Editing = { offerId: string | null } | null
 
 export default function App() {
   const [activeId, setActiveId] = useState('reward-calendars')
-  const [offers, setOffers] = useState<Offer[]>(initialOffers)
+  const [offers, setOffers] = useState<Offer[]>(() => loadOffers(initialOffers))
   const [editing, setEditing] = useState<Editing>(null)
+  const [notice, setNotice] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!notice) return
+    const t = setTimeout(() => setNotice(null), 3500)
+    return () => clearTimeout(t)
+  }, [notice])
+
+  // Everything is saved as it changes, so a closed tab never loses a draft.
+  useEffect(() => saveOffers(offers), [offers])
 
   // A new draft joins the end of the list, so it gets the lowest priority.
   const saveOffer = (offer: Offer) =>
@@ -35,6 +47,11 @@ export default function App() {
             key={editing.offerId ?? 'new'}
             offer={offers.find((o) => o.id === editing.offerId) ?? null}
             onSave={saveOffer}
+            onPublish={(published) => {
+              saveOffer(published)
+              setEditing(null)
+              setNotice(`${published.name} is ${published.status === 'live' ? 'live' : 'scheduled'}.`)
+            }}
             onClose={() => setEditing(null)}
           />
         ) : (
@@ -60,6 +77,13 @@ export default function App() {
           </>
         )}
       </div>
+      {notice && (
+        <div className="app-toast" role="status">
+          <Toast type="Positive" onClose={() => setNotice(null)}>
+            {notice}
+          </Toast>
+        </div>
+      )}
     </div>
   )
 }

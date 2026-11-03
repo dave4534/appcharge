@@ -1,3 +1,6 @@
+import { dayDiff } from '../offers/dates'
+import { DAYS_PER_WEEK, MAX_WEEKS } from './rewards/rules'
+
 export type MissedDay = 'complete' | 'weekly'
 export type AfterLast = 'restart' | 'end'
 export type PopupTrigger = 'automatic' | 'click'
@@ -50,8 +53,7 @@ export const timezoneOptions = [
   { value: 'UTC-08:00', label: 'UTC-08:00 (Los Angeles)' },
 ]
 
-// Calendar length is chosen on the Rewards step, so the effect examples use a
-// four-week calendar as an illustration.
+// The effect examples use a four-week calendar as an illustration.
 export const EXAMPLE_WEEKS = 4
 
 export const segmentSize = (names: string[]) =>
@@ -97,6 +99,8 @@ export function validate(s: CalendarSettings) {
     `${s.endDate}T${s.endTime}` <= `${s.startDate}T${s.startTime}`
   ) {
     errors.endDate = { message: 'The end must come after the start.', required: false }
+  } else if (s.startDate && s.endDate && dayDiff(s.startDate, s.endDate) + 1 > MAX_WEEKS * DAYS_PER_WEEK) {
+    errors.endDate = { message: `A calendar runs at most ${MAX_WEEKS} weeks (${MAX_WEEKS * DAYS_PER_WEEK} days).`, required: false }
   }
   if (errors.startTime || errors.endTime || errors.endDate?.required === false) missing.push('valid dates and times')
 
