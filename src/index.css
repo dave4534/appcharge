@@ -13,6 +13,15 @@
   --color-store-badge-text: #1b7a3d;
   --color-beta-bg: #dbe8fb;
   --color-beta-text: #2b5aa8;
+  --color-live-bg: #d9f2e2;
+  --color-live-text: #17653a;
+  --color-live-border: #8fd1a8;
+  --color-scheduled-bg: #fdecc8;
+  --color-scheduled-text: #8a5200;
+  --color-scheduled-border: #eab45a;
+  --color-draft-bg: #eceef2;
+  --color-draft-text: #4b5563;
+  --color-draft-border: #aab0bb;
 
   --sidebar-width: 232px;
   --topbar-height: 72px;

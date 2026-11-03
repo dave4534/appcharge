@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { TopBar } from './components/TopBar'
 import { navSections } from './components/nav'
+import { OffersPage } from './pages/offers/OffersPage'
 
 const sectionOf = (id: string) => navSections.find((s) => s.items.some((i) => i.id === id))!
 const labelOf = (id: string) => sectionOf(id).items.find((i) => i.id === id)!.label
@@ -14,7 +15,7 @@ export default function App() {
       <Sidebar activeId={activeId} onNavigate={setActiveId} />
       <div className="main">
         <TopBar trail={['Company', 'Store', sectionOf(activeId).label, labelOf(activeId)]} />
-        <main className="content">{/* Wireframe content goes here */}</main>
+        <main className="content">{activeId === 'reward-calendars' && <OffersPage />}</main>
       </div>
     </div>
   )
