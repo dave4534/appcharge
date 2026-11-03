@@ -18,6 +18,8 @@ const paths = {
   calendar: 'M4 6h16v14H4zM4 10h16M8 3v4M16 3v4',
   chevron: 'M6 9l6 6 6-6',
   chevronRight: 'M9 6l6 6-6 6',
+  arrowLeft: 'M19 12H5M11 18l-6-6 6-6',
+  close: 'M6 6l12 12M18 6L6 18',
   repeat: 'M17 2l4 4-4 4M3 11V9a3 3 0 013-3h15M7 22l-4-4 4-4M21 13v2a3 3 0 01-3 3H3',
 } as const
 

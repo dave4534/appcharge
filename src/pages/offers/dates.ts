@@ -44,3 +44,12 @@ export const monthLabel = (iso: string) => {
 }
 
 export const dayOfMonth = (iso: string) => Number(iso.split('-')[2])
+
+const WEEKDAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
+
+// "Wed 11 Nov 2026"
+export const formatLong = (iso: string) => {
+  const [y, m, d] = iso.split('-').map(Number)
+  const weekday = WEEKDAYS[new Date(Date.UTC(y, m - 1, d)).getUTCDay()]
+  return `${weekday} ${d} ${MONTHS[m - 1]} ${y}`
+}

@@ -1,7 +1,7 @@
 import { Icon } from '../../components/Icon'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { formatDay } from './dates'
-import { DragHandle, KebabButton, PriorityBadge, StatusPill } from './parts'
+import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
 import { useReorder } from './useReorder'
 
 type ListViewProps = {
@@ -9,9 +9,10 @@ type ListViewProps = {
   priorityOf: (id: string) => number
   canReorder: boolean
   onMove: (id: string, targetId: string, after: boolean) => void
+  onOpen: (id: string) => void
 }
 
-export function ListView({ offers, priorityOf, canReorder, onMove }: ListViewProps) {
+export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: ListViewProps) {
   const reorder = useReorder(
     offers.map((o) => o.id),
     canReorder,
@@ -32,7 +33,7 @@ export function ListView({ offers, priorityOf, canReorder, onMove }: ListViewPro
             <DragHandle offer={offer} {...reorder.handleProps(offer.id)} />
             <PriorityBadge priority={priorityOf(offer.id)} />
             <div className="offer-name">
-              <div className="offer-title">{offer.name}</div>
+              <OfferTitle offer={offer} onOpen={onOpen} />
               <div className="offer-type">{typeLabels[offer.type].singular}</div>
             </div>
             <div className="col-audience">{audienceLabel(offer)}</div>

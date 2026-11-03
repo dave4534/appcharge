@@ -11,7 +11,7 @@ import {
   formatDay,
   monthLabel,
 } from './dates'
-import { DragHandle, KebabButton, PriorityBadge, StatusPill } from './parts'
+import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
 import { useReorder } from './useReorder'
 
 type TimelineViewProps = {
@@ -19,6 +19,7 @@ type TimelineViewProps = {
   priorityOf: (id: string) => number
   canReorder: boolean
   onMove: (id: string, targetId: string, after: boolean) => void
+  onOpen: (id: string) => void
 }
 
 const pct = (days: number) => `${(days / TIMELINE_DAYS) * 100}%`
@@ -87,7 +88,7 @@ function Bars({ offer }: { offer: Offer }) {
   )
 }
 
-export function TimelineView({ offers, priorityOf, canReorder, onMove }: TimelineViewProps) {
+export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen }: TimelineViewProps) {
   const reorder = useReorder(
     offers.map((o) => o.id),
     canReorder,
@@ -129,7 +130,7 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove }: Timelin
               <DragHandle offer={offer} {...reorder.handleProps(offer.id)} />
               <PriorityBadge priority={priorityOf(offer.id)} />
               <div className="offer-name">
-                <div className="offer-title">{offer.name}</div>
+                <OfferTitle offer={offer} onOpen={onOpen} />
                 <div className="offer-type">
                   {typeLabels[offer.type].singular} · {audienceLabel(offer)}
                 </div>

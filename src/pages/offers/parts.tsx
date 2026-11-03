@@ -40,3 +40,15 @@ export function PriorityBadge({ priority }: { priority: number }) {
     </span>
   )
 }
+
+// Drafts open the calendar editor; other offers are plain text for now.
+export function OfferTitle({ offer, onOpen }: { offer: Offer; onOpen: (id: string) => void }) {
+  if (offer.type === 'reward-calendar' && offer.status === 'draft') {
+    return (
+      <button type="button" className="offer-title link" onClick={() => onOpen(offer.id)}>
+        {offer.name}
+      </button>
+    )
+  }
+  return <div className="offer-title">{offer.name}</div>
+}

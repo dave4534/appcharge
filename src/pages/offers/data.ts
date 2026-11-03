@@ -1,3 +1,5 @@
+import type { CalendarSettings } from '../calendar/settings'
+
 export type OfferType = 'reward-calendar' | 'bundle' | 'promotion'
 export type OfferStatus = 'live' | 'scheduled' | 'draft'
 
@@ -12,6 +14,8 @@ export type Offer = {
   // Set when the offer runs again on a fixed cycle, in weeks.
   repeatWeeks?: number
   status: OfferStatus
+  // Everything entered on the Settings step, kept so a draft can be reopened.
+  settings?: CalendarSettings
 }
 
 export const typeLabels: Record<OfferType, { singular: string; plural: string }> = {
@@ -78,6 +82,20 @@ export const initialOffers: Offer[] = [
     start: '2026-11-11',
     end: '2026-12-06',
     status: 'draft',
+    settings: {
+      name: 'November Reward Calendar',
+      startDate: '2026-11-11',
+      startTime: '00:00',
+      endDate: '2026-12-06',
+      endTime: '23:59',
+      timezone: 'UTC',
+      missedDay: 'complete',
+      afterLast: 'restart',
+      popupTrigger: 'automatic',
+      collection: 'manual',
+      audienceMode: 'segments',
+      segments: ['High spenders'],
+    },
   },
   {
     id: 'welcome-calendar',
