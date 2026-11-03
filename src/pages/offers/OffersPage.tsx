@@ -1,5 +1,6 @@
-import { useMemo, useState } from 'react'
-import { Dropdown, NewOfferMenu } from './Dropdown'
+import { useMemo, useState, type CSSProperties } from 'react'
+import { ButtonGroup, Dropdown, EmptyState, Search } from '../../design-system/components'
+import { NewOfferMenu } from './NewOfferMenu'
 import { ListView } from './ListView'
 import { TimelineView } from './TimelineView'
 import { statusLabels, typeLabels, type Offer, type OfferStatus, type OfferType } from './data'
@@ -29,6 +30,24 @@ type OffersPageProps = {
   onChange: (offers: Offer[]) => void
   onNew: () => void
   onOpen: (id: string) => void
+}
+
+type ToolbarSelectProps = {
+  label: string
+  value: string
+  options: { value: string; label: string }[]
+  onChange: (value: string) => void
+  width?: number
+}
+
+// A design system Dropdown with its name beside it, so each filter reads "Sort  Priority".
+function ToolbarSelect({ label, value, options, onChange, width }: ToolbarSelectProps) {
+  return (
+    <div className="tool" style={width ? ({ '--tool-width': `${width}px` } as CSSProperties) : undefined}>
+      <span className="tool-label">{label}</span>
+      <Dropdown size="Medium" aria-label={label} value={value} options={options} onChange={onChange} />
+    </div>
+  )
 }
 
 export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps) {
@@ -111,27 +130,31 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
       </header>
 
       <div className="toolbar">
-        <input
-          className="search"
-          type="search"
+        <Search
+          size="Medium"
+          className="toolbar-search"
           placeholder="Search offers"
           aria-label="Search offers"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
+          onClear={() => setQuery('')}
         />
-        <Dropdown prefix="Sort" value={sort} options={sortOptions} onChange={setSort} />
-        <Dropdown prefix="Type" value={type} options={typeOptions} onChange={setType} active={type !== 'all'} />
-        <Dropdown prefix="Status" value={status} options={statusOptions} onChange={setStatus} active={status !== 'all'} />
-        <Dropdown prefix="Audience" value={audience} options={audienceOptions} onChange={setAudience} active={audience !== 'all'} />
+        <ToolbarSelect label="Sort" width={124} value={sort} options={sortOptions} onChange={(v) => setSort(v as SortKey)} />
+        <ToolbarSelect label="Type" width={188} value={type} options={typeOptions} onChange={(v) => setType(v as TypeFilter)} />
+        <ToolbarSelect label="Status" width={112} value={status} options={statusOptions} onChange={(v) => setStatus(v as StatusFilter)} />
+        <ToolbarSelect label="Audience" width={136} value={audience} options={audienceOptions} onChange={setAudience} />
 
-        <div className="segmented" role="group" aria-label="View">
-          <button type="button" aria-pressed={view === 'list'} onClick={() => setView('list')}>
-            List
-          </button>
-          <button type="button" aria-pressed={view === 'timeline'} onClick={() => setView('timeline')}>
-            Timeline
-          </button>
-        </div>
+        <ButtonGroup
+          className="view-toggle"
+          size="Medium"
+          aria-label="View"
+          items={[
+            { label: 'List', value: 'list' },
+            { label: 'Timeline', value: 'timeline' },
+          ]}
+          value={view}
+          onChange={(v) => setView(v as View)}
+        />
       </div>
 
       <div className="section-line">
@@ -143,12 +166,12 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
       </div>
 
       {visible.length === 0 ? (
-        <div className="empty">
-          <p>No offers match these filters.</p>
-          <button type="button" className="btn-secondary" onClick={clearFilters}>
-            Clear filters
-          </button>
-        </div>
+        <EmptyState
+          variant="compact"
+          title="No offers match these filters"
+          description="Try changing or clearing a filter."
+          mainAction={{ label: 'Clear filters', onClick: clearFilters }}
+        />
       ) : view === 'list' ? (
         <ListView {...viewProps} />
       ) : (

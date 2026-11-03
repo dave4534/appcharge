@@ -1,0 +1,85 @@
+.tabs {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 0;
+  width: fit-content;
+  max-width: 100%;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.tabs--stretched {
+  display: flex;
+  width: 100%;
+}
+
+.tabs__tab {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: var(--space-4);
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: var(--primary-text-color);
+}
+
+.tabs--stretched .tabs__tab {
+  flex: 1;
+}
+
+.tabs__tab:disabled {
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.tabs__tab:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: var(--space-2);
+}
+
+.tabs__content {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-height: 30px;
+  padding-inline: var(--space-8);
+  font-size: 16px;
+  line-height: 1.25;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.tabs--stretched .tabs__content {
+  width: 100%;
+}
+
+.tabs__icon {
+  display: inline-flex;
+  color: var(--icon-color);
+}
+
+.tabs__counter {
+  color: var(--secondary-text-color);
+}
+
+.tabs__underline {
+  display: block;
+  height: 2px;
+  border-radius: 1px;
+  background-color: var(--ui-border-color);
+}
+
+.tabs__tab--selected .tabs__underline {
+  background-color: var(--primary-color);
+}
+
+.tabs__tab--selected .tabs__label {
+  color: var(--primary-text-color);
+}
+
+.tabs__tab:not(.tabs__tab--selected) .tabs__label {
+  color: var(--secondary-text-color);
+}

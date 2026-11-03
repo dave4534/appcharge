@@ -1,0 +1,124 @@
+.control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  width: 100%;
+  border: 1px solid var(--ui-border-color);
+  border-radius: var(--space-4);
+  background-color: var(--secondary-background-color);
+  color: var(--primary-text-color);
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.control:hover:not(.control--disabled):not(.control--readonly) {
+  border-color: var(--primary-text-color);
+}
+
+.control:focus-within:not(.control--disabled):not(.control--readonly):not(.control--error):not(
+    .control--success
+  ) {
+  border-color: var(--primary-color);
+}
+
+.control--error {
+  border-color: var(--negative-color);
+}
+
+.control--success {
+  border-color: var(--positive-color);
+}
+
+.control--disabled {
+  border-color: var(--ui-border-color);
+  background-color: var(--disabled-background-color);
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.control--readonly {
+  border-color: transparent;
+  background-color: transparent;
+  cursor: default;
+}
+
+.control--readonlyNoLabel {
+  background-color: var(--allgrey-background-color);
+}
+
+.control--size-small {
+  min-height: 32px;
+  padding-inline: var(--space-16);
+}
+
+.control--size-medium {
+  min-height: 40px;
+  padding-inline: var(--space-16);
+}
+
+.control--size-large {
+  min-height: 48px;
+  padding-inline: var(--space-16);
+}
+
+.control__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-family: inherit;
+  outline: none;
+  padding: 0;
+}
+
+.control__input::placeholder {
+  color: var(--placeholder-color);
+}
+
+.control__input:disabled {
+  cursor: not-allowed;
+}
+
+.control--size-small .control__input {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.control--size-medium .control__input,
+.control--size-large .control__input {
+  font-size: 16px;
+  line-height: 1.375;
+}
+
+.control__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--icon-color);
+}
+
+.control__iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: var(--icon-color);
+  cursor: pointer;
+}
+
+.control__iconButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.control__iconButton:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: var(--space-2);
+}

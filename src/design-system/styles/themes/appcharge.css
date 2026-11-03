@@ -1,0 +1,37 @@
+/* Appcharge brand theme.
+   Overrides only the brand-colored and font tokens from the generated Mondave
+   files, so re-exporting tokens from Figma does not wipe it out.
+
+   Load it after tokens.css and typography.css, then turn it on with
+   data-brand="appcharge" on <html>. Remove the attribute to get Mondave back. */
+
+[data-brand='appcharge'] {
+  --font-family-heading: 'Inter', system-ui, sans-serif;
+  --font-family-body: 'Inter', system-ui, sans-serif;
+
+  --primary-color: #4a2fd6;
+  --brand-color: #4a2fd6;
+  --primary-hover-color: #3d25b8;
+  --brand-hover-color: #3d25b8;
+  --primary-selected-color: #e3defa;
+  --brand-selected-color: #e3defa;
+  --primary-selected-hover-color: #d3cbf6;
+  --brand-selected-hover-color: #d3cbf6;
+  --primary-highlighted-color: #f5f3fe;
+  --link-color: #4a2fd6;
+}
+
+/* Dark and Black modes need a lighter indigo to keep text readable. */
+[data-brand='appcharge'] .dark,
+[data-brand='appcharge'][data-theme='black'] {
+  --primary-color: #6b54e8;
+  --brand-color: #6b54e8;
+  --primary-hover-color: #5a43d6;
+  --brand-hover-color: #5a43d6;
+  --primary-selected-color: #2a2160;
+  --brand-selected-color: #2a2160;
+  --primary-selected-hover-color: #352a78;
+  --brand-selected-hover-color: #352a78;
+  --primary-highlighted-color: #1e1850;
+  --link-color: #a99bf7;
+}

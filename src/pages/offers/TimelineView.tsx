@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Icon } from '../../components/Icon'
+import { Repeat } from 'lucide-react'
+import { Icon, Label } from '../../design-system/components'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import {
   TIMELINE_DAYS,
@@ -74,7 +75,7 @@ function Bars({ offer }: { offer: Offer }) {
           </span>
           {offer.repeatWeeks && (
             <span className="tl-repeat">
-              <Icon name="repeat" size={13} /> every {offer.repeatWeeks} weeks
+              <Icon icon={Repeat} size={14} color="current" /> every {offer.repeatWeeks} weeks
             </span>
           )}
         </div>
@@ -118,7 +119,9 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen }:
                 </span>
               ))}
               <span className="tl-today-chip" style={{ left: pct(todayOffset) }}>
-                Today
+                <Label color="Primary" size="Small">
+                  Today
+                </Label>
               </span>
             </div>
           </Track>

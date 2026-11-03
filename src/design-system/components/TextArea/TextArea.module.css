@@ -1,0 +1,40 @@
+.textArea {
+  align-items: stretch;
+  padding: var(--space-8) var(--space-16);
+}
+
+.textArea--size-small {
+  min-height: 80px;
+}
+
+.textArea--size-large {
+  min-height: 108px;
+}
+
+.textArea__input {
+  width: 100%;
+  min-height: inherit;
+  border: none;
+  background: transparent;
+  color: var(--primary-text-color);
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  font-size: 16px;
+  line-height: 1.375;
+  resize: vertical;
+  outline: none;
+  padding: 0;
+}
+
+.textArea__input::placeholder {
+  color: var(--placeholder-color);
+}
+
+.textArea__input:disabled {
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.textArea--size-small .textArea__input {
+  font-size: 14px;
+  line-height: 1.25;
+}

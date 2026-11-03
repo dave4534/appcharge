@@ -1,0 +1,48 @@
+.skeleton {
+  display: block;
+  flex-shrink: 0;
+  background-color: var(--ui-background-color);
+  animation: skeleton-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes skeleton-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Type */
+.skeleton--type-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+}
+
+.skeleton--type-rectangle {
+  width: 144px;
+  height: 144px;
+  border-radius: var(--space-4);
+}
+
+.skeleton--type-h1 {
+  width: 162px;
+  height: 32px;
+  border-radius: var(--space-4);
+}
+
+.skeleton--type-h2 {
+  width: 162px;
+  height: 24px;
+  border-radius: var(--space-4);
+}
+
+.skeleton--type-paragraph {
+  width: 162px;
+  height: 16px;
+  border-radius: var(--space-4);
+}

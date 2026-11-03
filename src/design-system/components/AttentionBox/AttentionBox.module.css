@@ -1,0 +1,124 @@
+.attention-box {
+  display: flex;
+  gap: var(--space-4);
+  box-sizing: border-box;
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--space-8);
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  color: var(--primary-text-color);
+}
+
+.attention-box--compact {
+  align-items: center;
+  padding-block: var(--space-8);
+}
+
+.attention-box--compact .attention-box__text {
+  margin: 0;
+}
+
+.attention-box--compact .attention-box__actions {
+  padding-top: 0;
+}
+
+.attention-box__icon {
+  display: flex;
+  flex-shrink: 0;
+  padding-top: 1px;
+  color: var(--primary-text-color);
+}
+
+.attention-box__body {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.attention-box__header {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-8);
+}
+
+.attention-box__title {
+  flex: 1;
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 22px;
+}
+
+.attention-box__close {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  padding: var(--space-4);
+  border: none;
+  border-radius: var(--space-4);
+  background: none;
+  color: var(--primary-text-color);
+  cursor: pointer;
+}
+
+.attention-box__text {
+  margin: 0;
+  padding-left: var(--space-8);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.attention-box--compact .attention-box__text {
+  padding-left: 0;
+}
+
+.attention-box__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding-top: var(--space-8);
+  padding-left: var(--space-16);
+}
+
+.attention-box__link {
+  padding: 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--primary-text-color);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Types */
+.attention-box--type-primary {
+  background-color: var(--primary-selected-color);
+}
+
+.attention-box--type-neutral {
+  background-color: var(--allgrey-background-color);
+}
+
+.attention-box--type-positive {
+  background-color: var(--positive-color-selected);
+}
+
+.attention-box--type-warning {
+  background-color: var(--warning-color-selected);
+}
+
+.attention-box--type-negative {
+  background-color: var(--negative-color-selected);
+}
+
+.attention-box__close:focus-visible,
+.attention-box__link:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}

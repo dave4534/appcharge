@@ -39,7 +39,14 @@ export default function App() {
           />
         ) : (
           <>
-            <TopBar trail={['Company', 'Store', sectionOf(activeId).label, labelOf(activeId)]} />
+            <TopBar
+              trail={[
+                { name: 'Workspace', label: 'Company' },
+                { name: 'Folder', label: 'Store' },
+                { name: 'Group', label: sectionOf(activeId).label },
+                { name: 'Board', label: labelOf(activeId) },
+              ]}
+            />
             <main className="content">
               {activeId === 'reward-calendars' && (
                 <OffersPage

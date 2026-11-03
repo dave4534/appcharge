@@ -1,0 +1,75 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  box-sizing: border-box;
+  border: none;
+  background: none;
+  padding: 0;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  font-weight: 400;
+  color: var(--link-color);
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+.link:hover:not(.link--state-disabled) {
+  text-decoration: underline;
+}
+
+.link:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: var(--space-2);
+}
+
+.link__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  color: currentColor;
+}
+
+.link__text {
+  display: inline-block;
+}
+
+/* Size */
+.link--size-small {
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.link--size-large {
+  font-size: 16px;
+  line-height: 22px;
+}
+
+/* Inverted surface */
+.link--inverted {
+  color: var(--text-color-on-primary);
+}
+
+/* State */
+.link--state-hover {
+  text-decoration: underline;
+}
+
+.link--state-disabled {
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+  pointer-events: none;
+  text-decoration: none;
+}
+
+.link--inverted.link--state-disabled {
+  color: var(--disabled-text-color);
+}
+
+/* Icon layout */
+.link--icon-start,
+.link--icon-end {
+  flex-direction: row;
+}

@@ -1,0 +1,122 @@
+.label {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.label__text {
+  display: inline-block;
+}
+
+/* Size */
+.label--size-medium {
+  height: 24px;
+  padding-inline: var(--space-8);
+  border-radius: var(--space-4);
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.label--size-small {
+  height: 16px;
+  padding-inline: var(--space-4);
+  border-radius: var(--space-2);
+  font-size: 12px;
+  line-height: 16px;
+}
+
+/* Fill + Color */
+.label--kind-fill.label--color-primary {
+  background-color: var(--primary-color);
+  color: var(--text-color-on-primary);
+}
+
+.label--kind-fill.label--color-dark {
+  background-color: var(--inverted-color-background);
+  color: var(--text-color-on-primary);
+}
+
+.label--kind-fill.label--color-positive {
+  background-color: var(--positive-color);
+  color: var(--text-color-on-primary);
+}
+
+.label--kind-fill.label--color-negative {
+  background-color: var(--negative-color);
+  color: var(--text-color-on-primary);
+}
+
+/* Line + Color */
+.label--kind-line {
+  background-color: var(--primary-background-color);
+}
+
+.label--kind-line.label--color-primary {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.label--kind-line.label--color-dark {
+  border-color: var(--inverted-color-background);
+  color: var(--inverted-color-background);
+}
+
+.label--kind-line.label--color-positive {
+  border-color: var(--positive-color);
+  color: var(--positive-color);
+}
+
+.label--kind-line.label--color-negative {
+  border-color: var(--negative-color);
+  color: var(--negative-color);
+}
+
+/* State: Fill */
+.label--kind-fill.label--color-primary.label--state-hover {
+  background-color: var(--primary-hover-color);
+}
+
+.label--kind-fill.label--color-primary.label--state-active {
+  background-color: var(--primary-hover-color);
+}
+
+.label--kind-fill.label--color-dark.label--state-hover,
+.label--kind-fill.label--color-dark.label--state-active {
+  background-color: var(--content-color-blackish);
+}
+
+.label--kind-fill.label--color-positive.label--state-hover,
+.label--kind-fill.label--color-positive.label--state-active {
+  background-color: var(--positive-color-hover);
+}
+
+.label--kind-fill.label--color-negative.label--state-hover,
+.label--kind-fill.label--color-negative.label--state-active {
+  background-color: var(--negative-color-hover);
+}
+
+/* State: Line */
+.label--kind-line.label--color-primary.label--state-hover,
+.label--kind-line.label--color-primary.label--state-active {
+  background-color: var(--primary-selected-color);
+}
+
+.label--kind-line.label--color-dark.label--state-hover,
+.label--kind-line.label--color-dark.label--state-active {
+  background-color: var(--primary-background-hover-color);
+}
+
+.label--kind-line.label--color-positive.label--state-hover,
+.label--kind-line.label--color-positive.label--state-active {
+  background-color: var(--positive-color-selected);
+}
+
+.label--kind-line.label--color-negative.label--state-hover,
+.label--kind-line.label--color-negative.label--state-active {
+  background-color: var(--negative-color-selected);
+}

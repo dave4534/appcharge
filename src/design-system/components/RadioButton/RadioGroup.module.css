@@ -1,0 +1,28 @@
+.radioGroup {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  margin: 0;
+  padding: 0;
+  border: none;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.radioGroup__options {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.radioGroup__options--horizontal {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.radioGroup__error {
+  margin: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--negative-color);
+}

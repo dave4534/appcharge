@@ -1,0 +1,74 @@
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: var(--space-8);
+  border: none;
+  border-radius: var(--space-4);
+  background: transparent;
+  color: var(--primary-text-color);
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  font-size: 14px;
+  line-height: 22px;
+  text-align: left;
+}
+
+.listItem--interactive {
+  cursor: pointer;
+}
+
+.listItem--interactive:hover:not(.listItem--disabled),
+.listItem--hover {
+  background-color: var(--primary-background-hover-color);
+}
+
+.listItem--selected {
+  background-color: var(--primary-selected-color);
+}
+
+.listItem--disabled {
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.listItem__left {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  min-width: 0;
+  flex: 1;
+}
+
+.listItem__right {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: var(--icon-color);
+}
+
+.listItem__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  color: var(--icon-color);
+}
+
+.listItem__avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.listItem__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.listItem--interactive:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}

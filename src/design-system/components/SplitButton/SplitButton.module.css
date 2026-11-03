@@ -1,0 +1,188 @@
+.split-button {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.split-button__primary,
+.split-button__menuTrigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-8);
+  border: 1px solid transparent;
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.split-button__primary {
+  border-top-left-radius: var(--space-4);
+  border-bottom-left-radius: var(--space-4);
+}
+
+.split-button__menuTrigger {
+  border-top-right-radius: var(--space-4);
+  border-bottom-right-radius: var(--space-4);
+}
+
+.split-button__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.split-button__divider {
+  width: 1px;
+  align-self: stretch;
+  background-color: rgba(255, 255, 255, 0.24);
+}
+
+.split-button--kind-secondary .split-button__divider,
+.split-button--kind-tertiary .split-button__divider {
+  background-color: var(--ui-border-color);
+}
+
+.split-button--size-small .split-button__primary,
+.split-button--size-small .split-button__menuTrigger {
+  height: 32px;
+  font-size: 14px;
+}
+
+.split-button--size-small .split-button__primary {
+  padding-inline: var(--space-8);
+}
+
+.split-button--size-small .split-button__menuTrigger {
+  width: 24px;
+  padding: 0;
+}
+
+.split-button--size-medium .split-button__primary,
+.split-button--size-medium .split-button__menuTrigger {
+  height: 40px;
+  font-size: 16px;
+}
+
+.split-button--size-medium .split-button__primary {
+  padding-inline: var(--space-16);
+}
+
+.split-button--size-medium .split-button__menuTrigger {
+  width: 32px;
+  padding: 0;
+}
+
+.split-button--size-large .split-button__primary,
+.split-button--size-large .split-button__menuTrigger {
+  height: 48px;
+  font-size: 16px;
+}
+
+.split-button--size-large .split-button__primary {
+  padding-inline: var(--space-24);
+}
+
+.split-button--size-large .split-button__menuTrigger {
+  width: 40px;
+  padding: 0;
+}
+
+/* Kinds */
+.split-button--kind-primary .split-button__primary,
+.split-button--kind-primary .split-button__menuTrigger {
+  background-color: var(--primary-color);
+  color: var(--text-color-on-primary);
+}
+
+.split-button--kind-primary .split-button__primary:hover:not(:disabled),
+.split-button--kind-primary .split-button__menuTrigger:hover:not(:disabled) {
+  background-color: var(--primary-hover-color);
+}
+
+.split-button--kind-secondary .split-button__primary,
+.split-button--kind-secondary .split-button__menuTrigger {
+  background-color: transparent;
+  border-color: var(--ui-border-color);
+  color: var(--primary-text-color);
+}
+
+.split-button--kind-secondary .split-button__primary:hover:not(:disabled),
+.split-button--kind-secondary .split-button__menuTrigger:hover:not(:disabled) {
+  background-color: var(--primary-background-hover-color);
+}
+
+.split-button--kind-tertiary .split-button__primary,
+.split-button--kind-tertiary .split-button__menuTrigger {
+  background-color: transparent;
+  color: var(--primary-text-color);
+}
+
+.split-button--kind-tertiary .split-button__primary:hover:not(:disabled),
+.split-button--kind-tertiary .split-button__menuTrigger:hover:not(:disabled) {
+  background-color: var(--primary-background-hover-color);
+}
+
+.split-button__primary:focus-visible,
+.split-button__menuTrigger:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  z-index: 1;
+}
+
+.split-button--disabled .split-button__primary,
+.split-button--disabled .split-button__menuTrigger {
+  background-color: var(--disabled-background-color);
+  border-color: transparent;
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.split-button__menu {
+  position: absolute;
+  top: calc(100% + var(--space-4));
+  right: 0;
+  z-index: 20;
+  min-width: 160px;
+  margin: 0;
+  padding: var(--space-4);
+  list-style: none;
+  border: 1px solid var(--ui-border-color);
+  border-radius: var(--space-4);
+  background-color: var(--primary-background-color);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.split-button__menuItem {
+  display: block;
+  width: 100%;
+  padding: var(--space-8) var(--space-12);
+  border: none;
+  border-radius: var(--space-4);
+  background: none;
+  color: var(--primary-text-color);
+  font-family: inherit;
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: left;
+  cursor: pointer;
+}
+
+.split-button__menuItem:hover:not(:disabled) {
+  background-color: var(--primary-background-hover-color);
+}
+
+.split-button__menuItem:disabled {
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.split-button__menuItem:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}

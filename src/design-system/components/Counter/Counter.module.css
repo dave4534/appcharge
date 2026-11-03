@@ -1,0 +1,77 @@
+.counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  min-width: 24px;
+  padding-inline: var(--space-8);
+  border: 1px solid transparent;
+  border-radius: 100px;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.counter__value {
+  display: inline-block;
+}
+
+/* Size */
+.counter--size-large {
+  height: 24px;
+  font-size: 14px;
+  line-height: 20px;
+}
+
+.counter--size-small {
+  height: 18px;
+  font-size: 14px;
+  line-height: 18px;
+}
+
+/* Kind + Color: Fill */
+.counter--kind-fill.counter--color-primary {
+  background-color: var(--primary-color);
+  color: var(--text-color-on-primary);
+}
+
+.counter--kind-fill.counter--color-negative {
+  background-color: var(--negative-color);
+  color: var(--text-color-on-primary);
+}
+
+.counter--kind-fill.counter--color-dark {
+  background-color: var(--inverted-color-background);
+  color: var(--text-color-on-primary);
+}
+
+.counter--kind-fill.counter--color-light {
+  background-color: var(--disabled-background-color);
+  color: var(--primary-text-color);
+}
+
+/* Kind + Color: Line */
+.counter--kind-line {
+  background-color: transparent;
+}
+
+.counter--kind-line.counter--color-primary {
+  border-color: var(--primary-color);
+  color: var(--primary-color);
+}
+
+.counter--kind-line.counter--color-negative {
+  border-color: var(--negative-color);
+  color: var(--negative-color);
+}
+
+.counter--kind-line.counter--color-dark {
+  border-color: var(--inverted-color-background);
+  color: var(--inverted-color-background);
+}
+
+.counter--kind-line.counter--color-light {
+  border-color: var(--ui-border-color);
+  color: var(--primary-text-color);
+}

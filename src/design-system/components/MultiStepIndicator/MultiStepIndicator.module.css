@@ -1,0 +1,153 @@
+.multi-step-indicator {
+  display: flex;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  color: var(--primary-text-color);
+}
+
+.multi-step-indicator--horizontal {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.multi-step-indicator--vertical {
+  flex-direction: column;
+  gap: var(--space-16);
+}
+
+.multi-step-indicator__item {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+.multi-step-indicator--horizontal .multi-step-indicator__item {
+  flex-direction: column;
+  gap: var(--space-8);
+}
+
+.multi-step-indicator--vertical .multi-step-indicator__item {
+  flex-direction: row;
+  align-items: flex-start;
+  gap: var(--space-12);
+}
+
+.multi-step-indicator__markerRow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.multi-step-indicator--vertical .multi-step-indicator__markerRow {
+  width: auto;
+  flex-direction: column;
+  align-items: center;
+}
+
+.multi-step-indicator__marker {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.multi-step-indicator--size-regular .multi-step-indicator__marker {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+.multi-step-indicator--size-compact .multi-step-indicator__marker {
+  width: 24px;
+  height: 24px;
+  font-size: 12px;
+}
+
+.multi-step-indicator__connector {
+  flex: 1;
+  height: 2px;
+  margin-inline: var(--space-8);
+  background-color: var(--ui-border-color);
+}
+
+.multi-step-indicator--vertical .multi-step-indicator__connector {
+  width: 2px;
+  height: 32px;
+  margin: var(--space-4) 0;
+}
+
+.multi-step-indicator__connector--complete {
+  background-color: var(--primary-color);
+}
+
+.multi-step-indicator__text {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.multi-step-indicator__label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.multi-step-indicator__subtitle {
+  font-size: 14px;
+  line-height: 1.25;
+  color: var(--secondary-text-color);
+}
+
+/* Types */
+.multi-step-indicator--type-primary .multi-step-indicator__item--active .multi-step-indicator__marker,
+.multi-step-indicator--type-primary .multi-step-indicator__item--complete .multi-step-indicator__marker {
+  background-color: var(--primary-color);
+  color: var(--text-color-on-primary);
+}
+
+.multi-step-indicator--type-success .multi-step-indicator__item--active .multi-step-indicator__marker,
+.multi-step-indicator--type-success .multi-step-indicator__item--complete .multi-step-indicator__marker {
+  background-color: var(--positive-color);
+  color: var(--text-color-on-primary);
+}
+
+.multi-step-indicator--type-negative .multi-step-indicator__item--active .multi-step-indicator__marker,
+.multi-step-indicator--type-negative .multi-step-indicator__item--complete .multi-step-indicator__marker {
+  background-color: var(--negative-color);
+  color: var(--text-color-on-primary);
+}
+
+.multi-step-indicator--type-dark .multi-step-indicator__item--active .multi-step-indicator__marker,
+.multi-step-indicator--type-dark .multi-step-indicator__item--complete .multi-step-indicator__marker {
+  background-color: var(--inverted-color-background);
+  color: var(--text-color-on-inverted);
+}
+
+.multi-step-indicator__item--upcoming .multi-step-indicator__marker {
+  border: 1px solid var(--ui-border-color);
+  background-color: var(--primary-background-color);
+  color: var(--secondary-text-color);
+}
+
+.multi-step-indicator--type-primary .multi-step-indicator__connector--complete {
+  background-color: var(--primary-color);
+}
+
+.multi-step-indicator--type-success .multi-step-indicator__connector--complete {
+  background-color: var(--positive-color);
+}
+
+.multi-step-indicator--type-negative .multi-step-indicator__connector--complete {
+  background-color: var(--negative-color);
+}
+
+.multi-step-indicator--type-dark .multi-step-indicator__connector--complete {
+  background-color: var(--inverted-color-background);
+}

@@ -1,0 +1,111 @@
+.chips {
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+  height: 24px;
+  border-radius: var(--space-4);
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  font-size: 14px;
+  line-height: 20px;
+  overflow: hidden;
+}
+
+.chips__main {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-4);
+  height: 100%;
+  padding-inline: var(--space-8);
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.chips--with-close .chips__main {
+  padding-right: var(--space-4);
+}
+
+.chips__icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  color: var(--icon-color);
+}
+
+.chips__label {
+  display: inline-block;
+  color: var(--primary-text-color);
+}
+
+.chips__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  margin-right: var(--space-4);
+  padding: 0;
+  border: none;
+  border-radius: var(--space-4);
+  background: transparent;
+  color: var(--primary-text-color);
+  cursor: pointer;
+}
+
+.chips__close:hover:not(:disabled) {
+  background-color: var(--primary-background-hover-color);
+}
+
+.chips__close:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 1px;
+}
+
+.chips__main:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+}
+
+/* Type */
+.chips--type-primary {
+  background-color: var(--primary-selected-color);
+}
+
+.chips--type-primary:hover:not(.chips--disabled) {
+  background-color: var(--primary-selected-hover-color);
+}
+
+.chips--type-positive {
+  background-color: var(--positive-color-selected);
+}
+
+.chips--type-positive:hover:not(.chips--disabled) {
+  background-color: var(--positive-color-selected-hover);
+}
+
+.chips--type-negative {
+  background-color: var(--negative-color-selected);
+}
+
+.chips--type-negative:hover:not(.chips--disabled) {
+  background-color: var(--negative-color-selected-hover);
+}
+
+.chips--type-warning {
+  background-color: var(--warning-color-selected);
+}
+
+.chips--type-warning:hover:not(.chips--disabled) {
+  background-color: var(--warning-color-selected-hover);
+}
+
+.chips--disabled {
+  opacity: 0.38;
+  pointer-events: none;
+  cursor: not-allowed;
+}

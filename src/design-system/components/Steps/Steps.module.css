@@ -1,0 +1,58 @@
+.steps {
+  display: inline-flex;
+  align-items: center;
+  gap: 0;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.steps__dots {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-4);
+  min-width: 40px;
+  height: 8px;
+}
+
+.steps__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--ui-border-color);
+  transition: background-color 0.15s ease;
+}
+
+.steps__dot:not(:last-child) {
+  margin-inline-end: 0;
+}
+
+.steps__dot--active {
+  background-color: var(--primary-color);
+}
+
+.steps__dot--on-primary {
+  background-color: rgba(255, 255, 255, 0.4);
+}
+
+.steps__dot--on-primary.steps__dot--active {
+  background-color: var(--text-color-on-primary);
+}
+
+.steps__counter {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 45px;
+  padding-inline: var(--space-8);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--primary-text-color);
+}
+
+.steps--on-primary .steps__counter {
+  color: var(--text-color-on-primary);
+}
+
+.steps--on-primary {
+  color: var(--text-color-on-primary);
+}

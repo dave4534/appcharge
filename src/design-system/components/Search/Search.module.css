@@ -1,0 +1,8 @@
+.search {
+  padding-right: var(--space-8);
+}
+
+.search__clear {
+  width: 32px;
+  height: 32px;
+}

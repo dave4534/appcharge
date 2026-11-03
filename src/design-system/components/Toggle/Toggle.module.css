@@ -1,0 +1,92 @@
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.toggle__label {
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--primary-text-color);
+}
+
+.toggle__control {
+  display: inline-flex;
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+}
+
+.toggle__control:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+  border-radius: 100px;
+}
+
+.toggle__track {
+  display: flex;
+  align-items: center;
+  border-radius: 100px;
+  background-color: var(--ui-border-color);
+  transition: background-color 0.15s ease;
+}
+
+.toggle__knob {
+  border-radius: 50%;
+  background-color: var(--fixed-light-color);
+  transition: margin-left 0.15s ease;
+}
+
+/* Size: Medium */
+.toggle--size-medium .toggle__track {
+  width: 42px;
+  height: 24px;
+  padding: 3px;
+  box-sizing: border-box;
+}
+
+.toggle--size-medium .toggle__knob {
+  width: 18px;
+  height: 18px;
+}
+
+.toggle--size-medium.toggle--checked .toggle__knob {
+  margin-left: auto;
+}
+
+/* Size: Small */
+.toggle--size-small .toggle__track {
+  width: 28px;
+  height: 16px;
+  padding: 2px;
+  box-sizing: border-box;
+}
+
+.toggle--size-small .toggle__knob {
+  width: 12px;
+  height: 12px;
+}
+
+.toggle--size-small.toggle--checked .toggle__knob {
+  margin-left: auto;
+}
+
+/* Checked */
+.toggle--checked .toggle__track {
+  background-color: var(--primary-color);
+}
+
+/* Disabled */
+.toggle--disabled .toggle__label {
+  color: var(--disabled-text-color);
+}
+
+.toggle--disabled .toggle__control {
+  cursor: not-allowed;
+}
+
+.toggle--disabled .toggle__track {
+  opacity: 1;
+}

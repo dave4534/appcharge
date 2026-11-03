@@ -1,0 +1,37 @@
+.menu {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  padding: var(--space-8);
+  border: 1px solid var(--ui-border-color);
+  border-radius: var(--space-8);
+  background-color: var(--secondary-background-color);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.menu--size-small {
+  min-width: 164px;
+}
+
+.menu--size-medium {
+  min-width: 200px;
+}
+
+.menu--size-large {
+  min-width: 240px;
+}
+
+.menu__caption {
+  padding: var(--space-8);
+  font-size: 12px;
+  line-height: 16px;
+  font-weight: 500;
+  color: var(--secondary-text-color);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.menu__list {
+  width: 100%;
+}

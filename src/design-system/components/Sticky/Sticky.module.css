@@ -1,0 +1,40 @@
+.sticky {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  border-radius: var(--space-2);
+  background: none;
+  color: var(--icon-color);
+  cursor: pointer;
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.sticky--active {
+  color: var(--primary-color);
+}
+
+.sticky--inactive {
+  color: var(--icon-color);
+}
+
+.sticky:hover:not(:disabled) {
+  color: var(--primary-hover-color);
+}
+
+.sticky--active svg {
+  fill: currentColor;
+}
+
+.sticky:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.sticky--disabled {
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}

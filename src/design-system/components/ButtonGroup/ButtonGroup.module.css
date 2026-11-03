@@ -1,0 +1,95 @@
+.button-group {
+  display: inline-flex;
+  align-items: stretch;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.button-group__button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid var(--ui-border-color);
+  margin-left: -1px;
+  background-color: transparent;
+  color: var(--primary-text-color);
+  font-family: inherit;
+  font-weight: 400;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.button-group__button--first {
+  margin-left: 0;
+  border-top-left-radius: var(--space-4);
+  border-bottom-left-radius: var(--space-4);
+}
+
+.button-group__button--last {
+  border-top-right-radius: var(--space-4);
+  border-bottom-right-radius: var(--space-4);
+}
+
+.button-group__button:hover:not(:disabled):not(.button-group__button--selected) {
+  background-color: var(--primary-background-hover-color);
+}
+
+.button-group__button--selected {
+  background-color: var(--primary-selected-color);
+  border-color: var(--primary-color);
+  z-index: 1;
+}
+
+.button-group__button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: -2px;
+  z-index: 2;
+}
+
+/* Size */
+.button-group--size-small .button-group__button {
+  min-height: 32px;
+  padding-inline: var(--space-8);
+  font-size: 14px;
+}
+
+.button-group--size-medium .button-group__button {
+  min-height: 40px;
+  padding-inline: var(--space-16);
+  font-size: 16px;
+}
+
+.button-group--size-large .button-group__button {
+  min-height: 48px;
+  padding-inline: var(--space-24);
+  font-size: 16px;
+}
+
+/* Variant */
+.button-group--variant-tertiary .button-group__button {
+  border-color: transparent;
+  margin-left: 0;
+}
+
+.button-group--variant-tertiary .button-group__button--selected {
+  border-color: transparent;
+}
+
+.button-group--disabled {
+  pointer-events: none;
+  opacity: 1;
+}
+
+.button-group--disabled .button-group__button {
+  background-color: var(--disabled-background-color);
+  border-color: var(--ui-border-color);
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.button-group--disabled .button-group__button--selected {
+  background-color: var(--disabled-background-color);
+  border-color: var(--ui-border-color);
+}

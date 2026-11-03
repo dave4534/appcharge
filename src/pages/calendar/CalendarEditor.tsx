@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { Icon } from '../../components/Icon'
+import { ArrowLeft } from 'lucide-react'
+import { Button, Icon, IconButton, MultiStepIndicator, Toast } from '../../design-system/components'
 import type { Offer } from '../offers/data'
 import { StatusPill } from '../offers/parts'
 import { SettingsStep } from './SettingsStep'
@@ -13,7 +14,7 @@ type CalendarEditorProps = {
   onClose: () => void
 }
 
-const steps = ['Settings', 'Rewards']
+const steps = [{ label: 'Settings' }, { label: 'Rewards' }]
 
 const settingsOf = (offer: Offer | null): CalendarSettings => {
   if (!offer) return emptySettings
@@ -72,36 +73,33 @@ export function CalendarEditor({ offer, onSave, onClose }: CalendarEditorProps) 
     <div className="editor">
       <header className="editor-bar">
         <div className="editor-title">
-          <button type="button" className="icon-button" aria-label="Back to offers" onClick={close}>
-            <Icon name="arrowLeft" size={18} />
-          </button>
+          <IconButton
+            kind="Tertiary"
+            size="Medium"
+            aria-label="Back to offers"
+            iconElement={<Icon icon={ArrowLeft} size="Medium" color="primary" />}
+            onClick={close}
+          />
           <h1>{settings.name.trim() || 'New Reward Calendar'}</h1>
           <StatusPill status="draft" />
         </div>
 
-        <ol className="stepper" aria-label="Steps">
-          {steps.map((label, i) => (
-            <li key={label} aria-current={i === step ? 'step' : undefined} className={i === step ? 'is-current' : ''}>
-              <span className="step-number">{i + 1}</span>
-              {label}
-            </li>
-          ))}
-        </ol>
+        <MultiStepIndicator size="Regular" orientation="Horizontal" currentStep={step + 1} steps={steps} />
 
         <div className="editor-actions">
-          <button type="button" className="btn-secondary" onClick={saveDraft}>
+          <Button kind="Secondary" size="Large" onClick={saveDraft}>
             Save draft
-          </button>
+          </Button>
           {step === 0 && (
-            <button
-              type="button"
-              className="btn-primary"
+            <Button
+              kind="Primary"
+              size="Large"
               disabled={!valid}
               title={valid ? undefined : `Still needed: ${missing.join(', ')}`}
               onClick={() => setStep(1)}
             >
               Next
-            </button>
+            </Button>
           )}
         </div>
       </header>
@@ -114,9 +112,9 @@ export function CalendarEditor({ offer, onSave, onClose }: CalendarEditorProps) 
             <section className="card">
               <h2>Rewards</h2>
               <p className="card-hint">The Rewards step is the next wireframe. Your settings are saved with the draft.</p>
-              <button type="button" className="btn-secondary" onClick={() => setStep(0)}>
+              <Button kind="Secondary" size="Medium" onClick={() => setStep(0)}>
                 Back to settings
-              </button>
+              </Button>
             </section>
           </div>
         )}
@@ -124,7 +122,9 @@ export function CalendarEditor({ offer, onSave, onClose }: CalendarEditorProps) 
 
       {toast && (
         <div className="toast" role="status">
-          Draft saved
+          <Toast type="Positive" onClose={() => setToast(false)}>
+            Draft saved
+          </Toast>
         </div>
       )}
     </div>

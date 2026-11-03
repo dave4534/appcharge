@@ -1,9 +1,29 @@
-import type { IconName } from './Icon'
+import {
+  CalendarDays,
+  ChartColumn,
+  CreditCard,
+  Gauge,
+  Image,
+  BadgeCheck,
+  Languages,
+  LayoutDashboard,
+  LayoutTemplate,
+  MessageSquare,
+  Package,
+  Palette,
+  Percent,
+  Settings,
+  Tag,
+  Ticket,
+  Users,
+  Boxes,
+  type LucideIcon,
+} from 'lucide-react'
 
 export type NavItem = {
   id: string
   label: string
-  icon: IconName
+  icon: LucideIcon
   beta?: boolean
 }
 
@@ -21,36 +41,36 @@ export const navSections: NavSection[] = [
     id: 'management',
     label: 'Management',
     items: [
-      { id: 'analytics', label: 'Analytics', icon: 'analytics' },
-      { id: 'players', label: 'Players', icon: 'players' },
-      { id: 'pricing', label: 'Pricing', icon: 'pricing' },
-      { id: 'coupons', label: 'Coupons', icon: 'coupons' },
-      { id: 'localization', label: 'Localization', icon: 'localization' },
-      { id: 'settings', label: 'Settings', icon: 'settings' },
+      { id: 'analytics', label: 'Analytics', icon: ChartColumn },
+      { id: 'players', label: 'Players', icon: Users },
+      { id: 'pricing', label: 'Pricing', icon: Tag },
+      { id: 'coupons', label: 'Coupons', icon: Ticket },
+      { id: 'localization', label: 'Localization', icon: Languages },
+      { id: 'settings', label: 'Settings', icon: Settings },
     ],
   },
   {
     id: 'studio',
     label: 'Studio',
     items: [
-      { id: 'builder', label: 'Builder', icon: 'builder' },
-      { id: 'template-studio', label: 'Template Studio', icon: 'template', beta: true },
-      { id: 'products', label: 'Products', icon: 'products' },
-      { id: 'offer-design', label: 'Offer Design', icon: 'design' },
-      { id: 'checkout-design', label: 'Checkout Design', icon: 'checkout' },
-      { id: 'badges', label: 'Badges', icon: 'badges' },
-      { id: 'assets-library', label: 'Assets Library', icon: 'assets' },
+      { id: 'builder', label: 'Builder', icon: LayoutDashboard },
+      { id: 'template-studio', label: 'Template Studio', icon: LayoutTemplate, beta: true },
+      { id: 'products', label: 'Products', icon: Package },
+      { id: 'offer-design', label: 'Offer Design', icon: Palette },
+      { id: 'checkout-design', label: 'Checkout Design', icon: CreditCard },
+      { id: 'badges', label: 'Badges', icon: BadgeCheck },
+      { id: 'assets-library', label: 'Assets Library', icon: Image },
     ],
   },
   {
     id: 'offers',
     label: 'Offers',
     items: [
-      { id: 'bundles', label: 'Bundles', icon: 'products' },
-      { id: 'promotions', label: 'Promotions', icon: 'promotions' },
-      { id: 'popups', label: 'Popups', icon: 'popups' },
-      { id: 'progress-bars', label: 'Progress Bars', icon: 'progress' },
-      { id: 'reward-calendars', label: 'Reward Calendars', icon: 'calendar' },
+      { id: 'bundles', label: 'Bundles', icon: Boxes },
+      { id: 'promotions', label: 'Promotions', icon: Percent },
+      { id: 'popups', label: 'Popups', icon: MessageSquare },
+      { id: 'progress-bars', label: 'Progress Bars', icon: Gauge },
+      { id: 'reward-calendars', label: 'Reward Calendars', icon: CalendarDays },
     ],
   },
 ]

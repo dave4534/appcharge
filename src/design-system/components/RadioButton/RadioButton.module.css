@@ -1,0 +1,80 @@
+.radioButton {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  cursor: pointer;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--primary-text-color);
+}
+
+.radioButton__control {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+}
+
+.radioButton__input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: inherit;
+  width: 16px;
+  height: 16px;
+}
+
+.radioButton__circle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--ui-border-color);
+  border-radius: 50%;
+  background-color: var(--secondary-background-color);
+  transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.radioButton__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+}
+
+.radioButton__label {
+  user-select: none;
+}
+
+.radioButton:hover:not(.radioButton--disabled) .radioButton__circle {
+  border-color: var(--primary-color);
+}
+
+.radioButton--selected .radioButton__circle,
+.radioButton__input:checked + .radioButton__circle {
+  border-color: var(--primary-color);
+}
+
+.radioButton--disabled {
+  cursor: not-allowed;
+  color: var(--disabled-text-color);
+}
+
+.radioButton--disabled .radioButton__circle {
+  background-color: var(--disabled-background-color);
+  border-color: var(--ui-border-color);
+}
+
+.radioButton--disabled .radioButton__dot {
+  background-color: var(--disabled-text-color);
+}
+
+.radioButton:focus-within .radioButton__circle {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}

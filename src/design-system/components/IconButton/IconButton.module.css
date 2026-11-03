@@ -1,0 +1,118 @@
+.icon-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  border-radius: var(--space-4);
+  padding: 0;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.icon-button:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.icon-button__icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+/* Kind */
+.icon-button--kind-primary {
+  background-color: var(--primary-color);
+  color: var(--text-color-on-primary);
+}
+
+.icon-button--kind-primary:hover:not(:disabled) {
+  background-color: var(--primary-hover-color);
+}
+
+.icon-button--kind-secondary {
+  background-color: transparent;
+  border-color: var(--ui-border-color);
+  color: var(--primary-text-color);
+}
+
+.icon-button--kind-secondary:hover:not(:disabled) {
+  background-color: var(--primary-background-hover-color);
+}
+
+.icon-button--kind-tertiary {
+  background-color: transparent;
+  color: var(--primary-text-color);
+}
+
+.icon-button--kind-tertiary:hover:not(:disabled) {
+  background-color: var(--primary-background-hover-color);
+}
+
+/* Size */
+.icon-button--size-xxs {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-button--size-xxs .icon-button__icon {
+  width: 12px;
+  height: 12px;
+}
+
+.icon-button--size-xs {
+  width: 24px;
+  height: 24px;
+}
+
+.icon-button--size-xs .icon-button__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-button--size-small {
+  width: 32px;
+  height: 32px;
+}
+
+.icon-button--size-small .icon-button__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.icon-button--size-medium {
+  width: 40px;
+  height: 40px;
+}
+
+.icon-button--size-medium .icon-button__icon {
+  width: 20px;
+  height: 20px;
+}
+
+.icon-button--size-large {
+  width: 48px;
+  height: 48px;
+}
+
+.icon-button--size-large .icon-button__icon {
+  width: 24px;
+  height: 24px;
+}
+
+.icon-button:disabled,
+.icon-button--disabled {
+  background-color: var(--disabled-background-color);
+  border-color: transparent;
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.icon-button--kind-secondary:disabled,
+.icon-button--kind-tertiary:disabled {
+  background-color: var(--disabled-background-color);
+  border-color: var(--ui-border-color);
+}

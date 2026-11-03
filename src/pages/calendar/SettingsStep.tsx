@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Card, DateField, RadioGroup, SegmentPicker, TextField } from './fields'
+import { Dropdown, Link, TextField } from '../../design-system/components'
+import { Card, DateField, RadioSection, SegmentPicker } from './fields'
 import {
   EXAMPLE_WEEKS,
   segmentSize,
@@ -35,12 +36,14 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
     <div className="form">
       <Card title="Basics" hint="Name the calendar so you can find it in the offers list.">
         <TextField
-          id="calendar-name"
           label="Name"
-          value={s.name}
           placeholder="Name this calendar"
-          error={errorFor('name')}
-          onChange={(name) => onChange({ name })}
+          value={s.name}
+          showIconRight={false}
+          state={errorFor('name') ? 'error' : 'default'}
+          showHelper={!!errorFor('name')}
+          helperText={errorFor('name')?.message}
+          onChange={(e) => onChange({ name: e.target.value })}
           onBlur={() => touch('name')}
         />
       </Card>
@@ -51,7 +54,6 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
       >
         <div className="schedule-grid">
           <DateField
-            id="start-date"
             label="Start date"
             value={s.startDate}
             error={errorFor('startDate')}
@@ -59,15 +61,16 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
             onBlur={() => touch('startDate')}
           />
           <TextField
-            id="start-time"
             label="Start time"
             value={s.startTime}
-            error={errorFor('startTime')}
-            onChange={(startTime) => onChange({ startTime })}
+            showIconRight={false}
+            state={errorFor('startTime') ? 'error' : 'default'}
+            showHelper={!!errorFor('startTime')}
+            helperText={errorFor('startTime')?.message}
+            onChange={(e) => onChange({ startTime: e.target.value })}
             onBlur={() => touch('startTime')}
           />
           <DateField
-            id="end-date"
             label="End date"
             value={s.endDate}
             error={errorFor('endDate')}
@@ -75,11 +78,13 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
             onBlur={() => touch('endDate')}
           />
           <TextField
-            id="end-time"
             label="End time"
             value={s.endTime}
-            error={errorFor('endTime')}
-            onChange={(endTime) => onChange({ endTime })}
+            showIconRight={false}
+            state={errorFor('endTime') ? 'error' : 'default'}
+            showHelper={!!errorFor('endTime')}
+            helperText={errorFor('endTime')?.message}
+            onChange={(e) => onChange({ endTime: e.target.value })}
             onBlur={() => touch('endTime')}
           />
         </div>
@@ -87,33 +92,36 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
         <p className="zone-line">
           Timezone: {zone?.label ?? s.timezone}. The daily reset happens at 00:00 in this timezone.{' '}
           {changingZone ? (
-            <select
-              className="zone-select"
-              aria-label="Timezone"
-              value={s.timezone}
-              onChange={(e) => {
-                onChange({ timezone: e.target.value })
-                setChangingZone(false)
+            <span className="zone-select">
+              <Dropdown
+                size="Small"
+                aria-label="Timezone"
+                value={s.timezone}
+                options={timezoneOptions}
+                onChange={(timezone) => {
+                  onChange({ timezone })
+                  setChangingZone(false)
+                }}
+              />
+            </span>
+          ) : (
+            <Link
+              size="Small"
+              href="#"
+              onClick={(e) => {
+                e.preventDefault()
+                setChangingZone(true)
               }}
             >
-              {timezoneOptions.map((z) => (
-                <option key={z.value} value={z.value}>
-                  {z.label}
-                </option>
-              ))}
-            </select>
-          ) : (
-            <button type="button" className="link" onClick={() => setChangingZone(true)}>
               Change
-            </button>
+            </Link>
           )}
         </p>
       </Card>
 
       <Card title="Rules" hint="What happens when a player misses a day or finishes the calendar.">
-        <RadioGroup
+        <RadioSection
           legend="When a player misses a day"
-          name="missed-day"
           value={s.missedDay}
           onChange={(missedDay) => onChange({ missedDay })}
           options={[
@@ -128,9 +136,8 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
                 : null
           }
         />
-        <RadioGroup
+        <RadioSection
           legend="After the last week"
-          name="after-last"
           value={s.afterLast}
           onChange={(afterLast) => onChange({ afterLast })}
           options={[
@@ -148,9 +155,8 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
       </Card>
 
       <Card title="Popup and collection" hint="When players see the popup and whether they must collect.">
-        <RadioGroup
+        <RadioSection
           legend="Popup trigger"
-          name="popup-trigger"
           value={s.popupTrigger}
           onChange={(popupTrigger) => onChange({ popupTrigger })}
           options={[
@@ -158,9 +164,8 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
             { value: 'click', label: 'On click, from the badge only' },
           ]}
         />
-        <RadioGroup
+        <RadioSection
           legend="Collection"
-          name="collection"
           value={s.collection}
           onChange={(collection) => onChange({ collection })}
           options={[
@@ -171,9 +176,8 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
       </Card>
 
       <Card title="Audience" hint="Who sees this calendar.">
-        <RadioGroup
+        <RadioSection
           legend="Audience"
-          name="audience"
           inline
           hideLegend
           value={s.audienceMode}

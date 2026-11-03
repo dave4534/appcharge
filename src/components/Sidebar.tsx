@@ -1,5 +1,6 @@
 import { useState } from 'react'
-import { Icon } from './Icon'
+import { ChevronDown } from 'lucide-react'
+import { Icon, Label } from '../design-system/components'
 import { navSections } from './nav'
 
 type SidebarProps = {
@@ -31,7 +32,7 @@ export function Sidebar({ activeId, onNavigate }: SidebarProps) {
             >
               {section.label}
               <span className="chevron">
-                <Icon name="chevron" size={14} />
+                <Icon icon={ChevronDown} size="Small" color="current" />
               </span>
             </button>
 
@@ -45,9 +46,13 @@ export function Sidebar({ activeId, onNavigate }: SidebarProps) {
                       aria-current={item.id === activeId ? 'page' : undefined}
                       onClick={() => onNavigate(item.id)}
                     >
-                      <Icon name={item.icon} />
+                      <Icon icon={item.icon} size={18} color="current" />
                       {item.label}
-                      {item.beta && <span className="beta">Beta</span>}
+                      {item.beta && (
+                        <Label color="Primary" size="Small">
+                          Beta
+                        </Label>
+                      )}
                     </button>
                   </li>
                 ))}

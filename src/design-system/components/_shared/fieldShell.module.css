@@ -1,0 +1,51 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  width: 100%;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.field__labelRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.field__label {
+  font-size: 14px;
+  line-height: 1.25;
+  color: var(--primary-text-color);
+}
+
+.field__required {
+  color: var(--negative-color);
+}
+
+.field__bottomRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.field__helper {
+  font-size: 14px;
+  line-height: 1.25;
+  color: var(--secondary-text-color);
+}
+
+.field__helper--error {
+  color: var(--negative-color);
+}
+
+.field__helper--success {
+  color: var(--positive-color);
+}
+
+.field__limit {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 1.25;
+  color: var(--secondary-text-color);
+}

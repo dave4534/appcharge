@@ -1,0 +1,51 @@
+.linearProgressBar {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  width: 100%;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.linearProgressBar__track {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  overflow: hidden;
+  border-radius: 100px;
+  background-color: var(--allgrey-background-color);
+}
+
+.linearProgressBar__fill {
+  display: block;
+  height: 100%;
+  border-radius: 100px;
+  transition: width 0.2s ease;
+}
+
+.linearProgressBar__fill--primary {
+  background-color: var(--primary-color);
+}
+
+.linearProgressBar__fill--positive {
+  background-color: var(--positive-color);
+}
+
+.linearProgressBar__fill--negative {
+  background-color: var(--negative-color);
+}
+
+.linearProgressBar__label {
+  flex-shrink: 0;
+  font-size: 14px;
+  line-height: 20px;
+  color: var(--primary-text-color);
+}
+
+.linearProgressBar--size-small .linearProgressBar__track {
+  height: 4px;
+}
+
+.linearProgressBar--label-on {
+  max-width: 277px;
+}

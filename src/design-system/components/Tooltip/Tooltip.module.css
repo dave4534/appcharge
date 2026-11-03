@@ -1,0 +1,103 @@
+.tooltip {
+  position: relative;
+  display: inline-flex;
+  font-family: var(--font-family-body, 'Figtree', system-ui, -apple-system, sans-serif);
+}
+
+.tooltip__bubble {
+  position: absolute;
+  z-index: 20;
+  display: none;
+  flex-direction: column;
+  gap: var(--space-4);
+  max-width: 240px;
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--space-4);
+  background-color: var(--inverted-color-background);
+  color: var(--text-color-on-inverted);
+  font-size: 14px;
+  line-height: 1.25;
+  text-align: left;
+  white-space: normal;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+}
+
+.tooltip:hover .tooltip__bubble,
+.tooltip:focus-within .tooltip__bubble {
+  display: flex;
+}
+
+.tooltip__title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.tooltip__text {
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.tooltip--arrow-bottom {
+  bottom: calc(100% + var(--space-8));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tooltip--arrow-bottom::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--inverted-color-background);
+}
+
+.tooltip--arrow-top {
+  top: calc(100% + var(--space-8));
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.tooltip--arrow-top::after {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-bottom-color: var(--inverted-color-background);
+}
+
+.tooltip--arrow-left {
+  right: calc(100% + var(--space-8));
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tooltip--arrow-left::after {
+  content: '';
+  position: absolute;
+  left: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-left-color: var(--inverted-color-background);
+}
+
+.tooltip--arrow-right {
+  left: calc(100% + var(--space-8));
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.tooltip--arrow-right::after {
+  content: '';
+  position: absolute;
+  right: 100%;
+  top: 50%;
+  transform: translateY(-50%);
+  border: 6px solid transparent;
+  border-right-color: var(--inverted-color-background);
+}

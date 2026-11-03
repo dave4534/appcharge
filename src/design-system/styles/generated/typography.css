@@ -1,0 +1,224 @@
+/* Mondave typography tokens — sourced from Figma Text Styles
+   (Dave's Monday Design System → ■ Typography via Desktop Bridge).
+   Not part of figma_export_tokens (variables only); do not overwrite with color/spacing export. */
+
+:root {
+  --font-family-heading: 'Poppins', system-ui, sans-serif;
+  --font-family-body: 'Figtree', system-ui, sans-serif;
+
+  --font-weight-light: 300;
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  --font-size-h1: 32px;
+  --font-size-h2: 24px;
+  --font-size-h3: 18px;
+  --font-size-text1: 16px;
+  --font-size-text2: 14px;
+  --font-size-text3: 12px;
+
+  --line-height-h1: 40px;
+  --line-height-h2: 30px;
+  --line-height-h3: 24px;
+  --line-height-text1: 22px;
+  --line-height-text2: 20px;
+  --line-height-text3: 16px;
+
+  --letter-spacing-h1: -0.005em;
+  --letter-spacing-h2: -0.1px;
+  --letter-spacing-h3: -0.1px;
+  --letter-spacing-body: 0;
+}
+
+/* Heading styles — Poppins (Figma: H1 / H2 / H3) */
+
+.type-h1-bold {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-h1);
+}
+
+.type-h1-medium {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-h1);
+}
+
+.type-h1-normal {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: -0.5px;
+}
+
+.type-h1-light {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h1);
+  line-height: var(--line-height-h1);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-h1);
+}
+
+.type-h2-bold {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-h2);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-h2);
+}
+
+.type-h2-medium {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-h2);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-h2);
+}
+
+.type-h2-normal {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-h2);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-h1);
+}
+
+.type-h2-light {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h2);
+  line-height: var(--line-height-h2);
+  font-weight: var(--font-weight-light);
+  letter-spacing: -0.008em;
+}
+
+.type-h3-bold {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h3);
+  line-height: var(--line-height-h3);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-h3);
+}
+
+.type-h3-medium {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h3);
+  line-height: var(--line-height-h3);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-h3);
+}
+
+.type-h3-normal {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h3);
+  line-height: var(--line-height-h3);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: var(--letter-spacing-h1);
+}
+
+.type-h3-light {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h3);
+  line-height: var(--line-height-h3);
+  font-weight: var(--font-weight-light);
+  letter-spacing: var(--letter-spacing-h1);
+}
+
+/* Body styles — Figtree (Figma: Text1 / Text2 / Text3) */
+
+.type-text1-bold {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text1);
+  line-height: var(--line-height-text1);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.type-text1-medium {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text1);
+  line-height: var(--line-height-text1);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.type-text1-normal {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text1);
+  line-height: var(--line-height-text1);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.type-text1-normal-link {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text1);
+  line-height: var(--line-height-text1);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-body);
+  text-decoration: underline;
+}
+
+.type-text2-bold {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text2);
+  line-height: var(--line-height-text2);
+  font-weight: var(--font-weight-bold);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.type-text2-medium {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text2);
+  line-height: var(--line-height-text2);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.type-text2-normal {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text2);
+  line-height: var(--line-height-text2);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.type-text2-normal-link {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text2);
+  line-height: var(--line-height-text2);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-body);
+  text-decoration: underline;
+}
+
+.type-text3-medium {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text3);
+  line-height: var(--line-height-text3);
+  font-weight: var(--font-weight-semibold);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.type-text3-normal {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text3);
+  line-height: var(--line-height-text3);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-body);
+}
+
+.type-text3-normal-link {
+  font-family: var(--font-family-body);
+  font-size: var(--font-size-text3);
+  line-height: var(--line-height-text3);
+  font-weight: var(--font-weight-regular);
+  letter-spacing: var(--letter-spacing-body);
+  text-decoration: underline;
+}

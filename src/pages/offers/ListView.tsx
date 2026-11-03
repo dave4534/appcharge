@@ -1,4 +1,5 @@
-import { Icon } from '../../components/Icon'
+import { Repeat } from 'lucide-react'
+import { Icon } from '../../design-system/components'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { formatDay } from './dates'
 import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
@@ -43,7 +44,7 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: Lis
                   {formatDay(offer.start)} to {formatDay(offer.end)}
                   {offer.repeatWeeks && (
                     <span className="repeat" title={`Repeats every ${offer.repeatWeeks} weeks`}>
-                      <Icon name="repeat" size={14} />
+                      <Icon icon={Repeat} size="Small" color="current" />
                     </span>
                   )}
                 </>

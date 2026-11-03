@@ -1,0 +1,62 @@
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  vertical-align: middle;
+}
+
+.icon--interactive {
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--space-4);
+}
+
+.icon--interactive:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
+}
+
+.icon--interactive:disabled {
+  cursor: not-allowed;
+}
+
+.icon--color-primary {
+  color: var(--primary-color);
+}
+
+.icon--color-secondary {
+  color: var(--icon-color);
+}
+
+.icon--color-on-primary {
+  color: var(--text-color-on-primary);
+}
+
+.icon--color-disabled {
+  color: var(--disabled-text-color);
+}
+
+.icon--color-negative {
+  color: var(--negative-color);
+}
+
+.icon--color-positive {
+  color: var(--positive-color);
+}
+
+.icon--color-warning {
+  color: var(--warning-color);
+}
+
+.icon--color-current {
+  color: currentColor;
+}
+
+.icon__custom-svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
