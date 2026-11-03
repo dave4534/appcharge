@@ -2,7 +2,8 @@
 //
 // This is the single place that knows what rewards exist, how they rank, what a
 // "good" calendar looks like and how to suggest the next week. It follows
-// "Reward Spec.md". Every amount here is ILLUSTRATIVE: no public source documents
+// "Reward Spec.md", except that lottery tickets are left out until there is art for them.
+// Every amount here is ILLUSTRATIVE: no public source documents
 // a real daily calendar, so the UI labels amounts as assumptions.
 //
 // Nothing in here depends on the screens. The editor, the preview and Charlie all
@@ -15,7 +16,7 @@ export const MAX_WEEKS = 10
 const M = 1_000_000
 const B = 1_000_000_000
 
-export type RewardKind = 'chips' | 'lottery-ticket' | 'xp-boost' | 'diamonds' | 'weekly-gift'
+export type RewardKind = 'chips' | 'xp-boost' | 'diamonds' | 'weekly-gift'
 
 export type RewardItem = { kind: RewardKind; quantity: number }
 
@@ -43,8 +44,6 @@ export type RewardDef = {
   step: number
   min: number
   max?: number
-  // Tickets are always one.
-  fixedQuantity?: number
   // Held back for a future VIP weekly gift, so it can't be picked yet.
   reserved?: boolean
 }
@@ -60,20 +59,6 @@ export const REWARD_DEFS: Record<RewardKind, RewardDef> = {
     image: null,
     step: 250 * M,
     min: 10 * M,
-  },
-  'lottery-ticket': {
-    kind: 'lottery-ticket',
-    name: 'Lottery ticket',
-    sku: 'lottery-ticket',
-    type: 'Extra',
-    category: 'Extras',
-    premiumRank: 6,
-    // No art captured yet, so the UI draws a placeholder.
-    image: null,
-    step: 1,
-    min: 1,
-    max: 1,
-    fixedQuantity: 1,
   },
   'xp-boost': {
     kind: 'xp-boost',
@@ -115,7 +100,7 @@ export const REWARD_DEFS: Record<RewardKind, RewardDef> = {
 export const DAY7_BADGE_IMAGE = '/rewards/day7-badge.png'
 
 // Rewards a manager can pick, in the order the picker lists them.
-export const PICKABLE: RewardKind[] = ['chips', 'diamonds', 'xp-boost', 'lottery-ticket', 'weekly-gift']
+export const PICKABLE: RewardKind[] = ['chips', 'diamonds', 'xp-boost', 'weekly-gift']
 
 export const REWARD_TYPES: RewardType[] = ['Currency', 'Boost', 'Extra']
 
@@ -286,12 +271,6 @@ export const RULES: RuleInfo[] = [
     description: 'Boosts run from 10 minutes to 2 hours.',
   },
   {
-    code: 'ticket-quantity',
-    severity: 'warning',
-    title: 'Lottery ticket quantity is not 1',
-    description: 'A lottery ticket is always quantity 1.',
-  },
-  {
     code: 'day7-not-larger',
     severity: 'warning',
     title: 'Day 7 is not larger than Day 6',
@@ -363,9 +342,6 @@ export function validatePlan(plan: RewardWeek[], activeDays = plan.length * DAYS
       if (!isDay7 && hasKind(rewards, 'diamonds')) add('diamonds-early', w, d, 'Diamonds are reserved for Day 7.')
       if (!isDay7 && hasKind(rewards, 'xp-boost')) add('xp-early', w, d, 'The XP boost is reserved for Day 7.')
       if (quantityOf(rewards, 'xp-boost') > 120) add('xp-over-max', w, d, 'An XP boost lasts at most 2 hours.')
-      if (hasKind(rewards, 'lottery-ticket') && quantityOf(rewards, 'lottery-ticket') !== 1) {
-        add('ticket-quantity', w, d, 'A lottery ticket is always quantity 1.')
-      }
 
       if (isDay7) {
         const day6Chips = chipsOf(days[5])
@@ -417,11 +393,11 @@ const item = (kind: RewardKind, quantity: number): RewardItem => ({ kind, quanti
 // The spec's Week 1: the entry level every later week grows from.
 const BASELINE: RewardWeek = [
   [item('chips', 0.5 * B)],
-  [item('chips', 0.5 * B), item('lottery-ticket', 1)],
+  [item('chips', 0.5 * B)],
   [item('chips', 1 * B)],
-  [item('chips', 1 * B), item('lottery-ticket', 1)],
+  [item('chips', 1 * B)],
   [item('chips', 1.5 * B)],
-  [item('chips', 1.5 * B), item('lottery-ticket', 1)],
+  [item('chips', 1.5 * B)],
   [item('chips', 3 * B), item('diamonds', 5), item('xp-boost', 30)],
 ]
 

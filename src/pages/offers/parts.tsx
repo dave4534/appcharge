@@ -2,6 +2,7 @@ import { Ellipsis, GripVertical } from 'lucide-react'
 import type { ButtonHTMLAttributes } from 'react'
 import { Counter, Icon, IconButton, Label, Link, type LabelColor } from '../../design-system/components'
 import { statusLabels, type Offer, type OfferStatus } from './data'
+import { isOpenable } from './rows'
 
 // Live is Positive, Scheduled is Primary and Draft is Dark, the same mapping the
 // timeline bars use.
@@ -52,9 +53,8 @@ export function PriorityBadge({ priority }: { priority: number }) {
   )
 }
 
-// Drafts open the calendar editor; other offers are plain text for now.
 export function OfferTitle({ offer, onOpen }: { offer: Offer; onOpen: (id: string) => void }) {
-  if (offer.type === 'reward-calendar' && offer.status === 'draft') {
+  if (isOpenable(offer)) {
     return (
       <Link
         size="Large"

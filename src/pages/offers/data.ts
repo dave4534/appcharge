@@ -1,5 +1,5 @@
 import type { CalendarSettings } from '../calendar/settings'
-import type { RewardWeek } from '../calendar/rewards/rules'
+import { suggestWeek, type RewardWeek } from '../calendar/rewards/rules'
 
 export type OfferType = 'reward-calendar' | 'bundle' | 'promotion'
 export type OfferStatus = 'live' | 'scheduled' | 'draft'
@@ -36,6 +36,21 @@ export const statusLabels: Record<OfferStatus, string> = {
 export const audienceLabel = (o: Offer) =>
   o.audienceSize ? `${o.audience} (${o.audienceSize.toLocaleString('en-US')})` : o.audience
 
+// The example schedule from the reward spec, grown week over week by the same logic
+// the editor uses. Illustrative amounts.
+function seedRewards(weeks: number): RewardWeek[] {
+  const plan: RewardWeek[] = []
+  for (let i = 0; i < weeks; i++) plan.push(suggestWeek(plan, i).week)
+  return plan
+}
+
+const completeSettings = (
+  name: string,
+  startDate: string,
+  endDate: string,
+  rest: Pick<CalendarSettings, 'missedDay' | 'afterLast' | 'popupTrigger' | 'collection' | 'audienceMode' | 'segments'>,
+): CalendarSettings => ({ name, startDate, startTime: '00:00', endDate, endTime: '23:59', timezone: 'UTC', ...rest })
+
 // Listed in priority order. Each offer type is ranked from 1 within this list.
 export const initialOffers: Offer[] = [
   {
@@ -56,6 +71,15 @@ export const initialOffers: Offer[] = [
     end: '2026-11-29',
     repeatWeeks: 4,
     status: 'live',
+    settings: completeSettings('Weekly Reward Calendar', '2026-11-02', '2026-11-29', {
+      missedDay: 'weekly',
+      afterLast: 'restart',
+      popupTrigger: 'automatic',
+      collection: 'manual',
+      audienceMode: 'all',
+      segments: [],
+    }),
+    rewards: seedRewards(4),
   },
   {
     id: 'whales-streak',
@@ -66,6 +90,15 @@ export const initialOffers: Offer[] = [
     start: '2026-11-09',
     end: '2026-12-06',
     status: 'scheduled',
+    settings: completeSettings('Whales Streak', '2026-11-09', '2026-12-06', {
+      missedDay: 'complete',
+      afterLast: 'end',
+      popupTrigger: 'automatic',
+      collection: 'forced',
+      audienceMode: 'segments',
+      segments: ['High spenders'],
+    }),
+    rewards: seedRewards(4),
   },
   {
     id: 'weekend-flash-sale',

@@ -1,6 +1,5 @@
-import { Sparkles } from 'lucide-react'
 import { useMemo, useRef, useState } from 'react'
-import { AttentionBox, Button, Icon, Link } from '../../../design-system/components'
+import { AttentionBox, Button, Link, Modal } from '../../../design-system/components'
 import { formatUs } from '../../offers/dates'
 import type { CalendarSettings } from '../settings'
 import { CharliePanel, type Message } from './CharliePanel'
@@ -22,7 +21,7 @@ import {
   weekCountFor,
   type Layout,
 } from './plan'
-import { MAX_WEEKS, daySummary, suggestWeek, validatePlan, type DayRewards, type RewardWeek } from './rules'
+import { MAX_WEEKS, chipsOf, daySummary, emptyActiveDays, validatePlan, type DayRewards, type RewardWeek } from './rules'
 import './rewards.css'
 
 type RewardsStepProps = {
@@ -31,31 +30,33 @@ type RewardsStepProps = {
   // How many days the date range covers.
   days: number
   device: Device
+  charlieOpen: boolean
+  onCharlieClose: () => void
   onPlanChange: (plan: RewardWeek[]) => void
   // Adding or removing days and weeks moves the end date, so the editor updates Settings.
   onLayoutChange: (layout: Layout) => void
   onEditSettings: () => void
 }
 
-// `undo` is set when the suggestion added a new week, so rejecting it removes that week again.
-type Pending = { week: number; days: RewardWeek; basis: string; undo?: Layout }
+type Confirm = { title: string; body: string; label: string; run: () => void }
 
-// A week has a gap when one of its days inside the date range has no reward yet.
-const hasGap = (weeks: RewardWeek[], days: number, i: number) =>
-  weeks[i].slice(0, activeInWeek(days, i)).some((d) => d.length === 0)
-
-// A suggestion only fills empty days; days the manager already set stay as they are.
-const keepFilled = (existing: RewardWeek, suggested: RewardWeek): RewardWeek =>
-  suggested.map((d, i) => (existing[i].length > 0 ? existing[i] : d))
-
-export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayoutChange, onEditSettings }: RewardsStepProps) {
+export function RewardsStep({
+  settings,
+  plan,
+  days,
+  device,
+  charlieOpen,
+  onCharlieClose,
+  onPlanChange,
+  onLayoutChange,
+  onEditSettings,
+}: RewardsStepProps) {
   const weekCount = weekCountFor(days)
   const weeks = useMemo(() => ensureWeeks(plan, weekCount).slice(0, weekCount), [plan, weekCount])
 
-  const [pending, setPending] = useState<Pending | null>(null)
   const [picker, setPicker] = useState<{ week: number; day: number } | null>(null)
+  const [confirm, setConfirm] = useState<Confirm | null>(null)
   const [previewWeek, setPreviewWeek] = useState(0)
-  const [charlieOpen, setCharlieOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([])
   const nextId = useRef(1)
 
@@ -63,6 +64,7 @@ export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayo
   const errors = issues.filter((i) => i.severity === 'error')
   const shownWeek = Math.min(previewWeek, weekCount - 1)
   const atMaxWeeks = weekCount >= MAX_WEEKS
+  const nextEmpty = emptyActiveDays(weeks, days)[0] ?? null
 
   // ----- editing days
 
@@ -73,53 +75,46 @@ export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayo
     setPicker(null)
   }
 
+  const askClearDay = (week: number, day: number) =>
+    setConfirm({
+      title: `Delete the reward for Week ${week + 1}, Day ${day + 1}?`,
+      body: `This removes ${daySummary(weeks[week][day])} from that day.`,
+      label: 'Delete reward',
+      run: () => onPlanChange(setDay(weeks, week, day, [])),
+    })
+
   const apply = (layout: Layout | null) => {
     if (layout) onLayoutChange(layout)
     return layout
   }
 
   const onMenu = (week: number, action: 'duplicate' | 'clear' | 'delete') => {
-    if (action === 'clear') onPlanChange(clearWeek(weeks, week))
-    if (action === 'duplicate') apply(duplicateWeek(weeks, days, week))
-    if (action === 'delete') {
-      apply(deleteWeek(weeks, days, week))
-      setPreviewWeek((w) => Math.max(0, Math.min(w, weekCount - 2)))
+    const hasRewards = weeks[week].some((d) => d.length > 0)
+    if (action === 'duplicate') {
+      apply(duplicateWeek(weeks, days, week))
+      return
     }
-  }
-
-  // ----- suggestions
-
-  // Fills the empty days of the first week that has any. When every week is full, a new
-  // week is added (which moves the end date) and filled instead. Days that already have
-  // rewards are kept.
-  const addSuggestedWeek = (steeper = false): { week: number; basis: string } | null => {
-    let base = weeks
-    let undo: Layout | undefined
-    let target = weeks.findIndex((_, i) => hasGap(weeks, days, i))
-    if (target === -1) {
-      const layout = apply(addBlankWeek(weeks, days))
-      if (!layout) return null
-      base = layout.plan
-      target = layout.plan.length - 1
-      undo = { plan: weeks, days }
+    const run = () => {
+      if (action === 'clear') onPlanChange(clearWeek(weeks, week))
+      else {
+        apply(deleteWeek(weeks, days, week))
+        setPreviewWeek((w) => Math.max(0, Math.min(w, weekCount - 2)))
+      }
     }
-    const { week, basis } = suggestWeek(base, target, { steeper })
-    setPending({ week: target, days: keepFilled(base[target], week), basis, undo })
-    setPreviewWeek(target)
-    return { week: target, basis }
-  }
-
-  const acceptSuggestion = () => {
-    if (!pending) return
-    const active = activeInWeek(days, pending.week)
-    const filled = pending.days.map((d, i) => (i < active ? d : []))
-    onPlanChange(weeks.map((w, i) => (i === pending.week ? filled : w)))
-    setPending(null)
-  }
-
-  const rejectSuggestion = () => {
-    if (pending?.undo) onLayoutChange(pending.undo)
-    setPending(null)
+    if (!hasRewards && action === 'clear') return
+    if (!hasRewards) {
+      run()
+      return
+    }
+    setConfirm({
+      title: `${action === 'clear' ? 'Clear' : 'Delete'} Week ${week + 1}?`,
+      body:
+        action === 'clear'
+          ? 'This removes every reward in the week. The week stays in the calendar.'
+          : 'This removes the week and its rewards. Later weeks move up and the end date moves back 7 days.',
+      label: action === 'clear' ? 'Clear week' : 'Delete week',
+      run,
+    })
   }
 
   // ----- Charlie
@@ -130,39 +125,22 @@ export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayo
   const runIntent = (intent: Intent, label: string) => {
     say('user', label)
     switch (intent) {
-      case 'suggest-week': {
-        const result = addSuggestedWeek()
-        if (!result) {
-          say('charlie', `This calendar already runs ${MAX_WEEKS} weeks, the most a calendar can have.`)
+      case 'suggest-day': {
+        if (!nextEmpty) {
+          say('charlie', 'Every day in the calendar already has a reward.')
           return
         }
-        const n = result.week + 1
+        setPicker(nextEmpty)
         say(
           'charlie',
-          `Added a suggested Week ${n}${n > 1 ? ` below Week ${n - 1}` : ''}, based on ${result.basis}.\n\nAccept or reject it in the calendar. Nothing changes until you accept.`,
-          [
-            { label: `Make Week ${n} steeper`, intent: 'steeper' },
-            ...(n > 1 ? [{ label: `Compare with Week ${n - 1}`, intent: 'compare' as Intent }] : []),
-          ],
+          `Opened Week ${nextEmpty.week + 1}, Day ${nextEmpty.day + 1} with a suggestion based on your earlier days.\n\nAccept or reject it in the dialog. Nothing is added until you do.`,
         )
         return
       }
-      case 'steeper': {
-        if (!pending) {
-          say('charlie', 'Add a suggested week first, then I can make it steeper.', [{ label: 'Add a suggested week', intent: 'suggest-week' }])
-          return
-        }
-        const { week, basis } = suggestWeek(weeks, pending.week, { steeper: true })
-        setPending({ ...pending, days: keepFilled(weeks[pending.week], week), basis })
-        say('charlie', `Made Week ${pending.week + 1} steeper: Day 7 now gives ${daySummary(week[6])}.\n\nStill a suggestion. Accept or reject it in the calendar.`, [
-          ...(pending.week > 0 ? [{ label: `Compare with Week ${pending.week}`, intent: 'compare' as Intent }] : []),
-        ])
-        return
-      }
       case 'compare': {
-        const target = pending?.week ?? weekCount - 1
-        const view = pending ? weeks.map((w, i) => (i === pending.week ? pending.days : w)) : weeks
-        say('charlie', compareText(view, target))
+        // The latest week after Week 1 that already has chips.
+        const target = weeks.reduce((found, w, i) => (i > 0 && w.some((d) => chipsOf(d) > 0) ? i : found), 0)
+        say('charlie', compareText(weeks, target))
         return
       }
       case 'review':
@@ -176,22 +154,16 @@ export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayo
     }
   }
 
-  const onSend = (text: string) => runIntent(intentFor(text), text)
-
-  const nextWeekNumber = (pending?.week ?? weeks.findIndex((_, i) => hasGap(weeks, days, i))) + 1
-
   return (
     <div className={`rewards-layout${charlieOpen ? ' has-charlie' : ''}`}>
       {charlieOpen && (
         <CharliePanel
           messages={messages}
-          hasSuggestion={pending !== null}
-          nextWeekNumber={Math.max(1, nextWeekNumber)}
-          canAddWeek={!pending && !(atMaxWeeks && !weeks.some((_, i) => hasGap(weeks, days, i)))}
+          nextEmpty={nextEmpty}
           onIntent={runIntent}
-          onSend={onSend}
+          onSend={(text) => runIntent(intentFor(text), text)}
           onReset={() => setMessages([])}
-          onClose={() => setCharlieOpen(false)}
+          onClose={onCharlieClose}
         />
       )}
 
@@ -199,17 +171,6 @@ export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayo
         <header className="rewards-head">
           <h2>Rewards</h2>
           <span className="rewards-length">{formatLength(days)}</span>
-          <span className="rewards-spacer" />
-          <Button
-            kind={charlieOpen ? 'Primary' : 'Secondary'}
-            size="Small"
-            icon="Left"
-            aria-pressed={charlieOpen}
-            iconElement={<Icon icon={Sparkles} size="Small" color={charlieOpen ? 'on-primary' : 'primary'} />}
-            onClick={() => setCharlieOpen((o) => !o)}
-          >
-            Charlie
-          </Button>
           <Link
             size="Small"
             href="#"
@@ -234,7 +195,14 @@ export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayo
               <ul className="check-list">
                 {[...errors, ...issues.filter((i) => i.severity === 'warning')].slice(0, 4).map((i) => (
                   <li key={i.id}>
-                    <Link size="Small" href="#" onClick={(e) => { e.preventDefault(); setPicker({ week: i.week, day: i.day }) }}>
+                    <Link
+                      size="Small"
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault()
+                        setPicker({ week: i.week, day: i.day })
+                      }}
+                    >
                       Week {i.week + 1}, Day {i.day + 1}
                     </Link>{' '}
                     {i.message}
@@ -252,39 +220,24 @@ export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayo
               week={week}
               activeDays={activeInWeek(days, i)}
               issues={issues.filter((x) => x.week === i)}
-              suggestion={pending?.week === i ? { week: pending.days, basis: pending.basis } : null}
-              locked={pending !== null}
               canDuplicate={!atMaxWeeks}
               canDelete={weekCount > 1}
               onOpenDay={(d) => setPicker({ week: i, day: d })}
-              onClearDay={(d) => onPlanChange(setDay(weeks, i, d, []))}
+              onClearDay={(d) => askClearDay(i, d)}
               onAddDay={() => apply(addDay(weeks, days))}
               onMenu={(action) => onMenu(i, action)}
-              onAccept={acceptSuggestion}
-              onReject={rejectSuggestion}
             />
           ))}
         </div>
 
         <footer className="rewards-foot">
-          <Button kind="Secondary" size="Large" className="foot-blank" disabled={pending !== null || atMaxWeeks} onClick={() => apply(addBlankWeek(weeks, days))}>
+          <Button kind="Secondary" size="Large" className="foot-blank" disabled={atMaxWeeks} onClick={() => apply(addBlankWeek(weeks, days))}>
             + Add blank week
-          </Button>
-          <Button
-            kind="Primary"
-            size="Large"
-            icon="Left"
-            iconElement={<Icon icon={Sparkles} size="Small" color="on-primary" />}
-            disabled={pending !== null}
-            onClick={() => addSuggestedWeek()}
-          >
-            Add suggested week
           </Button>
         </footer>
       </section>
 
       <PreviewPanel plan={weeks} weekCount={weekCount} week={shownWeek} device={device} onWeekChange={setPreviewWeek} />
-
 
       {picker && (
         <RewardPicker
@@ -296,6 +249,25 @@ export function RewardsStep({ settings, plan, days, device, onPlanChange, onLayo
           onClose={() => setPicker(null)}
           onSave={saveDay}
         />
+      )}
+
+      {confirm && (
+        <Modal
+          size="Small"
+          title={confirm.title}
+          subtitle={confirm.body}
+          onClose={() => setConfirm(null)}
+          secondaryAction={{ label: 'Cancel', onClick: () => setConfirm(null) }}
+          primaryAction={{
+            label: confirm.label,
+            onClick: () => {
+              confirm.run()
+              setConfirm(null)
+            },
+          }}
+        >
+          <p className="confirm-note">You can't undo this.</p>
+        </Modal>
       )}
     </div>
   )

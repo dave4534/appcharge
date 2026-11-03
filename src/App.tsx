@@ -19,6 +19,8 @@ export default function App() {
   const [offers, setOffers] = useState<Offer[]>(() => loadOffers(initialOffers))
   const [editing, setEditing] = useState<Editing>(null)
   const [notice, setNotice] = useState<string | null>(null)
+  const [editorStep, setEditorStep] = useState(0)
+  const [charlieOpen, setCharlieOpen] = useState(false)
 
   useEffect(() => {
     if (!notice) return
@@ -33,14 +35,28 @@ export default function App() {
   const saveOffer = (offer: Offer) =>
     setOffers((all) => (all.some((o) => o.id === offer.id) ? all.map((o) => (o.id === offer.id ? offer : o)) : [...all, offer]))
 
-  const navigate = (id: string) => {
+  const closeEditor = () => {
     setEditing(null)
+    setEditorStep(0)
+    setCharlieOpen(false)
+  }
+
+  const navigate = (id: string) => {
+    closeEditor()
     setActiveId(id)
   }
 
   return (
     <div className="app">
-      <Sidebar activeId={activeId} onNavigate={navigate} />
+      <Sidebar
+        activeId={activeId}
+        onNavigate={navigate}
+        charlie={{
+          available: editing !== null && editorStep === 1,
+          open: charlieOpen,
+          onToggle: () => setCharlieOpen((o) => !o),
+        }}
+      />
       <div className="main">
         {editing ? (
           <CalendarEditor
@@ -49,10 +65,13 @@ export default function App() {
             onSave={saveOffer}
             onPublish={(published) => {
               saveOffer(published)
-              setEditing(null)
+              closeEditor()
               setNotice(`${published.name} is ${published.status === 'live' ? 'live' : 'scheduled'}.`)
             }}
-            onClose={() => setEditing(null)}
+            charlieOpen={charlieOpen}
+            onCharlieClose={() => setCharlieOpen(false)}
+            onStepChange={setEditorStep}
+            onClose={closeEditor}
           />
         ) : (
           <>

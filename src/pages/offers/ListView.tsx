@@ -3,6 +3,7 @@ import { Icon } from '../../design-system/components'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { formatDay } from './dates'
 import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
+import { isOpenable, rowClick } from './rows'
 import { useReorder } from './useReorder'
 
 type ListViewProps = {
@@ -30,7 +31,12 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: Lis
 
       <ul className="list-rows">
         {offers.map((offer) => (
-          <li key={offer.id} className={`list-grid list-row ${reorder.rowClass(offer.id)}`} {...reorder.rowProps(offer.id)}>
+          <li
+            key={offer.id}
+            className={`list-grid list-row${isOpenable(offer) ? ' is-openable' : ''} ${reorder.rowClass(offer.id)}`}
+            onClick={rowClick(offer, onOpen)}
+            {...reorder.rowProps(offer.id)}
+          >
             <DragHandle offer={offer} {...reorder.handleProps(offer.id)} />
             <PriorityBadge priority={priorityOf(offer.id)} />
             <div className="offer-name">

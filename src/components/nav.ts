@@ -33,20 +33,19 @@ export type NavSection = {
   items: NavItem[]
 }
 
-// Mirrors the Appcharge back-office sidebar from the Figma screenshots.
-// "Offers" was cut off in the screenshots: Bundles, Promotions and Popups are
-// visible, Progress Bars and Reward Calendars are added from the public docs.
+// Based on the Appcharge back-office sidebar from the Figma screenshots, with Offers
+// moved to the top and Reward Calendars first, since this prototype is about them.
+// Progress Bars and Reward Calendars come from the public docs.
 export const navSections: NavSection[] = [
   {
-    id: 'management',
-    label: 'Management',
+    id: 'offers',
+    label: 'Offers',
     items: [
-      { id: 'analytics', label: 'Analytics', icon: ChartColumn },
-      { id: 'players', label: 'Players', icon: Users },
-      { id: 'pricing', label: 'Pricing', icon: Tag },
-      { id: 'coupons', label: 'Coupons', icon: Ticket },
-      { id: 'localization', label: 'Localization', icon: Languages },
-      { id: 'settings', label: 'Settings', icon: Settings },
+      { id: 'reward-calendars', label: 'Reward Calendars', icon: CalendarDays },
+      { id: 'bundles', label: 'Bundles', icon: Boxes },
+      { id: 'promotions', label: 'Promotions', icon: Percent },
+      { id: 'popups', label: 'Popups', icon: MessageSquare },
+      { id: 'progress-bars', label: 'Progress Bars', icon: Gauge },
     ],
   },
   {
@@ -63,14 +62,15 @@ export const navSections: NavSection[] = [
     ],
   },
   {
-    id: 'offers',
-    label: 'Offers',
+    id: 'management',
+    label: 'Management',
     items: [
-      { id: 'bundles', label: 'Bundles', icon: Boxes },
-      { id: 'promotions', label: 'Promotions', icon: Percent },
-      { id: 'popups', label: 'Popups', icon: MessageSquare },
-      { id: 'progress-bars', label: 'Progress Bars', icon: Gauge },
-      { id: 'reward-calendars', label: 'Reward Calendars', icon: CalendarDays },
+      { id: 'analytics', label: 'Analytics', icon: ChartColumn },
+      { id: 'players', label: 'Players', icon: Users },
+      { id: 'pricing', label: 'Pricing', icon: Tag },
+      { id: 'coupons', label: 'Coupons', icon: Ticket },
+      { id: 'localization', label: 'Localization', icon: Languages },
+      { id: 'settings', label: 'Settings', icon: Settings },
     ],
   },
 ]

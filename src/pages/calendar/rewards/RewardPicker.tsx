@@ -76,6 +76,8 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
   })
 
   const items = toItems(selection)
+  // While the suggestion is neither accepted nor rejected, nothing can be added by accident.
+  const suggestionPending = showSuggestion && isNew
 
   // Run the same guardrails the calendar uses, on the day as it would be saved.
   const issues = useMemo(() => {
@@ -89,7 +91,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
     const suggested = suggestion.items.find((i) => i.kind === kind)
     if (suggested) return suggested.quantity
     if (kind === 'chips') return chipsOf(plan[week]?.[day - 1] ?? []) || 500_000_000
-    return REWARD_DEFS[kind].fixedQuantity ?? REWARD_DEFS[kind].step
+    return REWARD_DEFS[kind].step
   }
 
   const toggle = (kind: RewardKind) =>
@@ -137,12 +139,12 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
       secondaryAction={{ label: 'Cancel', onClick: onClose }}
       primaryAction={{
         label: isNew ? `Add to Day ${day + 1}` : `Save Day ${day + 1}`,
-        disabled: items.length === 0 || blocked || invalid !== null,
+        disabled: suggestionPending || items.length === 0 || blocked || invalid !== null,
         onClick: () => onSave(items),
       }}
     >
       <div className="picker">
-        {showSuggestion && isNew && (
+        {suggestionPending && (
           <div className="suggest-banner">
             <span className="suggested-icon" aria-hidden="true">
               <Icon icon={Sparkles} size="Small" color="primary" />
@@ -241,7 +243,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
                         kind="Tertiary"
                         size="XS"
                         aria-label={`Decrease ${def.name}`}
-                        disabled={!picked || def.fixedQuantity !== undefined}
+                        disabled={!picked}
                         iconElement={<Icon icon={Minus} size="Small" color="current" />}
                         onClick={() => step(kind, -1)}
                       />
@@ -252,7 +254,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
                         showIconRight={false}
                         aria-label={`${def.name} quantity`}
                         placeholder="–"
-                        disabled={!picked || def.fixedQuantity !== undefined}
+                        disabled={!picked}
                         state={invalid === kind ? 'error' : 'default'}
                         value={shownText}
                         onFocus={() => picked && setEditing({ kind, text: formatQuantity({ kind, quantity }) })}
@@ -266,7 +268,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
                         kind="Tertiary"
                         size="XS"
                         aria-label={`Increase ${def.name}`}
-                        disabled={!picked || def.fixedQuantity !== undefined}
+                        disabled={!picked}
                         iconElement={<Icon icon={Plus} size="Small" color="current" />}
                         onClick={() => step(kind, 1)}
                       />

@@ -13,16 +13,15 @@ export type Message = {
 
 type CharliePanelProps = {
   messages: Message[]
-  hasSuggestion: boolean
-  nextWeekNumber: number
-  canAddWeek: boolean
+  // The first day inside the date range that has no reward yet, if any.
+  nextEmpty: { week: number; day: number } | null
   onIntent: (intent: Intent, label: string) => void
   onSend: (text: string) => void
   onReset: () => void
   onClose: () => void
 }
 
-export function CharliePanel({ messages, hasSuggestion, nextWeekNumber, canAddWeek, onIntent, onSend, onReset, onClose }: CharliePanelProps) {
+export function CharliePanel({ messages, nextEmpty, onIntent, onSend, onReset, onClose }: CharliePanelProps) {
   const [draft, setDraft] = useState('')
   const endRef = useRef<HTMLDivElement>(null)
 
@@ -66,8 +65,7 @@ export function CharliePanel({ messages, hasSuggestion, nextWeekNumber, canAddWe
                   title: 'Suggest rewards',
                   content: (
                     <div className="charlie-options">
-                      {ask('suggest-week', `Add a suggested week`, !canAddWeek)}
-                      {ask('steeper', `Make Week ${nextWeekNumber} steeper`, !hasSuggestion)}
+                      {ask('suggest-day', nextEmpty ? `Suggest Week ${nextEmpty.week + 1}, Day ${nextEmpty.day + 1}` : 'Suggest the next empty day', !nextEmpty)}
                     </div>
                   ),
                 },

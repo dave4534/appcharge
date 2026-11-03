@@ -139,10 +139,10 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
           onChange={(e) => setQuery(e.target.value)}
           onClear={() => setQuery('')}
         />
-        <ToolbarSelect label="Sort" width={124} value={sort} options={sortOptions} onChange={(v) => setSort(v as SortKey)} />
-        <ToolbarSelect label="Type" width={188} value={type} options={typeOptions} onChange={(v) => setType(v as TypeFilter)} />
-        <ToolbarSelect label="Status" width={112} value={status} options={statusOptions} onChange={(v) => setStatus(v as StatusFilter)} />
-        <ToolbarSelect label="Audience" width={136} value={audience} options={audienceOptions} onChange={setAudience} />
+        <ToolbarSelect label="Sort" width={134} value={sort} options={sortOptions} onChange={(v) => setSort(v as SortKey)} />
+        <ToolbarSelect label="Type" width={216} value={type} options={typeOptions} onChange={(v) => setType(v as TypeFilter)} />
+        <ToolbarSelect label="Status" width={104} value={status} options={statusOptions} onChange={(v) => setStatus(v as StatusFilter)} />
+        <ToolbarSelect label="Audience" width={138} value={audience} options={audienceOptions} onChange={setAudience} />
 
         <ButtonGroup
           className="view-toggle"

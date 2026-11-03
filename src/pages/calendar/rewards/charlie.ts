@@ -5,16 +5,15 @@ import { formatLength } from './plan'
 // Charlie is scripted, not a live model. Every answer comes from the reward rules in
 // rules.ts and the calendar's own settings, so it stays consistent and explainable.
 
-export type Intent = 'suggest-week' | 'steeper' | 'compare' | 'review' | 'explain' | 'help'
+export type Intent = 'suggest-day' | 'compare' | 'review' | 'explain' | 'help'
 
 // Free text is matched on keywords, because the prototype has no language model.
 export function intentFor(text: string): Intent {
   const t = text.toLowerCase()
-  if (/steep|bigger|faster|more aggressive/.test(t)) return 'steeper'
   if (/compare|versus|\bvs\b|difference/.test(t)) return 'compare'
   if (/review|check|mistake|issue|problem|wrong|validate/.test(t)) return 'review'
   if (/explain|summar|rule|how does|what is this/.test(t)) return 'explain'
-  if (/suggest|add .*week|next week|fill|generate/.test(t)) return 'suggest-week'
+  if (/suggest|fill|next day|next empty|generate/.test(t)) return 'suggest-day'
   return 'help'
 }
 
@@ -89,4 +88,4 @@ export function explainText(settings: CalendarSettings, plan: RewardWeek[], days
 }
 
 export const HELP_TEXT =
-  'I can suggest a week, make it steeper, compare weeks, review your calendar for mistakes, or explain how it works. Try one of the options on the left, or ask in your own words.'
+  'I can suggest the next empty day, compare weeks, review your calendar for mistakes, or explain how it works. Try one of the options, or ask in your own words.'

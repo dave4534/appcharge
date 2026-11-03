@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Monitor, Smartphone } from 'lucide-react'
+import { ArrowLeft, Cloud, CloudCheck, Monitor, Smartphone } from 'lucide-react'
 import { Button, Icon, IconButton, Modal, MultiStepIndicator, Toast } from '../../design-system/components'
 import type { Offer } from '../offers/data'
 import { TODAY, dayDiff, formatUs } from '../offers/dates'
@@ -18,6 +18,10 @@ type CalendarEditorProps = {
   onSave: (offer: Offer) => void
   onPublish: (offer: Offer) => void
   onClose: () => void
+  charlieOpen: boolean
+  onCharlieClose: () => void
+  // Lets the app know which step is showing, so Charlie only appears on Rewards.
+  onStepChange: (step: number) => void
 }
 
 const steps = [{ label: 'Settings' }, { label: 'Rewards' }]
@@ -34,11 +38,12 @@ const settingsOf = (offer: Offer | null): CalendarSettings => {
   )
 }
 
-export function CalendarEditor({ offer, onSave, onPublish, onClose }: CalendarEditorProps) {
+export function CalendarEditor({ offer, onSave, onPublish, onClose, charlieOpen, onCharlieClose, onStepChange }: CalendarEditorProps) {
   const [settings, setSettings] = useState(() => settingsOf(offer))
   const [rewards, setRewards] = useState<RewardWeek[]>(() => offer?.rewards ?? [])
   const [offerId, setOfferId] = useState(offer?.id ?? null)
-  const [step, setStep] = useState(0)
+  // A calendar whose settings are already complete opens straight on its rewards.
+  const [step, setStep] = useState(() => (offer && validate(settingsOf(offer)).valid ? 1 : 0))
   const [device, setDevice] = useState<Device>('desktop')
   const [toast, setToast] = useState<string | null>(null)
   const [publishing, setPublishing] = useState(false)
@@ -48,6 +53,8 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose }: CalendarEd
 
   const { errors, missing, valid } = validate(settings)
   const days = settings.startDate && settings.endDate ? Math.max(0, dayDiff(settings.startDate, settings.endDate) + 1) : 0
+
+  useEffect(() => onStepChange(step), [step, onStepChange])
 
   useEffect(() => {
     if (!toast) return
@@ -70,8 +77,12 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose }: CalendarEd
     rewards,
   })
 
+  // Published calendars keep their status; only drafts are drafts.
+  const status = offer?.status ?? 'draft'
+  const isDraft = status === 'draft'
+
   const persist = () => {
-    const next = build('draft')
+    const next = build(status)
     onSave(next)
     setOfferId(next.id)
     setSavedAs(snapshot)
@@ -130,7 +141,7 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose }: CalendarEd
             onClick={close}
           />
           <h1>{settings.name.trim() || 'New Reward Calendar'}</h1>
-          <StatusPill status="draft" />
+          <StatusPill status={status} />
         </div>
 
         <div
@@ -144,31 +155,29 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose }: CalendarEd
         </div>
 
         <div className="editor-actions">
-          <span className="save-status" role="status">
-            {snapshot === savedAs ? (offerId ? 'All changes saved' : '') : 'Saving…'}
+          {/* An icon, not text, so the autosave state never changes the header's width. */}
+          <span
+            className="save-status"
+            role="status"
+            title={snapshot === savedAs ? 'All changes saved' : 'Saving…'}
+            aria-label={snapshot === savedAs ? 'All changes saved' : 'Saving changes'}
+          >
+            {(snapshot !== savedAs || offerId) && (
+              <Icon icon={snapshot === savedAs ? CloudCheck : Cloud} size="Medium" color={snapshot === savedAs ? 'positive' : 'secondary'} />
+            )}
           </span>
           {step === 1 && (
             <div className="device-toggle" role="group" aria-label="Preview device">
-              <IconButton
-                kind={device === 'desktop' ? 'Secondary' : 'Tertiary'}
-                size="Medium"
-                aria-label="Desktop preview"
-                aria-pressed={device === 'desktop'}
-                iconElement={<Icon icon={Monitor} size="Medium" color="current" />}
-                onClick={() => setDevice('desktop')}
-              />
-              <IconButton
-                kind={device === 'mobile' ? 'Secondary' : 'Tertiary'}
-                size="Medium"
-                aria-label="Mobile preview"
-                aria-pressed={device === 'mobile'}
-                iconElement={<Icon icon={Smartphone} size="Medium" color="current" />}
-                onClick={() => setDevice('mobile')}
-              />
+              <button type="button" aria-label="Desktop preview" aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>
+                <Icon icon={Monitor} size="Medium" color="current" />
+              </button>
+              <button type="button" aria-label="Mobile preview" aria-pressed={device === 'mobile'} onClick={() => setDevice('mobile')}>
+                <Icon icon={Smartphone} size="Medium" color="current" />
+              </button>
             </div>
           )}
           <Button kind="Secondary" size="Large" onClick={saveDraft}>
-            Save draft
+            {isDraft ? 'Save draft' : 'Save changes'}
           </Button>
           {step === 0 ? (
             <Button
@@ -181,9 +190,11 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose }: CalendarEd
               Next
             </Button>
           ) : (
-            <Button kind="Primary" size="Large" onClick={() => setPublishing(true)}>
-              Publish
-            </Button>
+            isDraft && (
+              <Button kind="Primary" size="Large" onClick={() => setPublishing(true)}>
+                Publish
+              </Button>
+            )
           )}
         </div>
       </header>
@@ -199,6 +210,8 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose }: CalendarEd
             device={device}
             onPlanChange={setRewards}
             onLayoutChange={onLayoutChange}
+            charlieOpen={charlieOpen}
+            onCharlieClose={onCharlieClose}
             onEditSettings={() => setStep(0)}
           />
         )}

@@ -77,7 +77,7 @@
   min-height: 0;
   overflow: auto;
   padding: var(--space-16) var(--space-24) var(--space-24);
-  background: var(--allgrey-background-color);
+  background: var(--primary-background-color);
 }
 
 .weeks > * + * {
@@ -93,7 +93,7 @@
 .rewards-foot {
   display: grid;
   flex: none;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: var(--space-12);
   padding: var(--space-12) var(--space-24);
   border-top: 1px solid var(--layout-border-color);
@@ -124,11 +124,6 @@
   font-weight: var(--font-weight-semibold);
 }
 
-.week-note {
-  color: var(--secondary-text-color);
-  font-size: var(--font-size-text3);
-}
-
 .menu-button {
   position: relative;
   margin-left: auto;
@@ -142,7 +137,8 @@
 
 .tile {
   position: relative;
-  min-height: 112px;
+  /* One fixed height, so a tile never changes size when a reward is added or removed. */
+  height: 124px;
   border: 1px solid var(--ui-border-color);
   border-radius: var(--radius);
   background: var(--primary-background-color);
@@ -155,7 +151,6 @@
   gap: 2px;
   width: 100%;
   height: 100%;
-  min-height: 110px;
   padding: var(--space-8) 6px;
   border: 0;
   border-radius: inherit;
@@ -333,36 +328,23 @@
   display: none;
 }
 
-/* Suggested week */
+/* Suggestion banner in the reward picker */
 
-.suggested {
-  padding: var(--space-8);
-  border-radius: 10px;
-  background: color-mix(in srgb, var(--primary-selected-color) 55%, white);
-}
-
-.suggested .tile {
-  border-style: solid;
-}
-
-.suggested-head,
 .suggest-banner {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: var(--space-12);
-  margin-bottom: var(--space-8);
-  padding: var(--space-8) var(--space-12);
-  border-radius: var(--radius);
-  background: var(--primary-background-color);
-}
-
-.suggest-banner {
+  padding: var(--space-12);
   border: 1px solid var(--primary-color);
+  border-radius: var(--radius);
   background: var(--primary-highlighted-color);
 }
 
 .suggested-icon {
   display: inline-flex;
+  align-items: center;
+  /* The same height as the title line, so the sparkle sits level with the title. */
+  height: 20px;
 }
 
 .suggested-text {
@@ -374,6 +356,7 @@
 
 .suggested-text strong {
   font-size: var(--font-size-text2);
+  line-height: 20px;
 }
 
 .suggested-text span {
@@ -382,6 +365,7 @@
 
 .suggested-actions {
   display: flex;
+  align-self: center;
   gap: var(--space-8);
 }
 
@@ -394,6 +378,19 @@
   min-height: 0;
   overflow: auto;
   padding: var(--space-16) var(--space-24) var(--space-24);
+  /* A soft, blurred colour wash behind the device, like a blurred photo. */
+  background:
+    radial-gradient(55% 38% at 22% 8%, rgba(150, 160, 150, 0.9), transparent 70%),
+    radial-gradient(50% 36% at 85% 22%, rgba(120, 150, 170, 0.55), transparent 72%),
+    radial-gradient(60% 40% at 30% 96%, rgba(150, 110, 85, 0.95), transparent 72%),
+    radial-gradient(45% 30% at 90% 90%, rgba(105, 95, 85, 0.8), transparent 70%),
+    linear-gradient(180deg, #54564f 0%, #3f403c 100%);
+}
+
+.preview-head h2,
+.preview-weeks,
+.preview-note {
+  color: #fff;
 }
 
 .preview-head {
@@ -848,4 +845,13 @@
 
 .issue--error {
   background: var(--negative-color-selected);
+}
+
+.menu-destructive {
+  color: var(--negative-color);
+}
+
+.confirm-note {
+  margin: 0;
+  color: var(--secondary-text-color);
 }

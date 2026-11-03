@@ -93,6 +93,11 @@ button {
 }
 
 .logo {
+  display: block;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
   font-family: var(--font-family-heading);
   font-size: 26px;
   font-weight: var(--font-weight-bold);
@@ -172,6 +177,40 @@ button {
 
 .nav-item svg {
   flex: none;
+}
+
+.nav-item[aria-pressed='true'] {
+  color: var(--primary-color);
+  font-weight: var(--font-weight-semibold);
+  background: var(--primary-selected-color);
+}
+
+.nav-item:disabled {
+  color: var(--disabled-text-color);
+  cursor: not-allowed;
+}
+
+.nav-item:disabled:hover {
+  background: none;
+}
+
+.nav-bottom {
+  margin-top: auto;
+  padding-top: var(--space-16);
+}
+
+/* Every modal is 80% of the viewport height. */
+[role='dialog'] {
+  display: flex;
+  flex-direction: column;
+  height: 80vh;
+  max-height: 80vh;
+}
+
+[role='dialog'] [class*='modal__body'] {
+  flex: 1;
+  max-height: none;
+  overflow: auto;
 }
 
 /* Top bar */

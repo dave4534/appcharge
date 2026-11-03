@@ -1,10 +1,10 @@
-import { Ellipsis } from 'lucide-react'
+import { Ellipsis, type LucideIcon } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 import { Icon, IconButton, Menu } from '../../../design-system/components'
 
 type MenuButtonProps = {
   label: string
-  items: { id: string; label: string; disabled?: boolean }[]
+  items: { id: string; label: string; icon: LucideIcon; disabled?: boolean; destructive?: boolean }[]
   onSelect: (id: string) => void
 }
 
@@ -45,7 +45,13 @@ export function MenuButton({ label, items, onSelect }: MenuButtonProps) {
           <Menu
             size="Medium"
             aria-label={label}
-            items={items}
+            items={items.map(({ id, label, icon, disabled, destructive }) => ({
+              id,
+              disabled,
+              // A destructive action reads in the negative color, icon and label.
+              label: destructive ? <span className="menu-destructive">{label}</span> : label,
+              leftIcon: <Icon icon={icon} size="Small" color={destructive ? 'negative' : 'secondary'} />,
+            }))}
             onItemSelect={(id) => {
               setOpen(false)
               onSelect(id)

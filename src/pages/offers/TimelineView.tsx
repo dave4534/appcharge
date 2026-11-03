@@ -1,18 +1,10 @@
-import type { ReactNode } from 'react'
-import { Repeat } from 'lucide-react'
-import { Icon, Label } from '../../design-system/components'
+import { useState, type ReactNode } from 'react'
+import { ChevronLeft, ChevronRight, Repeat } from 'lucide-react'
+import { Icon, IconButton } from '../../design-system/components'
 import { audienceLabel, typeLabels, type Offer } from './data'
-import {
-  TIMELINE_DAYS,
-  TIMELINE_START,
-  TODAY,
-  addDays,
-  dayDiff,
-  dayOfMonth,
-  formatDay,
-  monthLabel,
-} from './dates'
+import { TIMELINE_DAYS, TIMELINE_START, addDays, dayDiff, dayOfMonth, formatDay, monthLabel } from './dates'
 import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
+import { isOpenable, rowClick } from './rows'
 import { useReorder } from './useReorder'
 
 type TimelineViewProps = {
@@ -23,14 +15,13 @@ type TimelineViewProps = {
   onOpen: (id: string) => void
 }
 
+// The timeline shows seven weeks at a time and can be moved a week at a time.
+const MIN_SHIFT = -8
+const MAX_SHIFT = 16
+
 const pct = (days: number) => `${(days / TIMELINE_DAYS) * 100}%`
 
-// Seven weekly gridlines, one month label at the start of each month in range.
 const weekStarts = Array.from({ length: TIMELINE_DAYS / 7 }, (_, i) => i * 7)
-const monthStarts = Array.from({ length: TIMELINE_DAYS }, (_, i) => i).filter(
-  (i) => i === 0 || dayOfMonth(addDays(TIMELINE_START, i)) === 1,
-)
-const todayOffset = dayDiff(TIMELINE_START, TODAY) + 0.5
 
 // Clamp a run of days to the visible range, or return null when it is out of view.
 function span(startDay: number, length: number) {
@@ -40,15 +31,10 @@ function span(startDay: number, length: number) {
 }
 
 function Track({ children }: { children?: ReactNode }) {
-  return (
-    <div className="tl-track">
-      {children}
-      <span className="tl-today" style={{ left: pct(todayOffset) }} />
-    </div>
-  )
+  return <div className="tl-track">{children}</div>
 }
 
-function Bars({ offer }: { offer: Offer }) {
+function Bars({ offer, from }: { offer: Offer; from: string }) {
   if (!offer.start || !offer.end) {
     return (
       <div className="tl-bar tl-empty" style={{ left: '1%', width: '54%' }}>
@@ -57,7 +43,7 @@ function Bars({ offer }: { offer: Offer }) {
     )
   }
 
-  const startDay = dayDiff(TIMELINE_START, offer.start)
+  const startDay = dayDiff(from, offer.start)
   const length = dayDiff(offer.start, offer.end) + 1
   const run = span(startDay, length)
   const next = offer.repeatWeeks ? span(startDay + length, length) : null
@@ -95,6 +81,12 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen }:
     canReorder,
     onMove,
   )
+  const [shift, setShift] = useState(0)
+
+  const from = addDays(TIMELINE_START, shift * 7)
+  const monthStarts = Array.from({ length: TIMELINE_DAYS }, (_, i) => i).filter(
+    (i) => i === 0 || dayOfMonth(addDays(from, i)) === 1,
+  )
 
   return (
     <div className="tl-scroll">
@@ -108,27 +100,45 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen }:
             <div className="tl-months">
               {monthStarts.map((day) => (
                 <span key={day} style={{ left: pct(day) }}>
-                  {monthLabel(addDays(TIMELINE_START, day))}
+                  {monthLabel(addDays(from, day))}
                 </span>
               ))}
             </div>
             <div className="tl-weeks">
-              {weekStarts.slice(1).map((day) => (
+              {weekStarts.map((day) => (
                 <span key={day} style={{ left: pct(day) }}>
-                  {dayOfMonth(addDays(TIMELINE_START, day))}
+                  {dayOfMonth(addDays(from, day))}
                 </span>
               ))}
-              <span className="tl-today-chip" style={{ left: pct(todayOffset) }}>
-                <Label color="Primary" size="Small">
-                  Today
-                </Label>
-              </span>
+            </div>
+            <div className="tl-nav">
+              <IconButton
+                kind="Secondary"
+                size="XS"
+                aria-label="Show earlier weeks"
+                disabled={shift <= MIN_SHIFT}
+                iconElement={<Icon icon={ChevronLeft} size="Small" color="current" />}
+                onClick={() => setShift((s) => Math.max(MIN_SHIFT, s - 1))}
+              />
+              <IconButton
+                kind="Secondary"
+                size="XS"
+                aria-label="Show later weeks"
+                disabled={shift >= MAX_SHIFT}
+                iconElement={<Icon icon={ChevronRight} size="Small" color="current" />}
+                onClick={() => setShift((s) => Math.min(MAX_SHIFT, s + 1))}
+              />
             </div>
           </Track>
         </div>
 
         {offers.map((offer) => (
-          <div key={offer.id} className={`tl-row tl-body ${reorder.rowClass(offer.id)}`} {...reorder.rowProps(offer.id)}>
+          <div
+            key={offer.id}
+            className={`tl-row tl-body${isOpenable(offer) ? ' is-openable' : ''} ${reorder.rowClass(offer.id)}`}
+            onClick={rowClick(offer, onOpen)}
+            {...reorder.rowProps(offer.id)}
+          >
             <div className="tl-left">
               <DragHandle offer={offer} {...reorder.handleProps(offer.id)} />
               <PriorityBadge priority={priorityOf(offer.id)} />
@@ -142,7 +152,7 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen }:
               <KebabButton offer={offer} />
             </div>
             <Track>
-              <Bars offer={offer} />
+              <Bars offer={offer} from={from} />
             </Track>
           </div>
         ))}

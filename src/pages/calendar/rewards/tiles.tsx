@@ -1,4 +1,4 @@
-import { CircleAlert, Plus, Ticket, Trash2, TriangleAlert } from 'lucide-react'
+import { CircleAlert, Gift, Plus, Trash2, TriangleAlert } from 'lucide-react'
 import { Icon, IconButton } from '../../../design-system/components'
 import {
   DAY7_BADGE_IMAGE,
@@ -16,10 +16,10 @@ import {
 export function RewardIcon({ item, size = 28 }: { item: RewardItem; size?: number }) {
   const src = rewardImage(item)
   if (src) return <img className="reward-icon" src={src} width={size} height={size} alt="" />
-  // No art for the lottery ticket yet, so a placeholder stands in.
+  // A placeholder for any reward that has no art yet.
   return (
     <span className="reward-icon reward-icon--placeholder" style={{ width: size, height: size }}>
-      <Ticket size={Math.round(size * 0.6)} />
+      <Gift size={Math.round(size * 0.6)} />
     </span>
   )
 }
