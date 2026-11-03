@@ -9,8 +9,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: var(--space-4);
-  min-width: 40px;
+  gap: var(--space-8);
   height: 8px;
 }
 
@@ -42,7 +41,6 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 45px;
   padding-inline: var(--space-8);
   font-size: 14px;
   line-height: 20px;
@@ -55,4 +53,24 @@
 
 .steps--on-primary {
   color: var(--text-color-on-primary);
+}
+
+/* Both buttons are the low-emphasis (Tertiary) button, as in Figma: no outline, the
+   body text color, and a plain disabled state. */
+.steps .steps__button:disabled {
+  border-color: transparent;
+  background-color: transparent;
+  color: var(--disabled-text-color);
+}
+
+.steps--on-primary .steps__button {
+  color: var(--text-color-on-primary);
+}
+
+.steps--on-primary .steps__button:hover:not(:disabled) {
+  background-color: rgba(255, 255, 255, 0.16);
+}
+
+.steps--on-primary .steps__button:disabled {
+  color: rgba(255, 255, 255, 0.5);
 }

@@ -27,14 +27,13 @@ export function Steps({
   totalSteps = 3,
   onPrevious,
   onNext,
-  previousLabel = 'Previous',
+  previousLabel = 'Back',
   nextLabel = 'Next',
   className,
 }: StepsProps) {
   const isOnPrimary = onColor === 'On Primary';
   const safeCurrent = Math.min(Math.max(currentStep, 1), totalSteps);
 
-  const buttonKind = isOnPrimary ? 'Tertiary' : 'Secondary';
 
   const dots = (
     <div className={styles.steps__dots} aria-hidden="true">
@@ -80,10 +79,11 @@ export function Steps({
       aria-label={`Step ${safeCurrent} of ${totalSteps}`}
     >
       <Button
-        kind={buttonKind}
+        kind="Tertiary"
         size="Small"
         icon="Left"
-        iconElement={<ChevronLeft size={16} />}
+        className={styles.steps__button}
+        iconElement={<ChevronLeft size={20} />}
         onClick={onPrevious}
         disabled={safeCurrent <= 1}
       >
@@ -92,17 +92,18 @@ export function Steps({
 
       {type === 'Numbers' ? (
         <span className={styles.steps__counter}>
-          {safeCurrent}/{totalSteps}
+          {safeCurrent} / {totalSteps}
         </span>
       ) : (
         dots
       )}
 
       <Button
-        kind={buttonKind}
+        kind="Tertiary"
         size="Small"
         icon="Right"
-        iconElement={<ChevronRight size={16} />}
+        className={styles.steps__button}
+        iconElement={<ChevronRight size={20} />}
         onClick={onNext}
         disabled={safeCurrent >= totalSteps}
       >

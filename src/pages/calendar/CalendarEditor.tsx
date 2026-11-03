@@ -154,12 +154,10 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
         </div>
 
         <Steps
-          type="Numbers"
+          type="Gallery"
           className="editor-steps"
           currentStep={step + 1}
           totalSteps={2}
-          previousLabel="Settings"
-          nextLabel="Rewards"
           onPrevious={() => setStep(0)}
           onNext={() => valid && setStep(1)}
         />
