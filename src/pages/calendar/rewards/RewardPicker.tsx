@@ -133,12 +133,13 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
     <Modal
       size="Large"
       scroll
+      className="modal--picker"
       title={`Select reward for Day ${day + 1}`}
       subtitle={`Week ${week + 1}. Amounts are illustrative.`}
       onClose={onClose}
       secondaryAction={{ label: 'Cancel', onClick: onClose }}
       primaryAction={{
-        label: isNew ? `Add to Day ${day + 1}` : `Save Day ${day + 1}`,
+        label: isNew ? `Add to Day ${day + 1}` : 'Save changes',
         disabled: suggestionPending || items.length === 0 || blocked || invalid !== null,
         onClick: () => onSave(items),
       }}

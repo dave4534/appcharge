@@ -199,12 +199,15 @@ button {
   padding-top: var(--space-16);
 }
 
-/* Every modal is 80% of the viewport height. */
+/* Modals fit their content, up to 80% of the viewport height, then scroll inside. */
 [role='dialog'] {
   display: flex;
   flex-direction: column;
-  height: 80vh;
   max-height: 80vh;
+}
+
+.modal--picker {
+  min-height: 60vh;
 }
 
 [role='dialog'] [class*='modal__body'] {

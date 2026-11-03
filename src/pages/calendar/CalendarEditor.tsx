@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Cloud, CloudCheck, Monitor, Smartphone } from 'lucide-react'
-import { Button, Icon, IconButton, Modal, MultiStepIndicator, Toast } from '../../design-system/components'
+import { Button, Icon, IconButton, Modal, Steps, Toast } from '../../design-system/components'
 import type { Offer } from '../offers/data'
-import { TODAY, dayDiff, formatUs } from '../offers/dates'
+import { TODAY, dayDiff } from '../offers/dates'
 import { StatusPill } from '../offers/parts'
 import type { Device } from './rewards/PreviewPanel'
 import { RewardsStep } from './rewards/RewardsStep'
-import { endDateFor, formatLength, weekCountFor, type Layout } from './rewards/plan'
+import { endDateFor, weekCountFor, type Layout } from './rewards/plan'
 import { emptyActiveDays, validatePlan, type RewardWeek } from './rewards/rules'
 import { SettingsStep } from './SettingsStep'
 import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
@@ -16,15 +16,14 @@ type CalendarEditorProps = {
   // The draft being reopened, or null for a new calendar.
   offer: Offer | null
   onSave: (offer: Offer) => void
-  onPublish: (offer: Offer) => void
+  // Saves the calendar and returns to the offers list, which shows `message` in a toast.
+  onFinish: (offer: Offer, message: string) => void
   onClose: () => void
   charlieOpen: boolean
   onCharlieClose: () => void
   // Lets the app know which step is showing, so Charlie only appears on Rewards.
   onStepChange: (step: number) => void
 }
-
-const steps = [{ label: 'Settings' }, { label: 'Rewards' }]
 
 const settingsOf = (offer: Offer | null): CalendarSettings => {
   if (!offer) return emptySettings
@@ -38,7 +37,7 @@ const settingsOf = (offer: Offer | null): CalendarSettings => {
   )
 }
 
-export function CalendarEditor({ offer, onSave, onPublish, onClose, charlieOpen, onCharlieClose, onStepChange }: CalendarEditorProps) {
+export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, onCharlieClose, onStepChange }: CalendarEditorProps) {
   const [settings, setSettings] = useState(() => settingsOf(offer))
   const [rewards, setRewards] = useState<RewardWeek[]>(() => offer?.rewards ?? [])
   const [offerId, setOfferId] = useState(offer?.id ?? null)
@@ -123,10 +122,20 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose, charlieOpen,
       days,
     ).map((d) => `Week ${d.week + 1}, Day ${d.day + 1} has no reward yet.`),
   ]
-  const warnings = issues.filter((i) => i.severity === 'warning').length
 
+  // Publishing goes straight back to the list. Only blockers stop it, with a dialog.
   const publish = () => {
-    onPublish(build(settings.startDate > TODAY ? 'scheduled' : 'live'))
+    if (blockers.length > 0) {
+      setPublishing(true)
+      return
+    }
+    const next = build(settings.startDate > TODAY ? 'scheduled' : 'live')
+    onFinish(next, `${next.name} is ${next.status === 'live' ? 'live' : 'scheduled'}.`)
+  }
+
+  const saveChanges = () => {
+    const next = build(status)
+    onFinish(next, `Changes to ${next.name} are saved.`)
   }
 
   return (
@@ -144,15 +153,16 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose, charlieOpen,
           <StatusPill status={status} />
         </div>
 
-        <div
-          className={`stepper-wrap${step === 1 ? ' can-go-back' : ''}`}
-          onClick={(e) => {
-            const item = (e.target as HTMLElement).closest('li')
-            if (step === 1 && item && item === e.currentTarget.querySelector('li')) setStep(0)
-          }}
-        >
-          <MultiStepIndicator size="Regular" orientation="Horizontal" currentStep={step + 1} steps={steps} />
-        </div>
+        <Steps
+          type="Numbers"
+          className="editor-steps"
+          currentStep={step + 1}
+          totalSteps={2}
+          previousLabel="Settings"
+          nextLabel="Rewards"
+          onPrevious={() => setStep(0)}
+          onNext={() => valid && setStep(1)}
+        />
 
         <div className="editor-actions">
           {/* An icon, not text, so the autosave state never changes the header's width. */}
@@ -176,9 +186,15 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose, charlieOpen,
               </button>
             </div>
           )}
-          <Button kind="Secondary" size="Large" onClick={saveDraft}>
-            {isDraft ? 'Save draft' : 'Save changes'}
-          </Button>
+          {isDraft ? (
+            <Button kind="Secondary" size="Large" onClick={saveDraft}>
+              Save draft
+            </Button>
+          ) : (
+            <Button kind="Primary" size="Large" onClick={saveChanges}>
+              Save changes
+            </Button>
+          )}
           {step === 0 ? (
             <Button
               kind="Primary"
@@ -191,7 +207,7 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose, charlieOpen,
             </Button>
           ) : (
             isDraft && (
-              <Button kind="Primary" size="Large" onClick={() => setPublishing(true)}>
+              <Button kind="Primary" size="Large" onClick={publish}>
                 Publish
               </Button>
             )
@@ -220,31 +236,18 @@ export function CalendarEditor({ offer, onSave, onPublish, onClose, charlieOpen,
       {publishing && (
         <Modal
           size="Medium"
-          title={`Publish ${settings.name.trim() || 'this calendar'}?`}
-          subtitle={blockers.length > 0 ? 'Fix these before publishing.' : 'Check the summary, then publish.'}
+          title="Fix these before publishing"
+          subtitle="These need attention first."
           onClose={() => setPublishing(false)}
-          secondaryAction={{ label: blockers.length > 0 ? 'Back to rewards' : 'Cancel', onClick: () => setPublishing(false) }}
-          primaryAction={{ label: 'Publish', disabled: blockers.length > 0, onClick: publish }}
+          secondaryAction={{ label: 'Cancel', onClick: () => setPublishing(false) }}
+          primaryAction={{ label: 'Back to rewards', onClick: () => setPublishing(false) }}
         >
-          {blockers.length > 0 ? (
-            <ul className="publish-list publish-list--blockers">
-              {blockers.slice(0, 8).map((b) => (
-                <li key={b}>{b}</li>
-              ))}
-              {blockers.length > 8 && <li>and {blockers.length - 8} more.</li>}
-            </ul>
-          ) : (
-            <ul className="publish-list">
-              <li>
-                Runs {formatUs(settings.startDate)} to {formatUs(endDateFor(settings.startDate, days))} ({formatLength(days)}), {settings.timezone}.
-              </li>
-              <li>Audience: {audienceOf(settings).audience}.</li>
-              <li>
-                {warnings === 0 ? 'No warnings.' : `${warnings} ${warnings === 1 ? 'warning' : 'warnings'} remain. You can still publish.`}
-              </li>
-              <li>{settings.startDate > TODAY ? 'It will be scheduled and go live on its start date.' : 'It goes live for players right away.'}</li>
-            </ul>
-          )}
+          <ul className="publish-list publish-list--blockers">
+            {blockers.slice(0, 8).map((b) => (
+              <li key={b}>{b}</li>
+            ))}
+            {blockers.length > 8 && <li>and {blockers.length - 8} more.</li>}
+          </ul>
         </Modal>
       )}
 

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { AttentionBox, Button, Link, Modal } from '../../../design-system/components'
 import { formatUs } from '../../offers/dates'
 import type { CalendarSettings } from '../settings'
@@ -38,6 +38,12 @@ type RewardsStepProps = {
   onEditSettings: () => void
 }
 
+// The preview pane can be dragged wider or narrower.
+const CHROME_DEFAULT = 460
+const PREVIEW_MIN = 340
+const PREVIEW_MAX = 720
+const clampWidth = (w: number) => Math.max(PREVIEW_MIN, Math.min(PREVIEW_MAX, w))
+
 type Confirm = { title: string; body: string; label: string; run: () => void }
 
 export function RewardsStep({
@@ -59,6 +65,8 @@ export function RewardsStep({
   const [previewWeek, setPreviewWeek] = useState(0)
   const [messages, setMessages] = useState<Message[]>([])
   const nextId = useRef(1)
+  const layoutRef = useRef<HTMLDivElement>(null)
+  const [previewWidth, setPreviewWidth] = useState(CHROME_DEFAULT)
 
   const issues = useMemo(() => validatePlan(weeks, days), [weeks, days])
   const errors = issues.filter((i) => i.severity === 'error')
@@ -117,6 +125,18 @@ export function RewardsStep({
     })
   }
 
+  // ----- resizing the preview
+
+  const dragResizer = (e: PointerEvent<HTMLDivElement>) => {
+    if (!e.currentTarget.hasPointerCapture(e.pointerId) || !layoutRef.current) return
+    setPreviewWidth(clampWidth(layoutRef.current.getBoundingClientRect().right - e.clientX))
+  }
+
+  const keyResizer = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === 'ArrowLeft') setPreviewWidth((w) => clampWidth(w + 24))
+    if (e.key === 'ArrowRight') setPreviewWidth((w) => clampWidth(w - 24))
+  }
+
   // ----- Charlie
 
   const say = (role: Message['role'], text: string, follow?: Message['follow']) =>
@@ -155,7 +175,11 @@ export function RewardsStep({
   }
 
   return (
-    <div className={`rewards-layout${charlieOpen ? ' has-charlie' : ''}`}>
+    <div
+      ref={layoutRef}
+      className={`rewards-layout${charlieOpen ? ' has-charlie' : ''}`}
+      style={{ '--preview-width': `${previewWidth}px` } as CSSProperties}
+    >
       {charlieOpen && (
         <CharliePanel
           messages={messages}
@@ -236,6 +260,20 @@ export function RewardsStep({
           </Button>
         </footer>
       </section>
+
+      <div
+        className="resizer"
+        role="separator"
+        aria-orientation="vertical"
+        aria-label="Resize the preview"
+        aria-valuemin={PREVIEW_MIN}
+        aria-valuemax={PREVIEW_MAX}
+        aria-valuenow={previewWidth}
+        tabIndex={0}
+        onPointerDown={(e) => e.currentTarget.setPointerCapture(e.pointerId)}
+        onPointerMove={dragResizer}
+        onKeyDown={keyResizer}
+      />
 
       <PreviewPanel plan={weeks} weekCount={weekCount} week={shownWeek} device={device} onWeekChange={setPreviewWeek} />
 

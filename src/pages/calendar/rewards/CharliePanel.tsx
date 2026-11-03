@@ -44,10 +44,7 @@ export function CharliePanel({ messages, nextEmpty, onIntent, onSend, onReset, o
   return (
     <aside className="charlie" aria-label="Charlie, your reward assistant">
       <header className="charlie-head">
-        <div>
-          <h2>Charlie</h2>
-          <p>You decide what is added</p>
-        </div>
+        <h2>Charlie</h2>
         <IconButton kind="Tertiary" size="Small" aria-label="Close Charlie" iconElement={<Icon icon={X} size="Medium" color="secondary" />} onClick={onClose} />
       </header>
 

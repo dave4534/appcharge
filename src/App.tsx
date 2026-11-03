@@ -63,10 +63,10 @@ export default function App() {
             key={editing.offerId ?? 'new'}
             offer={offers.find((o) => o.id === editing.offerId) ?? null}
             onSave={saveOffer}
-            onPublish={(published) => {
-              saveOffer(published)
+            onFinish={(finished, message) => {
+              saveOffer(finished)
               closeEditor()
-              setNotice(`${published.name} is ${published.status === 'live' ? 'live' : 'scheduled'}.`)
+              setNotice(message)
             }}
             charlieOpen={charlieOpen}
             onCharlieClose={() => setCharlieOpen(false)}

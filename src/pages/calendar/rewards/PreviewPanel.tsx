@@ -92,28 +92,26 @@ export function PreviewPanel({ plan, weekCount, week, device, onWeekChange }: Pr
   return (
     <aside className="preview" aria-label="Player preview">
       <header className="preview-head">
-        <h2>Preview</h2>
-        <div className="preview-weeks">
-          <IconButton
-            kind="Secondary"
-            size="XS"
-            aria-label="Previous week"
-            disabled={week === 0}
-            iconElement={<Icon icon={ChevronLeft} size="Small" color="current" />}
-            onClick={() => onWeekChange(week - 1)}
-          />
-          <span>Week {week + 1}</span>
-          <IconButton
-            kind="Secondary"
-            size="XS"
-            aria-label="Next week"
-            disabled={week >= weekCount - 1}
-            iconElement={<Icon icon={ChevronRight} size="Small" color="current" />}
-            onClick={() => onWeekChange(week + 1)}
-          />
-        </div>
+        <IconButton
+          kind="Secondary"
+          size="XS"
+          aria-label="Previous week"
+          disabled={week === 0}
+          iconElement={<Icon icon={ChevronLeft} size="Small" color="current" />}
+          onClick={() => onWeekChange(week - 1)}
+        />
+        <span className="preview-week">Week {week + 1}</span>
+        <IconButton
+          kind="Secondary"
+          size="XS"
+          aria-label="Next week"
+          disabled={week >= weekCount - 1}
+          iconElement={<Icon icon={ChevronRight} size="Small" color="current" />}
+          onClick={() => onWeekChange(week + 1)}
+        />
       </header>
 
+      <div className="pv-stage">
       <div className={`pv-browser pv-browser--${device}`}>
         <div className="pv-chrome">
           <span />
@@ -153,7 +151,7 @@ export function PreviewPanel({ plan, weekCount, week, device, onWeekChange }: Pr
           ))}
         </div>
       </div>
-      <p className="preview-note">Preview only. Collected, ready and locked are example player states.</p>
+      </div>
     </aside>
   )
 }

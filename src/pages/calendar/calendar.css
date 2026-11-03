@@ -165,10 +165,6 @@
   background: var(--primary-background-color);
 }
 
-.stepper-wrap.can-go-back li:first-child {
-  cursor: pointer;
-}
-
 .save-status {
   /* A fixed size, so the autosave state never moves the stepper. */
   display: inline-flex;
@@ -205,35 +201,6 @@
   color: var(--primary-text-color);
 }
 
-/* The design system stepper stacks each title under its circle. Here the circle and
-   its title sit on one line, vertically centred, with the connector after the title. */
-.stepper-wrap ol {
-  align-items: center;
-}
-
-.stepper-wrap li {
-  align-items: center;
-  flex-direction: row !important;
-  gap: var(--space-8) !important;
-}
-
-.stepper-wrap li > div:first-child {
-  display: contents;
-}
-
-.stepper-wrap li [class*='__marker'] {
-  order: 1;
-}
-
-.stepper-wrap li [class*='__text'] {
-  order: 2;
-}
-
-.stepper-wrap li [class*='__connector'] {
-  order: 3;
-  width: 32px;
-  margin-left: var(--space-8);
-}
 
 .publish-list {
   display: grid;
@@ -244,4 +211,9 @@
 
 .publish-list--blockers {
   color: var(--negative-color);
+}
+
+/* The Steps component sits in the middle of the header. */
+.editor-steps {
+  justify-self: center;
 }
