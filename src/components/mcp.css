@@ -37,6 +37,7 @@
 
 .mcp-card {
   width: min(100%, 440px);
+  margin-inline: auto;
   overflow: hidden;
   border: 1px solid var(--layout-border-color);
   border-radius: 12px;

@@ -72,8 +72,8 @@
 .rewards-foot {
   display: grid;
   flex: none;
-  grid-template-columns: 1fr;
-  gap: var(--space-12);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-8);
   padding: var(--space-12) var(--space-24);
   border-top: 1px solid var(--layout-border-color);
   background: var(--primary-background-color);

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Cloud, CloudCheck, Monitor, Smartphone } from 'lucide-react'
-import { Button, Icon, IconButton, Toast } from '../../design-system/components'
+import { Button, Icon, IconButton } from '../../design-system/components'
+import { ToastAlert } from '@/components/ToastAlert'
 import { ActionDialog } from '@/components/ActionDialog'
 import {
   Stepper,
@@ -270,10 +271,8 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
       )}
 
       {toast && (
-        <div className="toast" role="status">
-          <Toast type="Positive" onClose={() => setToast(null)}>
-            {toast}
-          </Toast>
+        <div className="toast">
+          <ToastAlert message={toast} onClose={() => setToast(null)} />
         </div>
       )}
     </div>

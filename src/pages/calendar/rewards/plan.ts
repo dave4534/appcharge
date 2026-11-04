@@ -30,10 +30,10 @@ export type Layout = { plan: RewardWeek[]; days: number }
 // Each change returns the new plan and the new number of active days, or null when
 // the calendar is already at its limit.
 
-export function addBlankWeek(plan: RewardWeek[], days: number): Layout | null {
-  const weeks = weekCountFor(days)
-  if (weeks >= MAX_WEEKS) return null
-  return { plan: ensureWeeks(plan, weeks + 1), days: weeks * DAYS_PER_WEEK + DAYS_PER_WEEK }
+// Extends the calendar by a number of days (7 for a week, 28 for a month).
+export function addPeriod(plan: RewardWeek[], days: number, extra: number): Layout | null {
+  if (days + extra > MAX_DAYS) return null
+  return { plan: ensureWeeks(plan, weekCountFor(days + extra)), days: days + extra }
 }
 
 export function addDay(plan: RewardWeek[], days: number): Layout | null {

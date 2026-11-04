@@ -10,8 +10,8 @@ import { RewardPicker } from './RewardPicker'
 import { WeekRow } from './WeekRow'
 import {
   activeInWeek,
-  addBlankWeek,
   addDay,
+  addPeriod,
   clearWeek,
   deleteWeek,
   duplicateWeek,
@@ -20,6 +20,7 @@ import {
   formatLength,
   setDay,
   weekCountFor,
+  MAX_DAYS,
   type Layout,
 } from './plan'
 import { MAX_WEEKS, dayNumber, daySummary, validatePlan, type DayRewards, type RewardWeek } from './rules'
@@ -201,10 +202,23 @@ export function RewardsStep({
         </div>
 
         <footer className="rewards-foot">
-          <Button variant="ghost" size="lg" className="foot-blank" disabled={atMaxWeeks} onClick={() => apply(addBlankWeek(weeks, days))}>
-            <Plus data-icon="inline-start" />
-            Add blank week
-          </Button>
+          {[
+            { label: 'Day', extra: 1 },
+            { label: 'Week', extra: 7 },
+            { label: 'Month', extra: 28 },
+          ].map(({ label, extra }) => (
+            <Button
+              key={label}
+              variant="ghost"
+              size="lg"
+              disabled={days + extra > MAX_DAYS}
+              aria-label={`Add ${extra} ${extra === 1 ? 'day' : 'days'} to the calendar`}
+              onClick={() => apply(addPeriod(weeks, days, extra))}
+            >
+              <Plus data-icon="inline-start" />
+              {label}
+            </Button>
+          ))}
         </footer>
       </section>
 

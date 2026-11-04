@@ -43,11 +43,10 @@ export function McpDialog({ onClose, onContactAdmin }: McpDialogProps) {
     >
         <div className="mcp-body">
           <p>
-            The Appcharge <strong>Model Context Protocol (MCP)</strong> server is a free, hosted endpoint that lets your
-            AI assistant work with your store. With plain text questions it can draft a reward calendar, review a
-            week&rsquo;s rewards, or compare chip amounts across weeks.
+            The Appcharge <strong>Model Context Protocol (MCP)</strong> server is a hosted endpoint that lets your AI
+            assistant work with your store. I can draft a reward calendar, review a week&rsquo;s rewards, or compare
+            chip amounts across weeks.
           </p>
-          <p>It works with any MCP-compatible client, including Claude, ChatGPT, Gemini, Perplexity and Cursor.</p>
 
           <h3>Get started in 30 seconds</h3>
           <p>

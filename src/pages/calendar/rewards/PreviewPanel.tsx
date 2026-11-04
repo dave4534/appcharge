@@ -24,10 +24,11 @@ type PreviewPanelProps = {
 }
 
 // What a player has done so far in the preview. Week 1 shows a collected day, a day
-// ready to collect and locked days, the same states players see in the store.
-type PlayerState = 'collected' | 'ready' | 'locked'
-const playerState = (week: number, day: number): PlayerState =>
-  week === 0 && day === 0 ? 'collected' : week === 0 && day === 1 ? 'ready' : 'locked'
+// ready to collect and locked days, the same states players see in the store. A day
+// with no reward has no state: the preview never shows a day the calendar leaves empty.
+type PlayerState = 'collected' | 'ready' | 'locked' | 'empty'
+const playerState = (week: number, day: number, filled: boolean): PlayerState =>
+  !filled ? 'empty' : week === 0 && day === 0 ? 'collected' : week === 0 && day === 1 ? 'ready' : 'locked'
 
 const pad = (n: number) => String(n).padStart(2, '0')
 
@@ -89,7 +90,7 @@ export function PreviewPanel({ plan, weekCount, week, device, onWeekChange }: Pr
   const rewards = plan[week] ?? []
   const blank = rewards.every((d) => d.length === 0)
   // Only a week with a day ready to collect has something to collect.
-  const canCollect = Array.from({ length: DAYS_PER_WEEK }, (_, d) => playerState(week, d)).includes('ready')
+  const canCollect = Array.from({ length: DAYS_PER_WEEK }, (_, d) => playerState(week, d, (rewards[d] ?? []).length > 0)).includes('ready')
 
   return (
     <aside className="preview" aria-label="Player preview">
@@ -138,7 +139,7 @@ export function PreviewPanel({ plan, weekCount, week, device, onWeekChange }: Pr
           </div>
           <div className="pv-grid">
             {Array.from({ length: DAYS_PER_WEEK }, (_, d) => (
-              <PlayerTile key={d} rewards={rewards[d] ?? []} week={week} day={d} state={playerState(week, d)} />
+              <PlayerTile key={d} rewards={rewards[d] ?? []} week={week} day={d} state={playerState(week, d, (rewards[d] ?? []).length > 0)} />
             ))}
           </div>
           <button type="button" className="pv-collect" disabled={!canCollect}>
