@@ -128,11 +128,11 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
             { value: 'complete', label: 'Complete reset: back to Week 1, Day 1' },
             { value: 'weekly', label: 'Weekly reset: back to Day 1 of the current week' },
           ]}
-          effect={
+          impact={
             s.missedDay === 'complete'
-              ? 'Effect: a player on Week 3, Day 5 who misses a day goes back to Week 1, Day 1.'
+              ? 'Impact: a player on Week 3, Day 5 who misses a day goes back to Week 1, Day 1.'
               : s.missedDay === 'weekly'
-                ? 'Effect: a player on Week 3, Day 5 who misses a day goes back to Week 3, Day 1.'
+                ? 'Impact: a player on Week 3, Day 5 who misses a day goes back to Week 3, Day 1.'
                 : null
           }
         />
@@ -144,11 +144,11 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
             { value: 'restart', label: 'Restart from Week 1' },
             { value: 'end', label: 'End the calendar for that player' },
           ]}
-          effect={
+          impact={
             s.afterLast === 'restart'
-              ? `Effect: after Week ${W}, Day 7 a player starts again at Week 1, Day 1.`
+              ? `Impact: after Week ${W}, Day 7 a player starts again at Week 1, Day 1.`
               : s.afterLast === 'end'
-                ? `Effect: after Week ${W}, Day 7 the calendar ends for that player and no more rewards show.`
+                ? `Impact: after Week ${W}, Day 7 the calendar ends for that player and no more rewards show.`
                 : null
           }
         />

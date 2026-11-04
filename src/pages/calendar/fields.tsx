@@ -63,7 +63,7 @@ type RadioSectionProps<T extends string> = {
   inline?: boolean
   hideLegend?: boolean
   // A plain-language example of what the selected option does.
-  effect?: string | null
+  impact?: string | null
 }
 
 export function RadioSection<T extends string>({
@@ -73,7 +73,7 @@ export function RadioSection<T extends string>({
   onChange,
   inline,
   hideLegend,
-  effect,
+  impact,
 }: RadioSectionProps<T>) {
   return (
     <div className="radio-section">
@@ -85,9 +85,9 @@ export function RadioSection<T extends string>({
         value={value ?? ''}
         onChange={(v) => onChange(v as T)}
       />
-      {effect && (
-        <AttentionBox type="Neutral" compact showIcon={false} className="effect">
-          {effect}
+      {impact && (
+        <AttentionBox type="Neutral" compact className="impact">
+          {impact}
         </AttentionBox>
       )}
     </div>
