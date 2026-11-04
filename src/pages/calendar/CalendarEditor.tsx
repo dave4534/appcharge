@@ -27,6 +27,7 @@ import { endDateFor, removeEmptyDays, type Layout } from './rewards/plan'
 import { LIVE_PLAYER_TOTAL, type RewardWeek } from './rewards/rules'
 import { overlapsOf, readinessOf } from './readiness'
 import { SettingsStep } from './SettingsStep'
+import type { EditorScene } from '../../components/walkthrough/places'
 import type { PriorityItem } from './PrioritySection'
 import { VersionHistory } from './VersionHistory'
 import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
@@ -58,6 +59,8 @@ type CalendarEditorProps = {
   // Puts the reward calendars in a new priority order (highest first).
   onReorder: (ids: string[]) => void
   onClose: () => void
+  // What to have showing on open, when the walkthrough sends someone here.
+  scene?: EditorScene
 }
 
 const settingsOf = (offer: Offer | null): CalendarSettings => {
@@ -72,19 +75,19 @@ const settingsOf = (offer: Offer | null): CalendarSettings => {
   )
 }
 
-export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onClose }: CalendarEditorProps) {
+export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onClose, scene }: CalendarEditorProps) {
   const [settings, setSettings] = useState(() => settingsOf(offer))
   const [rewards, setRewards] = useState<RewardWeek[]>(() => offer?.rewards ?? [])
   const [offerId, setOfferId] = useState(offer?.id ?? null)
   // A calendar whose settings are already complete opens straight on its rewards.
-  const [step, setStep] = useState(() => (offer && validate(settingsOf(offer)).valid ? 1 : 0))
+  const [step, setStep] = useState<number>(() => scene?.step ?? (offer && validate(settingsOf(offer)).valid ? 1 : 0))
   const [device, setDevice] = useState<Device>('desktop')
   const [toast, setToast] = useState<{ message: string; description?: string; kind: 'success' | 'info'; undo?: boolean; seconds?: number } | null>(null)
   // Undo and redo for the Rewards step: each change to the plan or the length is a step.
   type Snap = { rewards: RewardWeek[]; endDate: string }
   const [past, setPast] = useState<Snap[]>([])
   const [future, setFuture] = useState<Snap[]>([])
-  const [readinessOpen, setReadinessOpen] = useState(false)
+  const [readinessOpen, setReadinessOpen] = useState(!!scene?.readiness)
   const [pausing, setPausing] = useState(false)
   // Where a calendar that is not saved yet will rank once it is. Saved ones use the offers order.
   const [rank, setRank] = useState<number | null>(null)
@@ -343,7 +346,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
         )}
 
         <div className="editor-actions">
-          <VersionHistory versions={versions} saving={snapshot !== savedAs} onRestore={restoreVersion} />
+          <VersionHistory versions={versions} saving={snapshot !== savedAs} onRestore={restoreVersion} defaultOpen={scene?.history} />
           {step === 1 && (
             <Tabs className="device-toggle" value={device} onValueChange={(v) => setDevice(v as Device)}>
               <TabsList aria-label="Preview device">

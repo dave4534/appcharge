@@ -4,6 +4,7 @@ import { ToastAlert } from './components/ToastAlert'
 import { ToastHost } from './components/ToastHost'
 import { TopBar } from './components/TopBar'
 import { Walkthrough } from './components/walkthrough/Walkthrough'
+import { demoVersions, placeTargets, type EditorScene, type PlaceId } from './components/walkthrough/places'
 import { navSections } from './components/nav'
 import { loadOffers, saveOffers } from './lib/storage'
 import { CalendarEditor } from './pages/calendar/CalendarEditor'
@@ -15,7 +16,8 @@ const sectionOf = (id: string) => navSections.find((s) => s.items.some((i) => i.
 const labelOf = (id: string) => sectionOf(id).items.find((i) => i.id === id)!.label
 
 // null: the offers list. { offerId: null }: a new calendar. { offerId }: a saved draft.
-type Editing = { offerId: string | null } | null
+// `scene` and `nonce` are set when the walkthrough opens a place: the nonce makes the editor start fresh.
+type Editing = { offerId: string | null; scene?: EditorScene; nonce?: number } | null
 
 export default function App() {
   const [activeId, setActiveId] = useState('reward-calendars')
@@ -58,6 +60,17 @@ export default function App() {
     setEditing(null)
   }
 
+  // Opens a place the walkthrough points at: the right calendar, with the right thing showing.
+  const showPlace = (id: PlaceId) => {
+    const { offerId, scene } = placeTargets[id]
+    const target = offers.find((o) => o.id === offerId)
+    if (id === 'history' && target && (target.versions?.length ?? 0) < 3) {
+      saveOffer({ ...target, versions: demoVersions(target) })
+    }
+    setActiveId('reward-calendars')
+    setEditing({ offerId: target ? offerId : null, scene, nonce: Date.now() })
+  }
+
   const navigate = (id: string) => {
     closeEditor()
     setActiveId(id)
@@ -73,7 +86,8 @@ export default function App() {
       <div className="main">
         {editing ? (
           <CalendarEditor
-            key={editing.offerId ?? 'new'}
+            key={`${editing.offerId ?? 'new'}:${editing.nonce ?? 0}`}
+            scene={editing.scene}
             offer={offers.find((o) => o.id === editing.offerId) ?? null}
             offers={offers}
             onSave={saveOffer}
@@ -118,7 +132,7 @@ export default function App() {
           }}
         />
       )}
-      <Walkthrough />
+      <Walkthrough onShowPlace={showPlace} />
       <ToastHost toast={notice} className="app-toast">
         {(n) => <ToastAlert message={n.message} description={n.description} onClose={() => setNotice(null)} />}
       </ToastHost>

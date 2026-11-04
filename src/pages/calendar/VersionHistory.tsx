@@ -12,12 +12,14 @@ type VersionHistoryProps = {
   versions: Version[]
   saving: boolean
   onRestore: (version: Version) => void
+  // Opens with the list showing, for a place the walkthrough sends people to.
+  defaultOpen?: boolean
 }
 
 // "Auto saved to version 52": opens the autosave history. The last version is the current
 // one; earlier ones can be restored, which saves them as a new version.
-export function VersionHistory({ versions, saving, onRestore }: VersionHistoryProps) {
-  const [open, setOpen] = useState(false)
+export function VersionHistory({ versions, saving, onRestore, defaultOpen = false }: VersionHistoryProps) {
+  const [open, setOpen] = useState(defaultOpen)
   const [expanded, setExpanded] = useState(true)
 
   const current = versions[versions.length - 1]

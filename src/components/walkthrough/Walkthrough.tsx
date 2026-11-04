@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { X } from 'lucide-react'
 import { Button, Icon, IconButton } from '../../design-system/components'
 import { walkthroughSteps } from './steps'
+import type { PlaceId } from './places'
 import './walkthrough.css'
 
 // A guide from the designer. It is self-contained on purpose: it takes no props and
@@ -28,10 +29,17 @@ function save(value: Saved) {
   }
 }
 
-export function Walkthrough() {
+type WalkthroughProps = {
+  // Opens a place in the prototype. The guide stays open and the reviewer stays in control.
+  onShowPlace?: (id: PlaceId) => void
+}
+
+export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   const [initial] = useState(load)
   const [seen, setSeen] = useState(initial.seen)
   const [step, setStep] = useState(initial.step)
+  // The place the reviewer last opened from this step, so its note can show.
+  const [place, setPlace] = useState<PlaceId | null>(null)
   // First visit: open once on the first step. After that the guide stays closed.
   const [open, setOpen] = useState(!initial.seen)
   const avatarRef = useRef<HTMLButtonElement>(null)
@@ -50,7 +58,10 @@ export function Walkthrough() {
   }, [])
 
   const last = walkthroughSteps.length - 1
-  const goTo = (i: number) => setStep(Math.min(Math.max(i, 0), last))
+  const goTo = (i: number) => {
+    setPlace(null)
+    setStep(Math.min(Math.max(i, 0), last))
+  }
 
   useEffect(() => {
     if (!open) return
@@ -58,14 +69,17 @@ export function Walkthrough() {
       if (e.key === 'Escape') close()
       // Arrow keys step through the guide unless the person is typing somewhere.
       if (e.target instanceof Element && e.target.closest('input, textarea, select, [contenteditable="true"]')) return
-      if (e.key === 'ArrowRight') setStep((s) => Math.min(s + 1, last))
-      if (e.key === 'ArrowLeft') setStep((s) => Math.max(s - 1, 0))
+      if (e.key === 'ArrowRight') goTo(step + 1)
+      if (e.key === 'ArrowLeft') goTo(step - 1)
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-  }, [open, close, last])
+    // goTo only uses state setters and constants.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, close, last, step])
 
   const current = walkthroughSteps[step]
+  const activePlace = current.places?.find((p) => p.id === place)
 
   return (
     <div className="walkthrough">
@@ -105,6 +119,30 @@ export function Walkthrough() {
               <p key={p}>{p}</p>
             ))}
           </div>
+
+          {current.places && onShowPlace && (
+            <div className="walkthrough-places">
+              <div className="walkthrough-places-label">Where to see it</div>
+              <div className="walkthrough-chips">
+                {current.places.map((p) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="walkthrough-chip"
+                    data-active={p.id === place ? 'true' : 'false'}
+                    aria-pressed={p.id === place}
+                    onClick={() => {
+                      setPlace(p.id)
+                      onShowPlace(p.id)
+                    }}
+                  >
+                    {p.label}
+                  </button>
+                ))}
+              </div>
+              {activePlace && <p className="walkthrough-place-note">{activePlace.note}</p>}
+            </div>
+          )}
 
           <div className="walkthrough-actions">
             <Button kind="Tertiary" size="Medium" disabled={step === 0} onClick={() => goTo(step - 1)}>

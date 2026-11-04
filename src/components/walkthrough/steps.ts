@@ -1,5 +1,10 @@
+import type { PlaceId } from './places'
+
 // The walkthrough's words. Edit here; the component never needs to change.
-export type WalkthroughStep = { title: string; body: string[] }
+// A step can list places in the prototype: each shows as a chip that opens that spot, with
+// a short note on what to look for.
+export type WalkthroughPlace = { id: PlaceId; label: string; note: string }
+export type WalkthroughStep = { title: string; body: string[]; places?: WalkthroughPlace[] }
 
 export const walkthroughSteps: WalkthroughStep[] = [
   {
@@ -17,10 +22,32 @@ export const walkthroughSteps: WalkthroughStep[] = [
     ],
   },
   {
-    title: 'Where it gets risky',
+    title: 'Risk management',
     body: [
-      'Editing a live calendar can break streaks already in progress. Players have lost rewards they paid for this way.',
-      'So the design warns early and plainly about what an edit would do to players, before anything is saved.',
+      'The costliest mistake is editing a live calendar. In 2021, Marvel Strike Force players who logged in for 21 days found their final rewards missing.',
+      'So I warn assertively about what’s at risk, and let managers go back in time to undo a mistake.',
+    ],
+    places: [
+      {
+        id: 'validation',
+        label: 'Validation',
+        note: 'Settings can’t move on until required choices are made, and the page says what’s still needed.',
+      },
+      {
+        id: 'readiness',
+        label: 'Readiness checklist',
+        note: 'Before publishing, a checklist shows what’s still open. It never blocks you, but the risk is clear.',
+      },
+      {
+        id: 'live-warnings',
+        label: 'Live edit warnings',
+        note: 'A live calendar says so, shows how many players each week reaches, and sends changes for approval in Slack.',
+      },
+      {
+        id: 'history',
+        label: 'Version history',
+        note: 'Every autosave is a version. Restoring one saves it as a new version, so nothing is lost.',
+      },
     ],
   },
   {

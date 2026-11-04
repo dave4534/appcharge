@@ -130,3 +130,56 @@
   justify-content: space-between;
   margin-top: 16px;
 }
+
+/* Places: chips that open a spot in the prototype. */
+.walkthrough-places {
+  margin-top: 4px;
+}
+
+.walkthrough-places-label {
+  margin-bottom: 8px;
+  color: var(--color-text-muted);
+  font-size: 15px;
+}
+
+.walkthrough-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.walkthrough-chip {
+  padding: 4px 12px;
+  border: 1px solid var(--walkthrough-gray);
+  border-radius: 999px;
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 22px;
+  cursor: pointer;
+}
+
+.walkthrough-chip:hover {
+  border-color: var(--walkthrough-blue);
+}
+
+.walkthrough-chip[data-active='true'] {
+  border-color: var(--walkthrough-blue);
+  background: var(--walkthrough-blue);
+  color: #fff;
+}
+
+.walkthrough-chip:focus-visible {
+  outline: 2px solid var(--walkthrough-blue);
+  outline-offset: 2px;
+}
+
+.walkthrough-place-note {
+  margin: 10px 0 0;
+  padding: 10px 12px;
+  border-radius: 8px;
+  background: #eaf3ff;
+  color: var(--color-text);
+  font-size: 15px;
+  line-height: 22px;
+}
