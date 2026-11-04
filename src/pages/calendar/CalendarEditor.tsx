@@ -170,6 +170,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
 
         <Stepper
           steps={EDITOR_STEPS}
+          defaultValue={EDITOR_STEPS[step].id}
           value={EDITOR_STEPS[step].id}
           onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)}
           className="editor-steps"
