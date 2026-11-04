@@ -3,9 +3,9 @@ import {
   AttentionBox,
   Chips,
   DatePicker,
-  Dropdown,
   RadioGroup as DsRadioGroup,
 } from '../../design-system/components'
+import { SelectCombobox } from '@/components/SelectCombobox'
 import { segmentOptions, type FieldError } from './settings'
 
 export function Card({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
@@ -100,7 +100,7 @@ type SegmentPickerProps = {
   onChange: (names: string[]) => void
 }
 
-// The design system has no multi-select yet, so this pairs a Dropdown that adds
+// The design system has no multi-select yet, so this pairs a Combobox that adds
 // segments with removable Chips that show what is selected.
 export function SegmentPicker({ selected, error, onChange }: SegmentPickerProps) {
   const remaining = segmentOptions
@@ -109,11 +109,10 @@ export function SegmentPicker({ selected, error, onChange }: SegmentPickerProps)
 
   return (
     <div className="segment-picker">
-      <Dropdown
-        size="Large"
+      <SelectCombobox
         aria-label="Add a segment"
         placeholder={selected.length === 0 ? 'Select segments' : 'Add another segment'}
-        state={error ? 'error' : 'default'}
+        invalid={!!error}
         value=""
         options={remaining}
         onChange={(name) => onChange([...selected, name])}

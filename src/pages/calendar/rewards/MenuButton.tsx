@@ -1,6 +1,6 @@
 import { Ellipsis, type LucideIcon } from 'lucide-react'
-import { useEffect, useRef, useState } from 'react'
-import { Icon, IconButton, Menu } from '../../../design-system/components'
+import { IconButton } from '@/components/IconButton'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
 type MenuButtonProps = {
   label: string
@@ -8,57 +8,21 @@ type MenuButtonProps = {
   onSelect: (id: string) => void
 }
 
-// A "..." button that opens a design system Menu.
+// A "..." button that opens a shadcn dropdown menu. Destructive actions read in red.
 export function MenuButton({ label, items, onSelect }: MenuButtonProps) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (!open) return
-    const onPointerDown = (e: MouseEvent) => {
-      if (!ref.current?.contains(e.target as Node)) setOpen(false)
-    }
-    const onKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') setOpen(false)
-    }
-    document.addEventListener('mousedown', onPointerDown)
-    document.addEventListener('keydown', onKeyDown)
-    return () => {
-      document.removeEventListener('mousedown', onPointerDown)
-      document.removeEventListener('keydown', onKeyDown)
-    }
-  }, [open])
-
   return (
-    <div className="menu-button" ref={ref}>
-      <IconButton
-        kind="Tertiary"
-        size="Small"
-        aria-label={label}
-        aria-haspopup="menu"
-        aria-expanded={open}
-        iconElement={<Icon icon={Ellipsis} size="Medium" color="secondary" />}
-        onClick={() => setOpen((o) => !o)}
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={<IconButton kind="Tertiary" size="Small" aria-label={label} iconElement={<Ellipsis className="size-4" />} />}
       />
-      {open && (
-        <div className="popover">
-          <Menu
-            size="Medium"
-            aria-label={label}
-            items={items.map(({ id, label, icon, disabled, destructive }) => ({
-              id,
-              disabled,
-              // A destructive action reads in the negative color, icon and label.
-              label: destructive ? <span className="menu-destructive">{label}</span> : label,
-              leftIcon: <Icon icon={icon} size="Small" color={destructive ? 'negative' : 'secondary'} />,
-            }))}
-            onItemSelect={(id) => {
-              setOpen(false)
-              onSelect(id)
-            }}
-          />
-        </div>
-      )}
-    </div>
+      <DropdownMenuContent align="end" className="w-44" aria-label={label}>
+        {items.map(({ id, label, icon: ItemIcon, disabled, destructive }) => (
+          <DropdownMenuItem key={id} disabled={disabled} variant={destructive ? 'destructive' : 'default'} onClick={() => onSelect(id)}>
+            <ItemIcon />
+            {label}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }

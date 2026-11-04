@@ -25,7 +25,7 @@
   gap: var(--space-24);
   flex: none;
   height: var(--topbar-height);
-  padding: 0 var(--space-24);
+  padding: 0 var(--space-32);
   border-bottom: 1px solid var(--layout-border-color);
   background: var(--primary-background-color);
 }
@@ -270,4 +270,13 @@
 /* The Steps component sits in the middle of the header. */
 .editor-steps {
   justify-self: center;
+}
+
+/* Tabs fill the header's height, so their underline lands on its bottom edge. */
+.editor-steps--tabs {
+  align-self: stretch;
+}
+
+.overlap-alert {
+  margin-top: var(--space-16);
 }

@@ -1,3 +1,18 @@
+// Buttons follow the shadcn Button docs. How the product's kinds, sizes and states map:
+//
+//   Primary   -> variant="default"      the main action (Publish, Save changes, Next)
+//   Secondary -> variant="outline"      supporting actions (Save draft, Cancel)
+//   Tertiary  -> variant="ghost"        quiet actions (+ Day, Undo, icon buttons)
+//   Danger    -> variant="destructive"  tinted red; solid red is `bg-destructive text-white`
+//   Link      -> variant="link"
+//
+//   Large 36px -> size="lg"   Medium 32px -> size="default"   Small 28px -> size="sm"
+//   XS 24px -> size="xs"      icon-only: "icon-lg" 36, "icon" 32, "icon-sm" 28, "icon-xs" 24
+//
+//   States: hover, pressed (nudges down 1px), focus (ring), disabled (50%, no pointer events)
+//   and invalid all come from the variants below. Icons go in with data-icon="inline-start"
+//   or "inline-end" so the padding adjusts.
+
 import { Button as ButtonPrimitive } from "@base-ui/react/button"
 import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "cn"

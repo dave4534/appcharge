@@ -1,5 +1,6 @@
 import { CircleAlert, Plus, Trash2, TriangleAlert } from 'lucide-react'
-import { Icon, IconButton } from '../../../design-system/components'
+import { Icon } from '../../../design-system/components'
+import { IconButton } from '@/components/IconButton'
 import {
   DAY7_BADGE_IMAGE,
   DAYS_PER_WEEK,

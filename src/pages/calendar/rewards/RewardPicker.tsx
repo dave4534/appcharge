@@ -1,13 +1,8 @@
 import { CircleAlert, Minus, Plus, Sparkles, TriangleAlert } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import {
-  Checkbox,
-  Dropdown,
-  Icon,
-  IconButton,
-  Search,
-  TextField,
-} from '../../../design-system/components'
+import { Checkbox, Icon, Search, TextField } from '../../../design-system/components'
+import { SelectCombobox } from '@/components/SelectCombobox'
+import { IconButton } from '@/components/IconButton'
 import { ActionDialog } from '@/components/ActionDialog'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/reui/alert'
 import { Button } from '@/components/ui/button'
@@ -182,8 +177,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
             onChange={(e) => setQuery(e.target.value)}
             onClear={() => setQuery('')}
           />
-          <Dropdown
-            size="Medium"
+          <SelectCombobox
             aria-label="Store category"
             value={category}
             onChange={setCategory}

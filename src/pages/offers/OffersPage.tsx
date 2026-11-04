@@ -2,7 +2,10 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { ActionDialog } from '@/components/ActionDialog'
 import { SlackIcon } from '@/components/SlackIcon'
-import { ButtonGroup, Dropdown, EmptyState, Search } from '../../design-system/components'
+import { EmptyState, Search } from '../../design-system/components'
+import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
+import { SelectCombobox } from '@/components/SelectCombobox'
 import { NewOfferMenu } from './NewOfferMenu'
 import { ListView } from './ListView'
 import { TimelineView } from './TimelineView'
@@ -49,7 +52,7 @@ function ToolbarSelect({ label, value, options, onChange, width }: ToolbarSelect
   return (
     <div className="tool" style={width ? ({ '--tool-width': `${width}px` } as CSSProperties) : undefined}>
       <span className="tool-label">{label}</span>
-      <Dropdown size="Medium" aria-label={label} value={value} options={options} onChange={onChange} />
+      <SelectCombobox aria-label={label} value={value} options={options} onChange={onChange} />
     </div>
   )
 }
@@ -162,17 +165,19 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
         <ToolbarSelect label="Status" width={104} value={status} options={statusOptions} onChange={(v) => setStatus(v as StatusFilter)} />
         <ToolbarSelect label="Audience" width={138} value={audience} options={audienceOptions} onChange={setAudience} />
 
-        <ButtonGroup
-          className="view-toggle"
-          size="Medium"
-          aria-label="View"
-          items={[
-            { label: 'List', value: 'list' },
-            { label: 'Timeline', value: 'timeline' },
-          ]}
-          value={view}
-          onChange={(v) => setView(v as View)}
-        />
+        <ButtonGroup className="view-toggle" aria-label="View">
+          {(['list', 'timeline'] as const).map((v) => (
+            <Button
+              key={v}
+              variant={view === v ? 'secondary' : 'outline'}
+              size="lg"
+              aria-pressed={view === v}
+              onClick={() => setView(v)}
+            >
+              {v === 'list' ? 'List' : 'Timeline'}
+            </Button>
+          ))}
+        </ButtonGroup>
       </div>
 
       <div className="section-line">

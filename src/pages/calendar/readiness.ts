@@ -42,7 +42,7 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 export type ReadinessContext = { offers: Offer[]; selfId: string | null }
 
 // Scheduled or live calendars for the same audience whose dates run at the same time.
-function overlapsOf(settings: CalendarSettings, context?: ReadinessContext): Offer[] {
+export function overlapsOf(settings: CalendarSettings, context?: ReadinessContext): Offer[] {
   if (!context || !settings.startDate || !settings.endDate) return []
   const audience = audienceOf(settings).audience
   return context.offers.filter(

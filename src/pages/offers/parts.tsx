@@ -1,6 +1,7 @@
 import { Ellipsis, GripVertical, Pencil, Trash2 } from 'lucide-react'
 import type { ButtonHTMLAttributes } from 'react'
-import { Counter, Icon, IconButton, Label, Link, type LabelColor } from '../../design-system/components'
+import { Counter, Icon, Label, Link, type LabelColor } from '../../design-system/components'
+import { IconButton } from '@/components/IconButton'
 import { statusLabels, type Offer, type OfferStatus } from './data'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { isOpenable } from './rows'

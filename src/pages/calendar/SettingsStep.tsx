@@ -1,5 +1,10 @@
 import { useState } from 'react'
-import { Dropdown, Link, TextField } from '../../design-system/components'
+import { CircleAlertIcon, XIcon } from 'lucide-react'
+import { Link, TextField } from '../../design-system/components'
+import { SelectCombobox } from '@/components/SelectCombobox'
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { formatDay } from '../offers/dates'
+import type { Offer } from '../offers/data'
 import { Card, DateField, RadioSection, SegmentPicker } from './fields'
 import {
   EXAMPLE_WEEKS,
@@ -14,15 +19,20 @@ type SettingsStepProps = {
   settings: CalendarSettings
   errors: Partial<Record<Field, FieldError>>
   missing: string[]
+  // Other calendars for the same audience that run at the same time as these dates.
+  overlaps: Offer[]
   onChange: (patch: Partial<CalendarSettings>) => void
 }
 
 const W = EXAMPLE_WEEKS
 
-export function SettingsStep({ settings: s, errors, missing, onChange }: SettingsStepProps) {
+export function SettingsStep({ settings: s, errors, missing, overlaps, onChange }: SettingsStepProps) {
   // Required-field errors wait until the field has been visited; wrong values show at once.
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [changingZone, setChangingZone] = useState(false)
+  // Closing the overlap notice hides it until the overlap itself changes.
+  const [dismissed, setDismissed] = useState('')
+  const overlapKey = overlaps.map((o) => `${o.id}:${s.startDate}:${s.endDate}`).join('|')
 
   const touch = (f: Field) => setTouched((t) => ({ ...t, [f]: true }))
   const errorFor = (f: Field) => {
@@ -89,12 +99,30 @@ export function SettingsStep({ settings: s, errors, missing, onChange }: Setting
           />
         </div>
 
+        {overlaps.length > 0 && dismissed !== overlapKey && (
+          <Alert className="overlap-alert">
+            <CircleAlertIcon style={{ color: 'var(--content-color-working-orange)' }} />
+            <AlertTitle>These dates overlap another calendar</AlertTitle>
+            <AlertDescription>
+              {overlaps
+                .map((o) => `${o.name} runs ${formatDay(o.start!)} to ${formatDay(o.end!)} for ${o.audience}`)
+                .join('. ')}
+              . Players in this audience would see both.
+            </AlertDescription>
+            <AlertAction>
+              <button type="button" className="cursor-pointer" onClick={() => setDismissed(overlapKey)}>
+                <XIcon className="size-4" />
+                <span className="sr-only">Close</span>
+              </button>
+            </AlertAction>
+          </Alert>
+        )}
+
         <p className="zone-line">
           Timezone: {zone?.label ?? s.timezone}. The daily reset happens at 00:00 in this timezone.{' '}
           {changingZone ? (
             <span className="zone-select">
-              <Dropdown
-                size="Small"
+              <SelectCombobox
                 aria-label="Timezone"
                 value={s.timezone}
                 options={timezoneOptions}

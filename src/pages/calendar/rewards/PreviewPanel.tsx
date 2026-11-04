@@ -1,6 +1,7 @@
 import { Check, ChevronLeft, ChevronRight, Gift, Lock } from 'lucide-react'
 import { useEffect, useState } from 'react'
-import { Icon, IconButton } from '../../../design-system/components'
+import { Icon } from '../../../design-system/components'
+import { IconButton } from '@/components/IconButton'
 import { RewardIcon } from './tiles'
 import {
   DAY7_BADGE_IMAGE,

@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react'
 import { ChevronLeft, ChevronRight, Repeat } from 'lucide-react'
-import { Icon, IconButton } from '../../design-system/components'
+import { Icon } from '../../design-system/components'
+import { IconButton } from '@/components/IconButton'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { TIMELINE_DAYS, TIMELINE_START, addDays, dayDiff, dayOfMonth, formatDay, monthLabel } from './dates'
 import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'

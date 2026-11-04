@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { ToastAlert } from './components/ToastAlert'
+import { ToastHost } from './components/ToastHost'
 import { TopBar } from './components/TopBar'
 import { navSections } from './components/nav'
 import { loadOffers, saveOffers } from './lib/storage'
@@ -98,11 +99,9 @@ export default function App() {
           }}
         />
       )}
-      {notice && (
-        <div className="app-toast">
-          <ToastAlert message={notice.message} description={notice.description} onClose={() => setNotice(null)} />
-        </div>
-      )}
+      <ToastHost toast={notice} className="app-toast">
+        {(n) => <ToastAlert message={n.message} description={n.description} onClose={() => setNotice(null)} />}
+      </ToastHost>
     </div>
   )
 }

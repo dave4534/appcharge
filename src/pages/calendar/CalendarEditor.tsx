@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Monitor, Smartphone } from 'lucide-react'
-import { Button, Icon, IconButton } from '../../design-system/components'
+import { Icon } from '../../design-system/components'
+import { Button } from '@/components/ui/button'
+import { IconButton } from '@/components/IconButton'
 import { ToastAlert } from '@/components/ToastAlert'
 import { ReadinessPopover } from '@/components/ReadinessPopover'
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { EditorTabs } from '@/components/EditorTabs'
+import { ToastHost } from '@/components/ToastHost'
 import {
   Stepper,
   StepperItem,
@@ -20,7 +23,7 @@ import type { Device } from './rewards/PreviewPanel'
 import { RewardsStep } from './rewards/RewardsStep'
 import { endDateFor, removeEmptyDays, type Layout } from './rewards/plan'
 import type { RewardWeek } from './rewards/rules'
-import { readinessOf } from './readiness'
+import { overlapsOf, readinessOf } from './readiness'
 import { SettingsStep } from './SettingsStep'
 import { VersionHistory } from './VersionHistory'
 import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
@@ -258,19 +261,9 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
         </div>
 
         {tabbed ? (
-          <Tabs
-            value={EDITOR_STEPS[step].id}
-            onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)}
-            className="editor-steps"
-          >
-            <TabsList variant="line" className="h-10 rounded-none border-b p-0">
-              {EDITOR_STEPS.map((s) => (
-                <TabsTrigger key={s.id} value={s.id} className="border-0 px-5 text-base group-data-horizontal/tabs:after:-bottom-[0.5px]">
-                  {s.title}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-          </Tabs>
+          <div className="editor-steps editor-steps--tabs">
+            <EditorTabs tabs={EDITOR_STEPS} value={EDITOR_STEPS[step].id} onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)} />
+          </div>
         ) : (
           <Stepper
             steps={EDITOR_STEPS}
@@ -306,19 +299,18 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
             </div>
           )}
           {isDraft ? (
-            <Button kind="Secondary" size="Large" onClick={saveDraft}>
+            <Button variant="outline" size="lg" onClick={saveDraft}>
               Save draft
             </Button>
           ) : (
-            <Button kind="Primary" size="Large" onClick={step === 1 ? () => attempt(saveChanges) : saveChanges}>
+            <Button size="lg" onClick={step === 1 ? () => attempt(saveChanges) : saveChanges}>
               Save changes
             </Button>
           )}
           {step === 0 ? (
             !tabbed && (
             <Button
-              kind="Primary"
-              size="Large"
+              size="lg"
               disabled={!valid}
               title={valid ? undefined : `Still needed: ${missing.join(', ')}`}
               onClick={() => setStep(1)}
@@ -328,7 +320,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
             )
           ) : (
             isDraft && (
-              <Button kind="Primary" size="Large" onClick={() => attempt(publish)}>
+              <Button size="lg" onClick={() => attempt(publish)}>
                 Publish
               </Button>
             )
@@ -348,7 +340,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
 
       <div className={`editor-body${step === 1 ? ' editor-body--rewards' : ''}`}>
         {step === 0 ? (
-          <SettingsStep settings={settings} errors={errors} missing={missing} onChange={update} />
+          <SettingsStep settings={settings} errors={errors} missing={missing} overlaps={overlapsOf(settings, { offers, selfId: offerId })} onChange={update} />
         ) : (
           <RewardsStep
             settings={settings}
@@ -367,15 +359,15 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
         )}
       </div>
 
-      {toast && (
-        <div className="toast">
+      <ToastHost toast={toast} className="toast">
+        {(t) => (
           <ToastAlert
-            kind={toast.kind}
-            message={toast.message}
-            description={toast.description}
-            countdown={toast.undo ? toast.seconds : undefined}
+            kind={t.kind}
+            message={t.message}
+            description={t.description}
+            countdown={t.undo ? t.seconds : undefined}
             action={
-              toast.undo
+              t.undo
                 ? {
                     label: 'Undo',
                     onClick: () => {
@@ -387,8 +379,8 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
             }
             onClose={() => setToast(null)}
           />
-        </div>
-      )}
+        )}
+      </ToastHost>
     </div>
   )
 }
