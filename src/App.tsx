@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Sidebar } from './components/Sidebar'
 import { Toast } from './design-system/components'
 import { TopBar } from './components/TopBar'
+import { Walkthrough } from './components/walkthrough/Walkthrough'
 import { navSections } from './components/nav'
 import { loadOffers, saveOffers } from './lib/storage'
 import { CalendarEditor } from './pages/calendar/CalendarEditor'
@@ -96,6 +97,7 @@ export default function App() {
           </>
         )}
       </div>
+      <Walkthrough />
       {notice && (
         <div className="app-toast" role="status">
           <Toast type="Positive" onClose={() => setNotice(null)}>

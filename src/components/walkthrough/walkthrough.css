@@ -1,0 +1,131 @@
+/* Walkthrough. The blue is local to this guide on purpose: the Appcharge theme's
+   primary is purple, and the guide should read as separate from the product. */
+.walkthrough {
+  --walkthrough-blue: #0073ea;
+  --walkthrough-gray: #d0d4e4;
+  position: fixed;
+  z-index: 30;
+  /* 32px right of the sidebar, 32px above the bottom of the view. */
+  left: calc(var(--sidebar-width) + 32px);
+  bottom: 32px;
+  font-size: 15px;
+  line-height: 22px;
+}
+
+.walkthrough-anchor {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.walkthrough-avatar {
+  display: block;
+  width: 56px;
+  height: 56px;
+  padding: 0;
+  overflow: hidden;
+  border: 2px solid var(--color-surface);
+  border-radius: 50%;
+  background: var(--color-surface);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.2);
+  cursor: pointer;
+}
+
+.walkthrough-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.walkthrough-avatar:focus-visible {
+  outline: 2px solid var(--walkthrough-blue);
+  outline-offset: 2px;
+}
+
+.walkthrough-hint {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: var(--walkthrough-blue);
+  color: #fff;
+  font-size: 15px;
+  white-space: nowrap;
+}
+
+.walkthrough-panel {
+  position: absolute;
+  bottom: 72px; /* avatar 56px + 16px gap */
+  left: 0;
+  width: 360px;
+  max-width: calc(100vw - var(--sidebar-width) - 64px);
+  padding: 24px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-surface);
+  box-shadow: 0 8px 28px rgb(0 0 0 / 0.18);
+  text-align: left;
+}
+
+.walkthrough-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+}
+
+.walkthrough-steps {
+  display: flex;
+  gap: 6px;
+  margin: 0 40px 20px 0; /* leave room for the close button */
+  padding: 0;
+  list-style: none;
+}
+
+.walkthrough-steps li {
+  flex: 1;
+}
+
+/* Each step is a dashed line: gray by default, blue when it is the current one. */
+.walkthrough-dash {
+  display: block;
+  width: 100%;
+  height: 12px;
+  padding: 0;
+  border: 0;
+  background: linear-gradient(to right, var(--walkthrough-gray) 0 60%, transparent 60% 100%) center / 8px 3px repeat-x;
+  cursor: pointer;
+}
+
+.walkthrough-dash[data-active='true'] {
+  background-image: linear-gradient(to right, var(--walkthrough-blue) 0 60%, transparent 60% 100%);
+}
+
+.walkthrough-dash:focus-visible {
+  outline: 2px solid var(--walkthrough-blue);
+  outline-offset: 2px;
+}
+
+.walkthrough-count {
+  color: var(--color-text-muted);
+  font-size: 15px;
+}
+
+.walkthrough-title {
+  margin: 4px 0 8px;
+  font-size: 15px;
+  line-height: 22px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.walkthrough-body p {
+  margin: 0 0 10px;
+  font-size: 15px;
+  line-height: 22px;
+  color: var(--color-text);
+}
+
+.walkthrough-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 16px;
+}
