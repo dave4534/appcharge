@@ -5,7 +5,7 @@ import { RewardIcon } from './tiles'
 import {
   DAY7_BADGE_IMAGE,
   DAYS_PER_WEEK,
-  REWARD_DEFS,
+  itemName,
   formatQuantity,
   orderedItems,
   type DayRewards,
@@ -69,12 +69,12 @@ function PlayerTile({ rewards, day, state }: { rewards: DayRewards; day: number;
             ))}
           </span>
           <span className="pv-qty">
-            {isDay7 ? 'Main reward' : items.length > 1 ? 'Multiple' : REWARD_DEFS[lead.kind].name}
+            {isDay7 ? 'Main reward' : items.length > 1 ? 'Multiple' : itemName(lead)}
             {!isDay7 && <strong> x{formatQuantity(lead)}</strong>}
           </span>
           {isDay7 && (
             <span className="pv-lines">
-              {items.map((i) => `${formatQuantity(i)} ${REWARD_DEFS[i.kind].name.toLowerCase()}`).join(' · ')}
+              {items.map((i) => `${formatQuantity(i)} ${itemName(i).toLowerCase()}`).join(' · ')}
             </span>
           )}
         </>

@@ -1,9 +1,10 @@
-import { CircleAlert, Gift, Plus, Trash2, TriangleAlert } from 'lucide-react'
+import { CircleAlert, Plus, Trash2, TriangleAlert } from 'lucide-react'
 import { Icon, IconButton } from '../../../design-system/components'
+import { productOf } from './catalog'
 import {
   DAY7_BADGE_IMAGE,
   DAYS_PER_WEEK,
-  REWARD_DEFS,
+  itemName,
   formatQuantity,
   daySummary,
   orderedItems,
@@ -16,10 +17,11 @@ import {
 export function RewardIcon({ item, size = 28 }: { item: RewardItem; size?: number }) {
   const src = rewardImage(item)
   if (src) return <img className="reward-icon" src={src} width={size} height={size} alt="" />
-  // A placeholder for any reward that has no art yet.
+  // Products without art show their own icon on a tinted square.
+  const ProductIcon = productOf(item.sku)?.icon
   return (
     <span className="reward-icon reward-icon--placeholder" style={{ width: size, height: size }}>
-      <Gift size={Math.round(size * 0.6)} />
+      {ProductIcon && <ProductIcon size={Math.round(size * 0.6)} />}
     </span>
   )
 }
@@ -45,7 +47,7 @@ export function TileBody({ day, dayIndex }: { day: DayRewards; dayIndex: number 
           <RewardIcon key={item.kind} item={item} size={multiple ? 26 : 30} />
         ))}
       </span>
-      <span className="tile-name">{multiple ? 'Multiple' : REWARD_DEFS[lead.kind].name}</span>
+      <span className="tile-name">{multiple ? 'Multiple' : itemName(lead)}</span>
       <span className="tile-qty">
         x{formatQuantity(lead)}
         {multiple && <span className="tile-more"> +{items.length - 1}</span>}

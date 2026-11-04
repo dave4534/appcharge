@@ -749,7 +749,7 @@
 
 .picker-filters {
   display: grid;
-  grid-template-columns: 1.6fr 1fr 1fr;
+  grid-template-columns: 1fr 200px;
   gap: var(--space-12);
 }
 
@@ -765,7 +765,11 @@
 }
 
 .picker-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   padding: var(--space-8) var(--space-8);
+  background: var(--primary-background-color);
   border-bottom: 1px solid var(--layout-border-color);
   font-size: var(--font-size-text2);
   text-align: left;
@@ -853,4 +857,10 @@
 .confirm-note {
   margin: 0;
   color: var(--secondary-text-color);
+}
+
+.picker-muted {
+  color: var(--secondary-text-color);
+  font-size: var(--font-size-text3);
+  white-space: nowrap;
 }

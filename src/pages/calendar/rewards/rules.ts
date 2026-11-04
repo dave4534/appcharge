@@ -1,3 +1,5 @@
+import { DEFAULT_SKU, productOf } from './catalog'
+
 // Reward logic for the Reward Calendar builder.
 //
 // This is the single place that knows what rewards exist, how they rank, what a
@@ -16,9 +18,12 @@ export const MAX_WEEKS = 10
 const M = 1_000_000
 const B = 1_000_000_000
 
-export type RewardKind = 'chips' | 'xp-boost' | 'diamonds' | 'weekly-gift'
+// Chips, Diamonds and the XP boost have their own rules. Every other product in the
+// bank is an 'item', which only needs a quantity.
+export type RewardKind = 'chips' | 'xp-boost' | 'diamonds' | 'item'
 
-export type RewardItem = { kind: RewardKind; quantity: number }
+// `sku` says which product in the bank this is.
+export type RewardItem = { kind: RewardKind; quantity: number; sku: string }
 
 // What a player gets on one day. Empty means nothing has been set yet.
 export type DayRewards = RewardItem[]
@@ -27,16 +32,11 @@ export type DayRewards = RewardItem[]
 export type RewardWeek = DayRewards[]
 
 // ---------------------------------------------------------------------------
-// Catalog
-
-export type RewardType = 'Currency' | 'Boost' | 'Extra'
+// Per-kind rules. Which products exist, and where they are offered, lives in catalog.ts.
 
 export type RewardDef = {
   kind: RewardKind
   name: string
-  sku: string
-  type: RewardType
-  category: string
   // 1 is the lowest. Chips take 1 to 5 depending on the amount (see chipsTier).
   premiumRank: number | null
   image: string | null
@@ -44,65 +44,26 @@ export type RewardDef = {
   step: number
   min: number
   max?: number
-  // Held back for a future VIP weekly gift, so it can't be picked yet.
-  reserved?: boolean
 }
 
 export const REWARD_DEFS: Record<RewardKind, RewardDef> = {
-  chips: {
-    kind: 'chips',
-    name: 'Chips',
-    sku: 'chips',
-    type: 'Currency',
-    category: 'Core currency',
-    premiumRank: null,
-    image: null,
-    step: 250 * M,
-    min: 10 * M,
-  },
-  'xp-boost': {
-    kind: 'xp-boost',
-    name: '2x XP boost',
-    sku: 'xp-boost-2x',
-    type: 'Boost',
-    category: 'Boosts',
-    premiumRank: 7,
-    image: '/rewards/xp-boost.png',
-    step: 30,
-    min: 10,
-    max: 120,
-  },
-  diamonds: {
-    kind: 'diamonds',
-    name: 'Diamonds',
-    sku: 'diamonds',
-    type: 'Currency',
-    category: 'Premium currency',
-    premiumRank: 8,
-    image: '/rewards/diamonds.png',
-    step: 5,
-    min: 1,
-  },
-  'weekly-gift': {
-    kind: 'weekly-gift',
-    name: 'Weekly gift',
-    sku: 'weekly-gift',
-    type: 'Extra',
-    category: 'Extras',
-    premiumRank: null,
-    image: '/rewards/reserved-weekly-gift.png',
-    step: 1,
-    min: 1,
-    reserved: true,
-  },
+  chips: { kind: 'chips', name: 'Chips', premiumRank: null, image: null, step: 250 * M, min: 10 * M },
+  'xp-boost': { kind: 'xp-boost', name: '2x XP boost', premiumRank: 7, image: '/rewards/xp-boost.png', step: 30, min: 10, max: 120 },
+  diamonds: { kind: 'diamonds', name: 'Diamonds', premiumRank: 8, image: '/rewards/diamonds.png', step: 5, min: 1 },
+  item: { kind: 'item', name: 'Item', premiumRank: 6, image: null, step: 1, min: 1 },
 }
 
 export const DAY7_BADGE_IMAGE = '/rewards/day7-badge.png'
 
-// Rewards a manager can pick, in the order the picker lists them.
-export const PICKABLE: RewardKind[] = ['chips', 'diamonds', 'xp-boost', 'weekly-gift']
+// A reward with its product filled in from the bank.
+export const makeItem = (kind: RewardKind, quantity: number, sku?: string): RewardItem => ({
+  kind,
+  quantity,
+  sku: sku ?? (kind === 'item' ? 'item' : DEFAULT_SKU[kind]),
+})
 
-export const REWARD_TYPES: RewardType[] = ['Currency', 'Boost', 'Extra']
+// The name shown for a reward: its product's name.
+export const itemName = (item: RewardItem) => productOf(item.sku)?.name ?? REWARD_DEFS[item.kind].name
 
 // Chip tiers drive the art: under 1B, 1B to 1.5B, 1.5B to 2B, 2B to 3B, 3B and up.
 export function chipsTier(quantity: number): 1 | 2 | 3 | 4 | 5 {
@@ -151,7 +112,7 @@ export function formatChipsExact(quantity: number): string {
 }
 
 export function itemSummary(item: RewardItem): string {
-  const name = REWARD_DEFS[item.kind].name
+  const name = itemName(item)
   if (item.kind === 'chips') return `${formatChips(item.quantity)} chips`
   if (item.kind === 'xp-boost') return `${name} ${formatMinutes(item.quantity)}`
   return `${formatQuantity(item)} ${name.toLowerCase()}`
@@ -253,16 +214,10 @@ export const RULES: RuleInfo[] = [
     description: 'Chips are the base reward on Days 1 to 6.',
   },
   {
-    code: 'diamonds-early',
+    code: 'day7-only',
     severity: 'warning',
-    title: 'Diamonds before Day 7',
-    description: 'Diamonds are reserved for Day 7.',
-  },
-  {
-    code: 'xp-early',
-    severity: 'warning',
-    title: 'XP boost before Day 7',
-    description: 'The XP boost is reserved for Day 7.',
+    title: 'A Day 7 reward on another day',
+    description: 'Diamonds and the XP boost are only offered on Day 7, the main reward.',
   },
   {
     code: 'xp-over-max',
@@ -339,8 +294,13 @@ export function validatePlan(plan: RewardWeek[], activeDays = plan.length * DAYS
         add('chips-decrease', w, d, `Fewer chips than the day before (${formatChips(prevChips)}).`)
       }
 
-      if (!isDay7 && hasKind(rewards, 'diamonds')) add('diamonds-early', w, d, 'Diamonds are reserved for Day 7.')
-      if (!isDay7 && hasKind(rewards, 'xp-boost')) add('xp-early', w, d, 'The XP boost is reserved for Day 7.')
+      // The picker never offers these on other days, so this only catches rewards that
+      // got there another way, such as an imported or duplicated week.
+      if (!isDay7) {
+        rewards
+          .filter((r) => productOf(r.sku)?.day7Only)
+          .forEach((r) => add('day7-only', w, d, `Only Day 7 offers ${itemName(r).toLowerCase()}.`))
+      }
       if (quantityOf(rewards, 'xp-boost') > 120) add('xp-over-max', w, d, 'An XP boost lasts at most 2 hours.')
 
       if (isDay7) {
@@ -388,7 +348,7 @@ export function emptyActiveDays(plan: RewardWeek[], activeDays: number): { week:
 // ---------------------------------------------------------------------------
 // Suggestions
 
-const item = (kind: RewardKind, quantity: number): RewardItem => ({ kind, quantity })
+const item = makeItem
 
 // The spec's Week 1: the entry level every later week grows from.
 const BASELINE: RewardWeek = [
@@ -416,14 +376,14 @@ function grow(item: RewardItem, before: RewardItem | undefined, day: number, ste
     case 'chips': {
       const fallback = day === DAYS_PER_WEEK - 1 ? 1 * B : 0.25 * B
       const trend = before && before.quantity < item.quantity ? item.quantity - before.quantity : fallback
-      return { kind: 'chips', quantity: roundChips(item.quantity + trend * push) }
+      return { ...item, quantity: roundChips(item.quantity + trend * push) }
     }
     case 'diamonds': {
       const ratio = before && before.quantity > 0 ? Math.min(2, item.quantity / before.quantity) : 2
-      return { kind: 'diamonds', quantity: Math.max(item.quantity, Math.round(item.quantity * Math.max(1.25, ratio * (steeper ? 1.25 : 1)))) }
+      return { ...item, quantity: Math.max(item.quantity, Math.round(item.quantity * Math.max(1.25, ratio * (steeper ? 1.25 : 1)))) }
     }
     case 'xp-boost':
-      return { kind: 'xp-boost', quantity: Math.min(120, item.quantity * 2) }
+      return { ...item, quantity: Math.min(120, item.quantity * 2) }
     default:
       return { ...item }
   }
@@ -461,7 +421,7 @@ export function suggestWeek(plan: RewardWeek[], weekIndex: number, options: { st
     }
   }
 
-  const week = last.map((day, d) => day.map((i) => grow(i, earlier?.[d].find((e) => e.kind === i.kind), d, steeper)))
+  const week = last.map((day, d) => day.map((i) => grow(i, earlier?.[d].find((e) => e.sku === i.sku), d, steeper)))
   const basis = earlier
     ? `Weeks ${plan.indexOf(earlier) + 1} and ${plan.indexOf(last) + 1}`
     : `Week ${plan.indexOf(last) + 1}`

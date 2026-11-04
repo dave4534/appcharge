@@ -6,38 +6,37 @@ import {
   Dropdown,
   Icon,
   IconButton,
-  Label,
   Modal,
   Search,
+  Tabs,
   TextField,
 } from '../../../design-system/components'
+import { BANK_TABS, PRODUCTS, offeredOn, type BankTab, type Product } from './catalog'
 import { ensureWeeks, setDay } from './plan'
 import { RewardIcon } from './tiles'
 import {
-  PICKABLE,
   REWARD_DEFS,
-  REWARD_TYPES,
   chipsOf,
   daySummary,
   formatChipsExact,
   formatQuantity,
+  makeItem,
   parseQuantity,
   suggestDay,
   validatePlan,
   type DayRewards,
-  type RewardKind,
   type RewardWeek,
 } from './rules'
 
-type Selection = Partial<Record<RewardKind, number>>
+// What is picked, by product SKU, with its quantity.
+type Selection = Record<string, number>
 
-const toSelection = (items: DayRewards): Selection => Object.fromEntries(items.map((i) => [i.kind, i.quantity]))
+const toSelection = (items: DayRewards): Selection => Object.fromEntries(items.map((i) => [i.sku, i.quantity]))
+
 const toItems = (selection: Selection): DayRewards =>
-  PICKABLE.filter((k) => selection[k] !== undefined).map((kind) => ({ kind, quantity: selection[kind] as number }))
+  PRODUCTS.filter((p) => selection[p.sku] !== undefined).map((p) => makeItem(p.kind, selection[p.sku], p.sku))
 
-const categories = [...new Set(PICKABLE.map((k) => REWARD_DEFS[k].category))]
-
-const clamp = (kind: RewardKind, value: number) => {
+const clamp = (kind: Product['kind'], value: number) => {
   const def = REWARD_DEFS[kind]
   return Math.max(def.min, def.max ? Math.min(def.max, value) : value)
 }
@@ -59,20 +58,19 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
   const suggestion = useMemo(() => suggestDay(plan, week, day), [plan, week, day])
   const [showSuggestion, setShowSuggestion] = useState(isNew)
   const [selection, setSelection] = useState<Selection>(() => toSelection(isNew ? suggestion.items : current))
+  const [tab, setTab] = useState<BankTab>(BANK_TABS[0])
   const [query, setQuery] = useState('')
-  const [type, setType] = useState('all')
   const [category, setCategory] = useState('all')
-  const [editing, setEditing] = useState<{ kind: RewardKind; text: string } | null>(null)
-  const [invalid, setInvalid] = useState<RewardKind | null>(null)
+  const [editing, setEditing] = useState<{ sku: string; text: string } | null>(null)
+  const [invalid, setInvalid] = useState<string | null>(null)
 
-  const rows = PICKABLE.filter((kind) => {
-    const def = REWARD_DEFS[kind]
+  // Only products this day can offer are listed. The rules for that live in catalog.ts.
+  const offered = useMemo(() => offeredOn(day), [day])
+  const inTab = offered.filter((p) => p.tab === tab)
+  const categories = [...new Set(inTab.map((p) => p.category))]
+  const rows = inTab.filter((p) => {
     const q = query.trim().toLowerCase()
-    return (
-      (type === 'all' || def.type === type) &&
-      (category === 'all' || def.category === category) &&
-      (!q || def.name.toLowerCase().includes(q) || def.sku.includes(q))
-    )
+    return (category === 'all' || p.category === category) && (!q || p.name.toLowerCase().includes(q) || p.sku.includes(q))
   })
 
   const items = toItems(selection)
@@ -87,39 +85,51 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
   }, [plan, week, day, activeDays, selection])
   const blocked = issues.some((i) => i.severity === 'error')
 
-  const defaultQuantity = (kind: RewardKind) => {
-    const suggested = suggestion.items.find((i) => i.kind === kind)
+  const defaultQuantity = (p: Product) => {
+    const suggested = suggestion.items.find((i) => i.sku === p.sku)
     if (suggested) return suggested.quantity
-    if (kind === 'chips') return chipsOf(plan[week]?.[day - 1] ?? []) || 500_000_000
-    return REWARD_DEFS[kind].step
+    if (p.kind === 'chips') return chipsOf(plan[week]?.[day - 1] ?? []) || 500_000_000
+    return REWARD_DEFS[p.kind].step
   }
 
-  const toggle = (kind: RewardKind) =>
+  const toggle = (p: Product) =>
     setSelection((s) => {
       const next = { ...s }
-      if (next[kind] === undefined) next[kind] = defaultQuantity(kind)
-      else delete next[kind]
+      if (next[p.sku] === undefined) next[p.sku] = defaultQuantity(p)
+      else delete next[p.sku]
       return next
     })
 
-  const setQuantity = (kind: RewardKind, value: number) => setSelection((s) => ({ ...s, [kind]: clamp(kind, value) }))
+  const pickedCount = rows.filter((p) => selection[p.sku] !== undefined).length
+  const allPicked = rows.length > 0 && pickedCount === rows.length
 
-  const step = (kind: RewardKind, direction: 1 | -1) => {
-    const now = selection[kind]
+  // The header checkbox picks or clears everything currently listed.
+  const toggleAll = () =>
+    setSelection((s) => {
+      const next = { ...s }
+      rows.forEach((p) => {
+        if (allPicked) delete next[p.sku]
+        else if (next[p.sku] === undefined) next[p.sku] = defaultQuantity(p)
+      })
+      return next
+    })
+
+  const step = (p: Product, direction: 1 | -1) => {
+    const now = selection[p.sku]
     if (now === undefined) return
     setInvalid(null)
-    setQuantity(kind, now + direction * REWARD_DEFS[kind].step)
+    setSelection((s) => ({ ...s, [p.sku]: clamp(p.kind, now + direction * REWARD_DEFS[p.kind].step) }))
   }
 
-  const onType = (kind: RewardKind, text: string) => {
-    setEditing({ kind, text })
-    const parsed = parseQuantity(kind, text)
-    if (parsed === null || parsed <= 0) setInvalid(kind)
+  const onType = (p: Product, text: string) => {
+    setEditing({ sku: p.sku, text })
+    const parsed = parseQuantity(p.kind, text)
+    if (parsed === null || parsed <= 0) setInvalid(p.sku)
     else {
       setInvalid(null)
       // Typed amounts are kept as entered (no clamping) so a wrong digit stays visible
       // and the guardrails can flag it.
-      setSelection((s) => ({ ...s, [kind]: parsed }))
+      setSelection((s) => ({ ...s, [p.sku]: parsed }))
     }
   }
 
@@ -167,21 +177,24 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
           </div>
         )}
 
+        <Tabs
+          stretched="on"
+          items={BANK_TABS.map((t) => ({ id: t, label: t }))}
+          activeId={tab}
+          onChange={(id) => {
+            setTab(id as BankTab)
+            setCategory('all')
+          }}
+        />
+
         <div className="picker-filters">
           <Search
             size="Medium"
             placeholder="Search by name or SKU"
-            aria-label="Search rewards"
+            aria-label="Search the product bank"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onClear={() => setQuery('')}
-          />
-          <Dropdown
-            size="Medium"
-            aria-label="Type"
-            value={type}
-            onChange={setType}
-            options={[{ value: 'all', label: 'All types' }, ...REWARD_TYPES.map((t) => ({ value: t, label: `Type: ${t}` }))]}
           />
           <Dropdown
             size="Medium"
@@ -192,74 +205,68 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
           />
         </div>
 
-        <p className="picker-count">{rows.length} items</p>
-
         <table className="picker-table">
           <thead>
             <tr>
-              <th aria-label="Select" />
+              <th className="picker-check">
+                <Checkbox
+                  showLabel={false}
+                  aria-label="Select everything listed"
+                  state={allPicked ? 'selected' : pickedCount > 0 ? 'indeterminate' : 'regular'}
+                  checked={allPicked}
+                  disabled={rows.length === 0}
+                  onChange={toggleAll}
+                />
+              </th>
               <th>Name and SKU ID</th>
+              <th>Store category</th>
+              <th>Price</th>
               <th>Quantity</th>
             </tr>
           </thead>
           <tbody>
-            {rows.map((kind) => {
-              const def = REWARD_DEFS[kind]
-              const quantity = selection[kind]
+            {rows.map((p) => {
+              const quantity = selection[p.sku]
               const picked = quantity !== undefined
-              const shownText =
-                editing?.kind === kind ? editing.text : picked ? formatQuantity({ kind, quantity }) : ''
+              const shownText = editing?.sku === p.sku ? editing.text : picked ? formatQuantity(makeItem(p.kind, quantity, p.sku)) : ''
               return (
-                <tr key={kind} className={picked ? 'is-picked' : undefined}>
+                <tr key={p.sku} className={picked ? 'is-picked' : undefined}>
                   <td className="picker-check">
-                    <Checkbox
-                      showLabel={false}
-                      aria-label={`Select ${def.name}`}
-                      checked={picked}
-                      disabled={def.reserved}
-                      onChange={() => toggle(kind)}
-                    />
+                    <Checkbox showLabel={false} aria-label={`Select ${p.name}`} checked={picked} onChange={() => toggle(p)} />
                   </td>
                   <td>
                     <div className="picker-name">
-                      <RewardIcon item={{ kind, quantity: quantity ?? 1 }} size={36} />
+                      <RewardIcon item={makeItem(p.kind, quantity ?? 1, p.sku)} size={36} />
                       <div>
-                        <div className="picker-title">
-                          {def.name}
-                          {def.reserved && (
-                            <Label color="Dark" kind="Line" size="Small">
-                              Reserved
-                            </Label>
-                          )}
-                        </div>
-                        <div className="picker-sku">
-                          {kind === 'chips' && picked ? formatChipsExact(quantity) : def.sku}
-                        </div>
+                        <div className="picker-title">{p.name}</div>
+                        <div className="picker-sku">{p.kind === 'chips' && picked ? formatChipsExact(quantity) : p.sku}</div>
                       </div>
                     </div>
                   </td>
+                  <td className="picker-muted">{p.category}</td>
+                  <td className="picker-muted">{p.price}</td>
                   <td>
                     <div className={`stepper${picked ? '' : ' is-off'}`}>
                       <IconButton
                         kind="Tertiary"
                         size="XS"
-                        aria-label={`Decrease ${def.name}`}
+                        aria-label={`Decrease ${p.name}`}
                         disabled={!picked}
                         iconElement={<Icon icon={Minus} size="Small" color="current" />}
-                        onClick={() => step(kind, -1)}
+                        onClick={() => step(p, -1)}
                       />
                       <TextField
                         size="Small"
                         label=""
                         showHelper={false}
                         showIconRight={false}
-                        aria-label={`${def.name} quantity`}
+                        aria-label={`${p.name} quantity`}
                         placeholder="–"
                         disabled={!picked}
-                        state={invalid === kind ? 'error' : 'default'}
+                        state={invalid === p.sku ? 'error' : 'default'}
                         value={shownText}
-                        onFocus={() => picked && setEditing({ kind, text: formatQuantity({ kind, quantity }) })}
-                        onChange={(e) => onType(kind, e.target.value)}
+                        onFocus={() => picked && setEditing({ sku: p.sku, text: formatQuantity(makeItem(p.kind, quantity, p.sku)) })}
+                        onChange={(e) => onType(p, e.target.value)}
                         onBlur={() => {
                           setEditing(null)
                           setInvalid(null)
@@ -268,10 +275,10 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
                       <IconButton
                         kind="Tertiary"
                         size="XS"
-                        aria-label={`Increase ${def.name}`}
+                        aria-label={`Increase ${p.name}`}
                         disabled={!picked}
                         iconElement={<Icon icon={Plus} size="Small" color="current" />}
-                        onClick={() => step(kind, 1)}
+                        onClick={() => step(p, 1)}
                       />
                     </div>
                   </td>
@@ -281,11 +288,13 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
           </tbody>
         </table>
 
-        {rows.length === 0 && <p className="picker-empty">No rewards match. Clear the search or filters.</p>}
+        {rows.length === 0 && <p className="picker-empty">Nothing matches. Clear the search or the category.</p>}
 
         {invalid && (
           <p className="field-error">
-            {invalid === 'chips' ? 'Enter chips like 1.5B, 500M or 1,500,000,000.' : 'Enter a whole number.'}
+            {PRODUCTS.find((p) => p.sku === invalid)?.kind === 'chips'
+              ? 'Enter chips like 1.5B, 500M or 1,500,000,000.'
+              : 'Enter a whole number.'}
           </p>
         )}
 
