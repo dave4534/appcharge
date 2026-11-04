@@ -21,7 +21,10 @@ type Editing = { offerId: string | null; scene?: EditorScene; nonce?: number } |
 
 export default function App() {
   const [activeId, setActiveId] = useState('reward-calendars')
-  const [offers, setOffers] = useState<Offer[]>(() => loadOffers(initialOffers))
+  // ?empty shows the app as a first-time visitor sees it, with no offers, and never saves over
+  // the offers kept in this browser.
+  const [preview] = useState(() => new URLSearchParams(window.location.search).has('empty'))
+  const [offers, setOffers] = useState<Offer[]>(() => (preview ? [] : loadOffers(initialOffers)))
   const [editing, setEditing] = useState<Editing>(null)
   const [notice, setNotice] = useState<{ message: string; description?: string } | null>(null)
   const [mcpOpen, setMcpOpen] = useState(false)
@@ -33,7 +36,9 @@ export default function App() {
   }, [notice])
 
   // Everything is saved as it changes, so a closed tab never loses a draft.
-  useEffect(() => saveOffers(offers), [offers])
+  useEffect(() => {
+    if (!preview) saveOffers(offers)
+  }, [offers, preview])
 
   // A new draft joins the end of the list, so it gets the lowest priority, unless the
   // user already placed it among the other calendars (`rank` counts calendars only).

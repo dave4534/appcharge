@@ -14,7 +14,8 @@
 }
 
 .offers > .list,
-.offers > .tl-scroll {
+.offers > .tl-scroll,
+.offers > .offers-empty {
   flex: 1 1 auto;
   min-height: 0;
 }

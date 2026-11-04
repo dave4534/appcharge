@@ -5,7 +5,8 @@ import { PauseDialog } from '@/components/PauseDialog'
 import { LIVE_PLAYER_TOTAL } from '../calendar/rewards/rules'
 import { SlackIcon } from '@/components/SlackIcon'
 import { Search } from 'lucide-react'
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
+import chest from '@/assets/empty-state/chest.svg'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/components/ui/empty'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Button } from '@/components/ui/button'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -107,6 +108,15 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
 
   const noun = type === 'all' ? 'offers' : typeLabels[type][visible.length === 1 ? 'singular' : 'plural'].toLowerCase()
 
+  // The very first view: there are no reward calendars at all, and nothing is filtered.
+  const firstTime =
+    visible.length === 0 &&
+    !offers.some((o) => o.type === 'reward-calendar') &&
+    type === 'reward-calendar' &&
+    !query.trim() &&
+    status === 'all' &&
+    audience === 'all'
+
   const clearFilters = () => {
     setQuery('')
     setType('all')
@@ -182,7 +192,25 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
         {visible.length} {noun}
       </p>
 
-      {visible.length === 0 ? (
+      {firstTime ? (
+        <Empty className="offers-empty border-solid border bg-muted">
+          <EmptyHeader className="max-w-md">
+            <EmptyMedia>
+              <img src={chest} alt="" width={230} className="h-auto" />
+            </EmptyMedia>
+            <EmptyTitle className="text-xl font-semibold">Give players a reason to come back</EmptyTitle>
+            <EmptyDescription className="text-base text-foreground">
+              Reward calendars encourage users to play and spend. Pick the rewards, set the days, and check readiness before you
+              publish.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button size="lg" onClick={onNew}>
+              Create Reward Calendar
+            </Button>
+          </EmptyContent>
+        </Empty>
+      ) : visible.length === 0 ? (
         <Empty className="border">
           <EmptyHeader>
             <EmptyTitle>No offers match these filters</EmptyTitle>
