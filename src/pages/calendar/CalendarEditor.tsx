@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { ArrowLeft, Monitor, Smartphone } from 'lucide-react'
 import { Button, Icon, IconButton } from '../../design-system/components'
 import { ToastAlert } from '@/components/ToastAlert'
@@ -67,9 +67,10 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   const [past, setPast] = useState<Snap[]>([])
   const [future, setFuture] = useState<Snap[]>([])
   const [publishing, setPublishing] = useState(false)
-  const [versions, setVersions] = useState<Version[]>(() => offer?.versions ?? [])
-  // What the calendar looked like when it was opened, kept as version 1 if it had no history.
-  const opened = useRef({ settings, rewards })
+  // A calendar opened without history starts at version 1, as it looked when opened.
+  const [versions, setVersions] = useState<Version[]>(() =>
+    offer?.versions ?? (offer ? [{ n: 1, savedAt: Date.now(), by: 'Dave', settings: settingsOf(offer), rewards: offer.rewards ?? [] }] : []),
+  )
 
   const snapshot = JSON.stringify({ settings, rewards })
   const [savedAs, setSavedAs] = useState(snapshot)
@@ -108,12 +109,8 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
     // Every autosave that changed something becomes a new version, newest last.
     let history = versions
     if (snapshot !== savedAs) {
-      const base: Version[] =
-        history.length === 0 && offerId
-          ? [{ n: 1, savedAt: Date.now(), by: 'Dave', ...opened.current }]
-          : history
-      const n = (base[base.length - 1]?.n ?? 0) + 1
-      history = [...base, { n, savedAt: Date.now(), by: 'Dave', settings, rewards }].slice(-MAX_VERSIONS)
+      const n = (history[history.length - 1]?.n ?? 0) + 1
+      history = [...history, { n, savedAt: Date.now(), by: 'Dave', settings, rewards }].slice(-MAX_VERSIONS)
       setVersions(history)
     }
     const next = build(status, history)
