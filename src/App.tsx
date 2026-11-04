@@ -19,7 +19,7 @@ export default function App() {
   const [activeId, setActiveId] = useState('reward-calendars')
   const [offers, setOffers] = useState<Offer[]>(() => loadOffers(initialOffers))
   const [editing, setEditing] = useState<Editing>(null)
-  const [notice, setNotice] = useState<string | null>(null)
+  const [notice, setNotice] = useState<{ message: string; description?: string } | null>(null)
   const [mcpOpen, setMcpOpen] = useState(false)
 
   useEffect(() => {
@@ -60,7 +60,7 @@ export default function App() {
             onFinish={(finished, message) => {
               saveOffer(finished)
               closeEditor()
-              setNotice(message)
+              setNotice({ message })
             }}
             onClose={closeEditor}
           />
@@ -92,13 +92,13 @@ export default function App() {
           onClose={() => setMcpOpen(false)}
           onContactAdmin={() => {
             setMcpOpen(false)
-            setNotice('Your admin has been asked to help set up the Appcharge MCP.')
+            setNotice({ message: 'Admin notified', description: 'Your admin has been asked to help set up the Appcharge MCP.' })
           }}
         />
       )}
       {notice && (
         <div className="app-toast">
-          <ToastAlert message={notice} onClose={() => setNotice(null)} />
+          <ToastAlert message={notice.message} description={notice.description} onClose={() => setNotice(null)} />
         </div>
       )}
     </div>

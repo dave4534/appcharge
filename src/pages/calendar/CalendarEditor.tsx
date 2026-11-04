@@ -57,7 +57,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   // A calendar whose settings are already complete opens straight on its rewards.
   const [step, setStep] = useState(() => (offer && validate(settingsOf(offer)).valid ? 1 : 0))
   const [device, setDevice] = useState<Device>('desktop')
-  const [toast, setToast] = useState<{ message: string; kind: 'success' | 'info' } | null>(null)
+  const [toast, setToast] = useState<{ message: string; description?: string; kind: 'success' | 'info' } | null>(null)
   // Undo and redo for the Rewards step: each change to the plan or the length is a step.
   type Snap = { rewards: RewardWeek[]; endDate: string }
   const [past, setPast] = useState<Snap[]>([])
@@ -115,7 +115,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
   const saveDraft = () => {
     persist()
-    setToast({ message: 'Draft saved', kind: 'success' })
+    setToast({ message: 'Draft saved', description: 'Your changes have been saved.', kind: 'success' })
   }
 
   const close = () => {
@@ -284,7 +284,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
             onPlanChange={changePlan}
             onUndo={undo}
             onRedo={redo}
-            onNotify={(message) => setToast({ message, kind: 'info' })}
+            onNotify={(message, description) => setToast({ message, description, kind: 'info' })}
             onLayoutChange={onLayoutChange}
             onEditSettings={() => setStep(0)}
           />
@@ -311,7 +311,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
       {toast && (
         <div className="toast">
-          <ToastAlert kind={toast.kind} message={toast.message} onClose={() => setToast(null)} />
+          <ToastAlert kind={toast.kind} message={toast.message} description={toast.description} onClose={() => setToast(null)} />
         </div>
       )}
     </div>

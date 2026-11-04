@@ -35,7 +35,7 @@ type RewardsStepProps = {
   onUndo: () => void
   onRedo: () => void
   // Tells the editor to show a toast.
-  onNotify: (message: string) => void
+  onNotify: (message: string, description?: string) => void
   // Adding or removing days and weeks moves the end date, so the editor updates Settings.
   onLayoutChange: (layout: Layout) => void
   onEditSettings: () => void
@@ -95,10 +95,10 @@ export function RewardsStep({
   // Adding days, a week or a month is always available. At the 10-week limit it says so.
   const addTime = (extra: number) => {
     const layout = addPeriod(weeks, days, extra)
-    if (!layout) return onNotify(`The calendar is at its ${MAX_WEEKS}-week maximum.`)
+    if (!layout) return onNotify('Maximum length reached', `The calendar is at its ${MAX_WEEKS}-week maximum.`)
     apply(layout)
     const added = layout.days - days
-    if (added < extra) onNotify(`Added ${added} ${added === 1 ? 'day' : 'days'}. ${MAX_WEEKS} weeks is the maximum.`)
+    if (added < extra) onNotify(`Added ${added} ${added === 1 ? 'day' : 'days'}`, `${MAX_WEEKS} weeks is the maximum length.`)
   }
 
   const apply = (layout: Layout | null) => {
