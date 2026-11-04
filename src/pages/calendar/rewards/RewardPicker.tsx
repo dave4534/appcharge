@@ -8,10 +8,9 @@ import {
   IconButton,
   Modal,
   Search,
-  Tabs,
   TextField,
 } from '../../../design-system/components'
-import { BANK_TABS, PRODUCTS, offeredOn, type BankTab, type Product } from './catalog'
+import { PRODUCTS, offeredOn, type Product } from './catalog'
 import { ensureWeeks, setDay } from './plan'
 import { RewardIcon } from './tiles'
 import {
@@ -58,7 +57,6 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
   const suggestion = useMemo(() => suggestDay(plan, week, day), [plan, week, day])
   const [showSuggestion, setShowSuggestion] = useState(isNew)
   const [selection, setSelection] = useState<Selection>(() => toSelection(isNew ? suggestion.items : current))
-  const [tab, setTab] = useState<BankTab>(BANK_TABS[0])
   const [query, setQuery] = useState('')
   const [category, setCategory] = useState('all')
   const [editing, setEditing] = useState<{ sku: string; text: string } | null>(null)
@@ -66,9 +64,8 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
 
   // Only products this day can offer are listed. The rules for that live in catalog.ts.
   const offered = useMemo(() => offeredOn(day), [day])
-  const inTab = offered.filter((p) => p.tab === tab)
-  const categories = [...new Set(inTab.map((p) => p.category))]
-  const rows = inTab.filter((p) => {
+  const categories = [...new Set(offered.map((p) => p.category))]
+  const rows = offered.filter((p) => {
     const q = query.trim().toLowerCase()
     return (category === 'all' || p.category === category) && (!q || p.name.toLowerCase().includes(q) || p.sku.includes(q))
   })
@@ -176,16 +173,6 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
             </div>
           </div>
         )}
-
-        <Tabs
-          stretched="on"
-          items={BANK_TABS.map((t) => ({ id: t, label: t }))}
-          activeId={tab}
-          onChange={(id) => {
-            setTab(id as BankTab)
-            setCategory('all')
-          }}
-        />
 
         <div className="picker-filters">
           <Search

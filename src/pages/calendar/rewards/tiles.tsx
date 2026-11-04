@@ -1,7 +1,5 @@
 import { CircleAlert, Plus, Trash2, TriangleAlert } from 'lucide-react'
-import { useState } from 'react'
 import { Icon, IconButton } from '../../../design-system/components'
-import { productOf } from './catalog'
 import {
   DAY7_BADGE_IMAGE,
   DAYS_PER_WEEK,
@@ -17,17 +15,10 @@ import {
 
 export function RewardIcon({ item, size = 28 }: { item: RewardItem; size?: number }) {
   const src = rewardImage(item)
-  // Remember which file failed to load, so a missing image drops to the icon.
-  const [failed, setFailed] = useState<string | null>(null)
-  if (src && failed !== src) {
-    return <img className="reward-icon" src={src} width={size} height={size} alt="" onError={() => setFailed(src)} />
-  }
-  // No artwork yet: the product's own icon on a tinted square.
-  const ProductIcon = productOf(item.sku)?.icon
-  return (
-    <span className="reward-icon reward-icon--placeholder" style={{ width: size, height: size }}>
-      {ProductIcon && <ProductIcon size={Math.round(size * 0.6)} />}
-    </span>
+  return src ? (
+    <img className="reward-icon" src={src} width={size} height={size} alt="" />
+  ) : (
+    <span className="reward-icon reward-icon--placeholder" style={{ width: size, height: size }} />
   )
 }
 

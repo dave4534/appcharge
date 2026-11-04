@@ -40,7 +40,6 @@ export type RewardDef = {
   name: string
   // 1 is the lowest. Chips take 1 to 5 depending on the amount (see chipsTier).
   premiumRank: number | null
-  image: string | null
   // Stepper size and limits in the reward's own unit (chips, minutes, count).
   step: number
   min: number
@@ -48,10 +47,10 @@ export type RewardDef = {
 }
 
 export const REWARD_DEFS: Record<RewardKind, RewardDef> = {
-  chips: { kind: 'chips', name: 'Chips', premiumRank: null, image: null, step: 250 * M, min: 10 * M },
-  'xp-boost': { kind: 'xp-boost', name: '2x XP boost', premiumRank: 7, image: '/rewards/xp-boost.png', step: 30, min: 10, max: 120 },
-  diamonds: { kind: 'diamonds', name: 'Diamonds', premiumRank: 8, image: '/rewards/diamonds.png', step: 5, min: 1 },
-  item: { kind: 'item', name: 'Item', premiumRank: 6, image: null, step: 1, min: 1 },
+  chips: { kind: 'chips', name: 'Chips', premiumRank: null, step: 250 * M, min: 10 * M },
+  'xp-boost': { kind: 'xp-boost', name: '2x XP boost', premiumRank: 7, step: 30, min: 10, max: 120 },
+  diamonds: { kind: 'diamonds', name: 'Diamonds', premiumRank: 8, step: 5, min: 1 },
+  item: { kind: 'item', name: 'Item', premiumRank: 6, step: 1, min: 1 },
 }
 
 export const DAY7_BADGE_IMAGE = '/rewards/day7-badge.png'
@@ -75,15 +74,11 @@ export function chipsTier(quantity: number): 1 | 2 | 3 | 4 | 5 {
   return 5
 }
 
-// Which image a reward uses. This is the one rule for artwork:
-// - Chips: by amount, one of five tier images (chipsTier above).
-// - Diamonds and the XP boost: their own image, named in REWARD_DEFS.
-// - Every other product: public/rewards/<sku>.png. When that file does not exist the
-//   screens fall back to the product's icon (see RewardIcon in tiles.tsx).
+// Which image a reward uses: chips by amount (one of five tier images, see chipsTier),
+// every other product by the image set on it in catalog.ts.
 export function rewardImage(item: RewardItem): string | null {
   if (item.kind === 'chips') return `/rewards/chips-tier${chipsTier(item.quantity)}.png`
-  if (item.kind === 'item') return `/rewards/${item.sku}.png`
-  return REWARD_DEFS[item.kind].image
+  return productOf(item.sku)?.image ?? null
 }
 
 export function premiumRank(item: RewardItem): number {
