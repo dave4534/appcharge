@@ -1,6 +1,15 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Cloud, CloudCheck, Monitor, Smartphone } from 'lucide-react'
-import { Button, Icon, IconButton, Modal, Steps, Toast } from '../../design-system/components'
+import { Button, Icon, IconButton, Modal, Toast } from '../../design-system/components'
+import {
+  Stepper,
+  StepperItem,
+  StepperNav,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+  StepperIndicator,
+} from '@/components/ui/stepper'
 import type { Offer } from '../offers/data'
 import { TODAY, dayDiff } from '../offers/dates'
 import { StatusPill } from '../offers/parts'
@@ -11,6 +20,12 @@ import { emptyActiveDays, validatePlan, type RewardWeek } from './rewards/rules'
 import { SettingsStep } from './SettingsStep'
 import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
 import './calendar.css'
+
+// Stable reference: the Stepper defines its steps once.
+const EDITOR_STEPS = [
+  { id: 'settings', title: 'Settings' },
+  { id: 'rewards', title: 'Rewards' },
+]
 
 type CalendarEditorProps = {
   // The draft being reopened, or null for a new calendar.
@@ -153,14 +168,24 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
           <StatusPill status={status} />
         </div>
 
-        <Steps
-          type="Gallery"
+        <Stepper
+          steps={EDITOR_STEPS}
+          value={EDITOR_STEPS[step].id}
+          onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)}
           className="editor-steps"
-          currentStep={step + 1}
-          totalSteps={2}
-          onPrevious={() => setStep(0)}
-          onNext={() => valid && setStep(1)}
-        />
+        >
+          <StepperNav className="flex items-center gap-2">
+            {EDITOR_STEPS.map((s, i) => (
+              <StepperItem key={s.id} stepId={s.id} disabled={i === 1 && !valid}>
+                <StepperTrigger>
+                  <StepperIndicator>{i + 1}</StepperIndicator>
+                  <StepperTitle>{s.title}</StepperTitle>
+                </StepperTrigger>
+                {i === 0 && <StepperSeparator className="w-8 flex-none" />}
+              </StepperItem>
+            ))}
+          </StepperNav>
+        </Stepper>
 
         <div className="editor-actions">
           {/* An icon, not text, so the autosave state never changes the header's width. */}
