@@ -18,7 +18,7 @@ import { TODAY, dayDiff } from '../offers/dates'
 import { StatusPill } from '../offers/parts'
 import type { Device } from './rewards/PreviewPanel'
 import { RewardsStep } from './rewards/RewardsStep'
-import { endDateFor, type Layout } from './rewards/plan'
+import { endDateFor, removeEmptyDays, type Layout } from './rewards/plan'
 import type { RewardWeek } from './rewards/rules'
 import { readinessOf } from './readiness'
 import { SettingsStep } from './SettingsStep'
@@ -28,6 +28,9 @@ import './calendar.css'
 
 // The current version plus 50 earlier autosaves.
 const MAX_VERSIONS = 51
+
+// How long a removal can be undone from its toast.
+const UNDO_SECONDS = 5
 
 // Stable reference: the Stepper defines its steps once.
 const EDITOR_STEPS = [
@@ -63,7 +66,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   // A calendar whose settings are already complete opens straight on its rewards.
   const [step, setStep] = useState(() => (offer && validate(settingsOf(offer)).valid ? 1 : 0))
   const [device, setDevice] = useState<Device>('desktop')
-  const [toast, setToast] = useState<{ message: string; description?: string; kind: 'success' | 'info' } | null>(null)
+  const [toast, setToast] = useState<{ message: string; description?: string; kind: 'success' | 'info'; undo?: boolean; seconds?: number } | null>(null)
   // Undo and redo for the Rewards step: each change to the plan or the length is a step.
   type Snap = { rewards: RewardWeek[]; endDate: string }
   const [past, setPast] = useState<Snap[]>([])
@@ -88,7 +91,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
   useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(null), 2500)
+    const t = setTimeout(() => setToast(null), (toast.seconds ?? 2.5) * 1000)
     return () => clearTimeout(t)
   }, [toast])
 
@@ -206,6 +209,22 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
     else go()
   }
 
+  // Takes the empty days out and offers a few seconds to undo it.
+  const removeEmpty = () => {
+    const layout = removeEmptyDays(rewards, days)
+    if (!layout) return
+    const removed = days - layout.days
+    setReadinessOpen(false)
+    onLayoutChange(layout)
+    setToast({
+      message: `Removed ${removed} empty ${removed === 1 ? 'day' : 'days'}`,
+      description: `The calendar is now ${layout.days} ${layout.days === 1 ? 'day' : 'days'} long.`,
+      kind: 'info',
+      undo: true,
+      seconds: UNDO_SECONDS,
+    })
+  }
+
   const publish = () => {
     const next = build(settings.startDate > TODAY ? 'scheduled' : 'live')
     onFinish(next, `${next.name} is ${next.status === 'live' ? 'live' : 'scheduled'}.`)
@@ -314,6 +333,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
               onOpenChange={setReadinessOpen}
               confirmLabel={isDraft ? 'Publish anyway' : 'Save anyway'}
               onConfirm={isDraft ? publish : saveChanges}
+              onRemoveEmpty={removeEmpty}
             />
           )}
         </div>
@@ -342,7 +362,24 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
       {toast && (
         <div className="toast">
-          <ToastAlert kind={toast.kind} message={toast.message} description={toast.description} onClose={() => setToast(null)} />
+          <ToastAlert
+            kind={toast.kind}
+            message={toast.message}
+            description={toast.description}
+            countdown={toast.undo ? toast.seconds : undefined}
+            action={
+              toast.undo
+                ? {
+                    label: 'Undo',
+                    onClick: () => {
+                      undo()
+                      setToast(null)
+                    },
+                  }
+                : undefined
+            }
+            onClose={() => setToast(null)}
+          />
         </div>
       )}
     </div>

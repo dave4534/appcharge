@@ -43,7 +43,7 @@ type RewardsStepProps = {
   onEditSettings: () => void
   // A live calendar has players on it, so edits reach them.
   live: boolean
-  // Empty days and the summary banner only appear once the user has tried to publish.
+  // The summary banner only appears once the user has tried to publish.
   showIssues: boolean
 }
 
@@ -226,7 +226,6 @@ export function RewardsStep({
               canDuplicate={!atMaxWeeks}
               canDelete={weekCount > 1}
               players={live ? LIVE_PLAYERS[i] : undefined}
-              flagMissing={showIssues}
               onOpenDay={(d) => setPicker({ week: i, day: d })}
               onClearDay={(d) => askClearDay(i, d)}
               onAddDay={() => apply(addDay(weeks, days))}

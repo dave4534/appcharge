@@ -13,6 +13,7 @@ type TimelineViewProps = {
   canReorder: boolean
   onMove: (id: string, targetId: string, after: boolean) => void
   onOpen: (id: string) => void
+  onDelete: (offer: Offer) => void
 }
 
 // The timeline shows seven weeks at a time and can be moved a week at a time.
@@ -75,7 +76,7 @@ function Bars({ offer, from }: { offer: Offer; from: string }) {
   )
 }
 
-export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen }: TimelineViewProps) {
+export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen, onDelete }: TimelineViewProps) {
   const reorder = useReorder(
     offers.map((o) => o.id),
     canReorder,
@@ -149,7 +150,7 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen }:
                 </div>
               </div>
               <StatusPill status={offer.status} />
-              <KebabButton offer={offer} />
+              <KebabButton offer={offer} onEdit={onOpen} onDelete={onDelete} />
             </div>
             <Track>
               <Bars offer={offer} from={from} />

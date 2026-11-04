@@ -13,8 +13,6 @@ type WeekRowProps = {
   canDelete: boolean
   // Players currently on this week, shown for live calendars.
   players?: number
-  // Outline days that still have no reward.
-  flagMissing: boolean
   onOpenDay: (day: number) => void
   onClearDay: (day: number) => void
   onAddDay: () => void
@@ -29,7 +27,6 @@ export function WeekRow({
   canDuplicate,
   canDelete,
   players,
-  flagMissing,
   onOpenDay,
   onClearDay,
   onAddDay,
@@ -69,7 +66,6 @@ export function WeekRow({
             onOpen={() => onOpenDay(d)}
             onClear={() => onClearDay(d)}
             onAddDay={onAddDay}
-            flagMissing={flagMissing}
           />
         ))}
       </div>

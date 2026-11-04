@@ -250,3 +250,13 @@ body {
   left: 50%;
   transform: translateX(-50%);
 }
+
+/* Fills the countdown ring in a toast, from empty to full. */
+@keyframes toast-fill {
+  from {
+    stroke-dashoffset: var(--ring);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}

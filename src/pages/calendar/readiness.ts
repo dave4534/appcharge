@@ -22,6 +22,8 @@ export type Readiness = {
   items: ReadyItem[]
   // Counts the rewards screen shows in its summary banner.
   emptyDays: number
+  // Days inside the date range that have a reward.
+  filledDays: number
   emptyWeeks: number
   unusualDays: number
 }
@@ -102,6 +104,7 @@ export function readinessOf(settings: CalendarSettings, rewards: RewardWeek[], d
     percent,
     items: [settingsItem, daysItem, valuesItem, overlapItem],
     emptyDays: empty.length,
+    filledDays: filled,
     emptyWeeks,
     unusualDays: unusual,
   }

@@ -11,7 +11,7 @@ import {
 import { cn } from '@/lib/utils'
 
 type Action = {
-  label: string
+  label: ReactNode
   onClick?: () => void
   disabled?: boolean
   // Delete and clear actions use the Negative (destructive) color.

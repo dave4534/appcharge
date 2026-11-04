@@ -82,7 +82,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-8) 20px;
-  margin: 22px 0 var(--space-12);
+  margin: 22px 0 var(--space-4);
 }
 
 .section-line h2 {
@@ -90,10 +90,6 @@
   font-family: var(--font-family-heading);
   font-size: var(--font-size-h3);
   font-weight: var(--font-weight-semibold);
-}
-
-.section-line span {
-  color: var(--secondary-text-color);
 }
 
 .footnote {
@@ -191,10 +187,16 @@
 
 .list-grid {
   display: grid;
-  grid-template-columns: 24px 32px minmax(0, 1fr) minmax(140px, 200px) minmax(130px, 170px) 100px 130px 32px;
+  grid-template-columns: 24px 32px minmax(0, 1fr) minmax(140px, 200px) minmax(130px, 170px) 130px 100px 32px;
   align-items: center;
   column-gap: 20px;
   padding: 0 20px;
+}
+
+.section-count {
+  margin: 0 0 var(--space-12);
+  color: var(--secondary-text-color);
+  font-size: var(--font-size-text3);
 }
 
 .readiness-cell {

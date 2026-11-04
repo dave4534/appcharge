@@ -38,6 +38,21 @@ export function addPeriod(plan: RewardWeek[], days: number, extra: number): Layo
   return { plan: ensureWeeks(plan, weekCountFor(days + added)), days: days + added }
 }
 
+// Takes the days that have no reward out of the calendar. The days after them move up, so
+// the calendar gets shorter and numbering stays continuous.
+export function removeEmptyDays(plan: RewardWeek[], days: number): Layout | null {
+  const kept: DayRewards[] = []
+  plan.forEach((week, w) =>
+    week.forEach((day, d) => {
+      if (w * DAYS_PER_WEEK + d < days && day.length > 0) kept.push(day)
+    }),
+  )
+  if (kept.length === 0 || kept.length === days) return null
+  const weeks = weekCountFor(kept.length)
+  const next = Array.from({ length: weeks }, (_, w) => Array.from({ length: DAYS_PER_WEEK }, (_, d) => kept[w * DAYS_PER_WEEK + d] ?? []))
+  return { plan: next, days: kept.length }
+}
+
 export function addDay(plan: RewardWeek[], days: number): Layout | null {
   if (days >= MAX_DAYS) return null
   return { plan: ensureWeeks(plan, weekCountFor(days + 1)), days: days + 1 }

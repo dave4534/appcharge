@@ -1,4 +1,7 @@
 import { useMemo, useState, type CSSProperties } from 'react'
+import { ArrowUpRight } from 'lucide-react'
+import { ActionDialog } from '@/components/ActionDialog'
+import { SlackIcon } from '@/components/SlackIcon'
 import { ButtonGroup, Dropdown, EmptyState, Search } from '../../design-system/components'
 import { NewOfferMenu } from './NewOfferMenu'
 import { ListView } from './ListView'
@@ -30,6 +33,7 @@ type OffersPageProps = {
   onChange: (offers: Offer[]) => void
   onNew: () => void
   onOpen: (id: string) => void
+  onNotify: (message: string, description?: string) => void
 }
 
 type ToolbarSelectProps = {
@@ -50,7 +54,7 @@ function ToolbarSelect({ label, value, options, onChange, width }: ToolbarSelect
   )
 }
 
-export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps) {
+export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: OffersPageProps) {
   const offersById = useMemo(() => new Map(offers.map((o) => [o.id, o])), [offers])
   const order = useMemo(() => offers.map((o) => o.id), [offers])
   const audienceOptions = useMemo(
@@ -66,6 +70,8 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
   const [type, setType] = useState<TypeFilter>('reward-calendar')
   const [status, setStatus] = useState<StatusFilter>('all')
   const [audience, setAudience] = useState('all')
+  // The offer the user asked to delete, waiting for confirmation.
+  const [deleting, setDeleting] = useState<Offer | null>(null)
 
   // Priority is ranked within each offer type, so every type starts at 1.
   const priorityOf = (id: string) => {
@@ -115,7 +121,19 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
     setAudience('all')
   }
 
-  const viewProps = { offers: visible, priorityOf, canReorder, onMove: move, onOpen }
+  const viewProps = { offers: visible, priorityOf, canReorder, onMove: move, onOpen, onDelete: setDeleting }
+
+  const confirmDelete = (offer: Offer) => {
+    onChange(offers.filter((o) => o.id !== offer.id))
+    setDeleting(null)
+    onNotify(`${offer.name} deleted`)
+  }
+
+  // A live offer has players on it, so deleting it needs a manager to approve.
+  const requestCancellation = (offer: Offer) => {
+    setDeleting(null)
+    onNotify('Cancellation request submitted', `Your manager can approve deleting ${offer.name} in Slack.`)
+  }
 
   return (
     <div className="offers">
@@ -159,11 +177,11 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
 
       <div className="section-line">
         <h2>Popup offers</h2>
-        <span>
-          Showing {type === 'all' ? 'all offers' : typeLabels[type].plural}, {visible.length} of {offers.length}.
-          Priority 1 shows first within each offer type.
-        </span>
       </div>
+      <p className="section-count">
+        {visible.length} {noun}
+        {view === 'list' && !canReorder && ' · Sort by priority to reorder'}
+      </p>
 
       {visible.length === 0 ? (
         <EmptyState
@@ -178,17 +196,40 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
         <TimelineView {...viewProps} />
       )}
 
-      {visible.length > 0 && view === 'list' && (
-        <p className="footnote">
-          {visible.length} {noun}
-          {!canReorder && ' · Sort by priority to reorder'}
-        </p>
-      )}
       {visible.length > 0 && view === 'timeline' && (
         <p className="footnote">
           Bars are colored by status. The timeline shows each offer&apos;s start and end date and repeats.
           {!canReorder && ' Sort by priority to reorder.'}
         </p>
+      )}
+
+      {deleting && (
+        <ActionDialog
+          size="sm"
+          title={`Delete ${deleting.name}?`}
+          description={
+            deleting.status === 'live'
+              ? `${deleting.name} is live, so players are on it. To delete a live ${typeLabels[deleting.type].singular.toLowerCase()}, you need a manager's approval.`
+              : `This removes ${deleting.name}${deleting.rewards ? ' and its rewards' : ''}. You can't undo this.`
+          }
+          onClose={() => setDeleting(null)}
+          secondaryAction={{ label: 'Cancel', onClick: () => setDeleting(null) }}
+          primaryAction={
+            deleting.status === 'live'
+              ? {
+                  label: (
+                    <>
+                      <SlackIcon />
+                      Submit Cancellation Request
+                      <ArrowUpRight />
+                    </>
+                  ),
+                  destructive: true,
+                  onClick: () => requestCancellation(deleting),
+                }
+              : { label: 'Delete', destructive: true, onClick: () => confirmDelete(deleting) }
+          }
+        />
       )}
     </div>
   )

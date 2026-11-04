@@ -1,4 +1,4 @@
-import { Check, ChevronLeft, ChevronRight, Lock } from 'lucide-react'
+import { Check, ChevronLeft, ChevronRight, Gift, Lock } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Icon, IconButton } from '../../../design-system/components'
 import { RewardIcon } from './tiles'
@@ -127,7 +127,10 @@ export function PreviewPanel({ plan, weekCount, week, device, onWeekChange }: Pr
           <span>Featured</span>
           <span>Bundles</span>
           <span>Offers</span>
-          <span className="pv-coins">1,250 coins</span>
+          <span className="pv-coins">
+            <Gift size={12} aria-hidden="true" />
+            1,250
+          </span>
         </nav>
 
         <div className={`pv-card${blank ? ' pv-card--blank' : ''}`}>

@@ -27,11 +27,13 @@ type ReadinessPopoverProps = {
   // Publishing (or saving a live calendar) anyway, with open items.
   confirmLabel: string
   onConfirm: () => void
+  // Takes empty days out of the calendar.
+  onRemoveEmpty: () => void
 }
 
 // The readiness ring in the header. It opens a checklist of what is ready and what is a
 // risk. Anything short of 100% can still be published, and the popover says so.
-export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, onConfirm }: ReadinessPopoverProps) {
+export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, onConfirm, onRemoveEmpty }: ReadinessPopoverProps) {
   const complete = readiness.percent >= 100
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -81,15 +83,27 @@ export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, 
             <p>You can still publish. Open items put players at risk.</p>
           )}
           {!complete && (
-            <Button
-              size="lg"
-              onClick={() => {
-                onOpenChange(false)
-                onConfirm()
-              }}
-            >
-              {confirmLabel}
-            </Button>
+            <div className="readiness-actions">
+              {readiness.emptyDays > 0 && readiness.filledDays > 0 && (
+                <Button
+                  variant="outline"
+                  size="lg"
+                  className="border-destructive/40 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                  onClick={onRemoveEmpty}
+                >
+                  Remove Empty Days
+                </Button>
+              )}
+              <Button
+                size="lg"
+                onClick={() => {
+                  onOpenChange(false)
+                  onConfirm()
+                }}
+              >
+                {confirmLabel}
+              </Button>
+            </div>
           )}
         </div>
       </PopoverContent>

@@ -12,9 +12,10 @@ type ListViewProps = {
   canReorder: boolean
   onMove: (id: string, targetId: string, after: boolean) => void
   onOpen: (id: string) => void
+  onDelete: (offer: Offer) => void
 }
 
-export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: ListViewProps) {
+export function ListView({ offers, priorityOf, canReorder, onMove, onOpen, onDelete }: ListViewProps) {
   const reorder = useReorder(
     offers.map((o) => o.id),
     canReorder,
@@ -26,8 +27,8 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: Lis
       <div className="list-grid list-head" aria-hidden="true">
         <span className="col-audience">Audience</span>
         <span className="col-dates">Start and end</span>
-        <span className="col-status">Status</span>
         <span className="col-readiness">Readiness</span>
+        <span className="col-status">Status</span>
       </div>
 
       <ul className="list-rows">
@@ -59,13 +60,13 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: Lis
                 <span className="muted">No dates yet</span>
               )}
             </div>
-            <div className="col-status">
-              <StatusPill status={offer.status} />
-            </div>
             <div className="col-readiness">
               <ReadinessCell offer={offer} />
             </div>
-            <KebabButton offer={offer} />
+            <div className="col-status">
+              <StatusPill status={offer.status} />
+            </div>
+            <KebabButton offer={offer} onEdit={onOpen} onDelete={onDelete} />
           </li>
         ))}
       </ul>

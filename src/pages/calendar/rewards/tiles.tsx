@@ -64,10 +64,9 @@ type DayTileProps = {
   onOpen: () => void
   onClear: () => void
   onAddDay: () => void
-  flagMissing: boolean
 }
 
-export function DayTile({ week, day, rewards, inactive, canAddDay, issues, onOpen, onClear, onAddDay, flagMissing }: DayTileProps) {
+export function DayTile({ week, day, rewards, inactive, canAddDay, issues, onOpen, onClear, onAddDay }: DayTileProps) {
   const num = dayNumber(week, day)
   const where = `Week ${week + 1}, Day ${num}`
 
@@ -86,7 +85,7 @@ export function DayTile({ week, day, rewards, inactive, canAddDay, issues, onOpe
 
   if (rewards.length === 0) {
     return (
-      <div className={`tile tile--empty${flagMissing ? ' tile--missing' : ''}`}>
+      <div className="tile tile--empty">
         <button type="button" className="tile-main" onClick={onOpen} aria-label={`Add reward to ${where}`}>
           <span className="tile-label">Day {num}</span>
           <span className="tile-cta">+ Reward</span>

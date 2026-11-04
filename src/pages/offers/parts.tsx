@@ -1,7 +1,8 @@
-import { Ellipsis, GripVertical } from 'lucide-react'
+import { Ellipsis, GripVertical, Pencil, Trash2 } from 'lucide-react'
 import type { ButtonHTMLAttributes } from 'react'
 import { Counter, Icon, IconButton, Label, Link, type LabelColor } from '../../design-system/components'
 import { statusLabels, type Offer, type OfferStatus } from './data'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { isOpenable } from './rows'
 import { ReadinessDonut } from '@/components/ReadinessDonut'
 import { readinessOfOffer } from '../calendar/readiness'
@@ -36,14 +37,31 @@ export function DragHandle({ offer, ...rest }: { offer: Offer } & ButtonHTMLAttr
   )
 }
 
-export function KebabButton({ offer }: { offer: Offer }) {
+// The row's flyout menu: edit it, or delete it (which asks first).
+export function KebabButton({ offer, onEdit, onDelete }: { offer: Offer; onEdit: (id: string) => void; onDelete: (offer: Offer) => void }) {
   return (
-    <IconButton
-      kind="Tertiary"
-      size="Small"
-      aria-label={`More actions for ${offer.name}`}
-      iconElement={<Icon icon={Ellipsis} size="Medium" color="secondary" />}
-    />
+    <DropdownMenu>
+      <DropdownMenuTrigger
+        render={
+          <IconButton
+            kind="Tertiary"
+            size="Small"
+            aria-label={`More actions for ${offer.name}`}
+            iconElement={<Icon icon={Ellipsis} size="Medium" color="secondary" />}
+          />
+        }
+      />
+      <DropdownMenuContent align="end" className="w-44">
+        <DropdownMenuItem disabled={!isOpenable(offer)} onClick={() => onEdit(offer.id)}>
+          <Pencil />
+          Edit
+        </DropdownMenuItem>
+        <DropdownMenuItem variant="destructive" onClick={() => onDelete(offer)}>
+          <Trash2 />
+          Delete
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
   )
 }
 

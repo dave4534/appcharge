@@ -81,6 +81,7 @@ export default function App() {
                   onChange={setOffers}
                   onNew={() => setEditing({ offerId: null })}
                   onOpen={(offerId) => setEditing({ offerId })}
+                  onNotify={(message, description) => setNotice({ message, description })}
                 />
               )}
             </main>
