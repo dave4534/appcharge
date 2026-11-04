@@ -9,36 +9,14 @@ const REDUCED_SHOW_MS = 800
 // If the image cannot load, do not hold the app back.
 const GIVE_UP_MS = 1500
 
-const SEEN = 'appcharge-prototype:intro-seen'
-
-// The loading screen is for the first thing a visitor sees, so it plays once per browser
-// session. Add ?intro to the address to see it again.
-const shouldPlay = () => {
-  try {
-    if (new URLSearchParams(window.location.search).has('intro')) return true
-    return window.sessionStorage.getItem(SEEN) === null
-  } catch {
-    return true
-  }
-}
-
 type Phase = 'show' | 'fade' | 'done'
 
 // A white screen with the Appcharge loading animation (an SVG with its own CSS animation),
-// shown for a couple of seconds on the first load and then dissolved into the app.
+// shown for a couple of seconds on every load and refresh, then dissolved into the app.
 export function IntroLoader() {
-  const [phase, setPhase] = useState<Phase>(() => (shouldPlay() ? 'show' : 'done'))
+  const [phase, setPhase] = useState<Phase>('show')
   // The timer starts when the image has loaded, so the whole animation is seen from its start.
   const [ready, setReady] = useState(false)
-
-  useEffect(() => {
-    if (phase === 'done') return
-    try {
-      window.sessionStorage.setItem(SEEN, '1')
-    } catch {
-      // Private windows can refuse storage: the intro then simply plays again next time.
-    }
-  }, [phase])
 
   useEffect(() => {
     if (phase !== 'show') return
@@ -70,9 +48,9 @@ export function IntroLoader() {
       <img
         src={loader}
         alt=""
-        width={420}
-        height={240}
-        style={{ width: 'min(420px, 80vw)', height: 'auto' }}
+        width={360}
+        height={206}
+        style={{ width: 'min(360px, 75vw)', height: 'auto' }}
         onLoad={() => setReady(true)}
         onError={() => setReady(false)}
       />
