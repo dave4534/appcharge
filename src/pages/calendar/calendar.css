@@ -166,13 +166,75 @@
   background: var(--primary-background-color);
 }
 
-.save-status {
-  /* A fixed size, so the autosave state never moves the stepper. */
+.version-label,
+.version-trigger {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
+  gap: var(--space-4);
+  color: var(--primary-color);
+  font-size: var(--font-size-text2);
+  white-space: nowrap;
+}
+
+.version-trigger {
+  padding: 4px 6px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.version-trigger:hover {
+  background: var(--primary-highlighted-color);
+}
+
+.version-link {
+  text-decoration: underline dotted;
+  text-underline-offset: 4px;
+}
+
+/* The header is crowded on narrow screens, so the label shortens to the version. */
+.version-short {
+  display: none;
+}
+
+@media (max-width: 1180px) {
+  .version-long {
+    display: none;
+  }
+
+  .version-short {
+    display: inline;
+  }
+}
+
+/* The history timeline: one line down the left, the versions hanging off it. */
+.version-list {
+  position: relative;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.version-list::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 13px;
+  width: 2px;
+  background: var(--layout-border-color);
+}
+
+.version-item {
+  position: relative;
+  margin-left: 40px;
+  padding: var(--space-8) var(--space-8);
+  border-radius: 8px;
+}
+
+.version-item:hover {
+  background: var(--allgrey-background-color);
 }
 
 /* Desktop and phone preview toggle: a grey pill, with the chosen side raised and white. */

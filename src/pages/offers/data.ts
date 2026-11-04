@@ -4,6 +4,15 @@ import { suggestWeek, type RewardWeek } from '../calendar/rewards/rules'
 export type OfferType = 'reward-calendar' | 'bundle' | 'promotion'
 export type OfferStatus = 'live' | 'scheduled' | 'draft'
 
+// One autosave of a calendar. The newest version is the current one.
+export type Version = {
+  n: number
+  savedAt: number
+  by: string
+  settings: CalendarSettings
+  rewards: RewardWeek[]
+}
+
 export type Offer = {
   id: string
   name: string
@@ -19,6 +28,8 @@ export type Offer = {
   settings?: CalendarSettings
   // The reward for each day of each week, set on the Rewards step.
   rewards?: RewardWeek[]
+  // Autosave history, oldest first.
+  versions?: Version[]
 }
 
 export const typeLabels: Record<OfferType, { singular: string; plural: string }> = {

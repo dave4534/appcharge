@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { ArrowLeft, Cloud, CloudCheck, Monitor, Smartphone } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { ArrowLeft, Monitor, Smartphone } from 'lucide-react'
 import { Button, Icon, IconButton } from '../../design-system/components'
 import { ToastAlert } from '@/components/ToastAlert'
 import { ActionDialog } from '@/components/ActionDialog'
@@ -12,7 +12,7 @@ import {
   StepperTrigger,
   StepperIndicator,
 } from '@/components/ui/stepper'
-import type { Offer } from '../offers/data'
+import type { Offer, Version } from '../offers/data'
 import { TODAY, dayDiff } from '../offers/dates'
 import { StatusPill } from '../offers/parts'
 import type { Device } from './rewards/PreviewPanel'
@@ -20,8 +20,12 @@ import { RewardsStep } from './rewards/RewardsStep'
 import { endDateFor, weekCountFor, type Layout } from './rewards/plan'
 import { emptyActiveDays, validatePlan, type RewardWeek } from './rewards/rules'
 import { SettingsStep } from './SettingsStep'
+import { VersionHistory } from './VersionHistory'
 import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
 import './calendar.css'
+
+// The current version plus 50 earlier autosaves.
+const MAX_VERSIONS = 51
 
 // Stable reference: the Stepper defines its steps once.
 const EDITOR_STEPS = [
@@ -63,6 +67,9 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   const [past, setPast] = useState<Snap[]>([])
   const [future, setFuture] = useState<Snap[]>([])
   const [publishing, setPublishing] = useState(false)
+  const [versions, setVersions] = useState<Version[]>(() => offer?.versions ?? [])
+  // What the calendar looked like when it was opened, kept as version 1 if it had no history.
+  const opened = useRef({ settings, rewards })
 
   const snapshot = JSON.stringify({ settings, rewards })
   const [savedAs, setSavedAs] = useState(snapshot)
@@ -79,7 +86,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
   const update = (patch: Partial<CalendarSettings>) => setSettings((s) => ({ ...s, ...patch }))
 
-  const build = (status: Offer['status']): Offer => ({
+  const build = (status: Offer['status'], history: Version[] = versions): Offer => ({
     ...offer,
     id: offerId ?? `calendar-${Date.now()}`,
     name: settings.name.trim() || 'Untitled calendar',
@@ -90,6 +97,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
     status,
     settings,
     rewards,
+    versions: history,
   })
 
   // Published calendars keep their status; only drafts are drafts.
@@ -97,7 +105,18 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   const isDraft = status === 'draft'
 
   const persist = () => {
-    const next = build(status)
+    // Every autosave that changed something becomes a new version, newest last.
+    let history = versions
+    if (snapshot !== savedAs) {
+      const base: Version[] =
+        history.length === 0 && offerId
+          ? [{ n: 1, savedAt: Date.now(), by: 'Dave', ...opened.current }]
+          : history
+      const n = (base[base.length - 1]?.n ?? 0) + 1
+      history = [...base, { n, savedAt: Date.now(), by: 'Dave', settings, rewards }].slice(-MAX_VERSIONS)
+      setVersions(history)
+    }
+    const next = build(status, history)
     onSave(next)
     setOfferId(next.id)
     setSavedAs(snapshot)
@@ -144,6 +163,15 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
     record()
     setRewards(plan)
     update({ endDate: endDateFor(settings.startDate, nextDays) })
+  }
+
+  // Restoring brings an old version back as the current one; the next autosave
+  // keeps it as a new version, so nothing in the history is lost.
+  const restoreVersion = (v: Version) => {
+    record()
+    setSettings(v.settings)
+    setRewards(v.rewards)
+    setToast({ message: `Restored version ${v.n}`, description: 'It will be saved as a new version.', kind: 'success' })
   }
 
   const undo = () => {
@@ -222,17 +250,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
         </Stepper>
 
         <div className="editor-actions">
-          {/* An icon, not text, so the autosave state never changes the header's width. */}
-          <span
-            className="save-status"
-            role="status"
-            title={snapshot === savedAs ? 'All changes saved' : 'Saving…'}
-            aria-label={snapshot === savedAs ? 'All changes saved' : 'Saving changes'}
-          >
-            {(snapshot !== savedAs || offerId) && (
-              <Icon icon={snapshot === savedAs ? CloudCheck : Cloud} size="Medium" color={snapshot === savedAs ? 'positive' : 'secondary'} />
-            )}
-          </span>
+          <VersionHistory versions={versions} saving={snapshot !== savedAs} onRestore={restoreVersion} />
           {step === 1 && (
             <div className="device-toggle" role="group" aria-label="Preview device">
               <button type="button" aria-label="Desktop preview" aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>
