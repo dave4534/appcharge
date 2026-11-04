@@ -20,7 +20,7 @@ export type Readiness = {
   // 0 to 100.
   percent: number
   items: ReadyItem[]
-  // Other calendars this one runs at the same time for the same audience.
+  // Other calendars this one runs alongside, for an overlapping audience.
   overlaps: Offer[]
   // Counts the rewards screen shows in its summary banner.
   emptyDays: number
@@ -41,7 +41,14 @@ const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one :
 // What a calendar is checked against: the other offers, and which one this is.
 export type ReadinessContext = { offers: Offer[]; selfId: string | null }
 
-// Scheduled or live calendars for the same audience whose dates run at the same time.
+// Two audiences overlap when either is everyone, either is not chosen yet, or they share a segment.
+function audiencesOverlap(a: string, b: string) {
+  if (a === 'All players' || b === 'All players' || a === 'Not set' || b === 'Not set') return true
+  const first = a.split(', ')
+  return b.split(', ').some((name) => first.includes(name))
+}
+
+// Scheduled or live calendars for an overlapping audience whose dates run at the same time.
 export function overlapsOf(settings: CalendarSettings, context?: ReadinessContext): Offer[] {
   if (!context || !settings.startDate || !settings.endDate) return []
   const audience = audienceOf(settings).audience
@@ -50,7 +57,7 @@ export function overlapsOf(settings: CalendarSettings, context?: ReadinessContex
       o.id !== context.selfId &&
       o.type === 'reward-calendar' &&
       o.status !== 'draft' &&
-      o.audience === audience &&
+      audiencesOverlap(o.audience, audience) &&
       !!o.start &&
       !!o.end &&
       o.start <= settings.endDate &&

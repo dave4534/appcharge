@@ -1,29 +1,19 @@
 import { Repeat } from 'lucide-react'
-import { Icon } from '../../design-system/components'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { formatDay } from './dates'
-import { DragHandle, KebabButton, OfferTitle, PriorityBadge, ReadinessCell, StatusPill } from './parts'
+import { KebabButton, OfferTitle, PriorityBadge, ReadinessCell, StatusPill } from './parts'
 import { isOpenable, rowClick } from './rows'
-import { useReorder } from './useReorder'
 
 type ListViewProps = {
   offers: Offer[]
   priorityOf: (id: string) => number
-  canReorder: boolean
-  onMove: (id: string, targetId: string, after: boolean) => void
   onOpen: (id: string) => void
   onDelete: (offer: Offer) => void
   // Every offer, whatever the filters hide, so overlaps are found against all of them.
   allOffers: Offer[]
 }
 
-export function ListView({ offers, priorityOf, canReorder, onMove, onOpen, onDelete, allOffers }: ListViewProps) {
-  const reorder = useReorder(
-    offers.map((o) => o.id),
-    canReorder,
-    onMove,
-  )
-
+export function ListView({ offers, priorityOf, onOpen, onDelete, allOffers }: ListViewProps) {
   return (
     <div className="list">
       <div className="list-grid list-head" aria-hidden="true">
@@ -37,11 +27,9 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen, onDel
         {offers.map((offer) => (
           <li
             key={offer.id}
-            className={`list-grid list-row${isOpenable(offer) ? ' is-openable' : ''} ${reorder.rowClass(offer.id)}`}
+            className={`list-grid list-row${isOpenable(offer) ? ' is-openable' : ''} `}
             onClick={rowClick(offer, onOpen)}
-            {...reorder.rowProps(offer.id)}
           >
-            <DragHandle offer={offer} {...reorder.handleProps(offer.id)} />
             <PriorityBadge priority={priorityOf(offer.id)} />
             <div className="offer-name">
               <OfferTitle offer={offer} onOpen={onOpen} />
@@ -54,7 +42,7 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen, onDel
                   {formatDay(offer.start)} to {formatDay(offer.end)}
                   {offer.repeatWeeks && (
                     <span className="repeat" title={`Repeats every ${offer.repeatWeeks} weeks`}>
-                      <Icon icon={Repeat} size="Small" color="current" />
+                      <Repeat className="size-4" />
                     </span>
                   )}
                 </>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Monitor, Smartphone } from 'lucide-react'
-import { Icon } from '../../design-system/components'
 import { Button } from '@/components/ui/button'
+import { ButtonGroup } from '@/components/ui/button-group'
 import { IconButton } from '@/components/IconButton'
 import { ToastAlert } from '@/components/ToastAlert'
 import { ReadinessPopover } from '@/components/ReadinessPopover'
@@ -17,7 +17,7 @@ import {
   StepperIndicator,
 } from '@/components/ui/stepper'
 import type { Offer, Version } from '../offers/data'
-import { TODAY, dayDiff } from '../offers/dates'
+import { TODAY, dayDiff, formatDay } from '../offers/dates'
 import { StatusPill } from '../offers/parts'
 import type { Device } from './rewards/PreviewPanel'
 import { RewardsStep } from './rewards/RewardsStep'
@@ -25,9 +25,13 @@ import { endDateFor, removeEmptyDays, type Layout } from './rewards/plan'
 import type { RewardWeek } from './rewards/rules'
 import { overlapsOf, readinessOf } from './readiness'
 import { SettingsStep } from './SettingsStep'
+import type { PriorityItem } from './PrioritySection'
 import { VersionHistory } from './VersionHistory'
 import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
 import './calendar.css'
+
+// Stands in for a calendar that has no id yet in the priority list.
+const NEW_ID = '__new__'
 
 // The current version plus 50 earlier autosaves.
 const MAX_VERSIONS = 51
@@ -46,9 +50,11 @@ type CalendarEditorProps = {
   offers: Offer[]
   // The draft being reopened, or null for a new calendar.
   offer: Offer | null
-  onSave: (offer: Offer) => void
+  onSave: (offer: Offer, rank?: number) => void
   // Saves the calendar and returns to the offers list, which shows `message` in a toast.
-  onFinish: (offer: Offer, message: string) => void
+  onFinish: (offer: Offer, message: string, rank?: number) => void
+  // Puts the reward calendars in a new priority order (highest first).
+  onReorder: (ids: string[]) => void
   onClose: () => void
 }
 
@@ -64,7 +70,7 @@ const settingsOf = (offer: Offer | null): CalendarSettings => {
   )
 }
 
-export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: CalendarEditorProps) {
+export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onClose }: CalendarEditorProps) {
   const [settings, setSettings] = useState(() => settingsOf(offer))
   const [rewards, setRewards] = useState<RewardWeek[]>(() => offer?.rewards ?? [])
   const [offerId, setOfferId] = useState(offer?.id ?? null)
@@ -77,6 +83,8 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
   const [past, setPast] = useState<Snap[]>([])
   const [future, setFuture] = useState<Snap[]>([])
   const [readinessOpen, setReadinessOpen] = useState(false)
+  // Where a calendar that is not saved yet will rank once it is. Saved ones use the offers order.
+  const [rank, setRank] = useState<number | null>(null)
   // Problems are only called out once the user has tried to publish.
   const [attempted, setAttempted] = useState(false)
   // A scheduled or live calendar with complete Settings is already set up, so its two
@@ -129,7 +137,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
       setVersions(history)
     }
     const next = build(status, history)
-    onSave(next)
+    onSave(next, rank ?? undefined)
     setOfferId(next.id)
     setSavedAs(snapshot)
     return next
@@ -147,7 +155,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
 
   // Saving a draft takes the user back to the offers list.
   const saveDraft = () => {
-    onFinish(persist(), 'Draft saved')
+    onFinish(persist(), 'Draft saved', rank ?? undefined)
   }
 
   const close = () => {
@@ -209,6 +217,34 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
 
   const readiness = readinessOf(settings, rewards, days, { offers, selfId: offerId })
 
+  // ----- Priority
+
+  const overlapIds = new Set(overlapsOf(settings, { offers, selfId: offerId }).map((o) => o.id))
+  const spanOf = (start: string | null, end: string | null) => (start && end ? `${formatDay(start)} to ${formatDay(end)}` : 'No dates yet')
+  const priority: PriorityItem[] = offers
+    .filter((o) => o.type === 'reward-calendar')
+    .map((o) =>
+      o.id === offerId
+        ? { id: o.id, name: settings.name.trim() || o.name, status: o.status, audience: audienceOf(settings).audience, dates: spanOf(settings.startDate, settings.endDate), self: true, overlapsSelf: false }
+        : { id: o.id, name: o.name, status: o.status, audience: o.audience, dates: spanOf(o.start, o.end), self: false, overlapsSelf: overlapIds.has(o.id) },
+    )
+  if (!offerId) {
+    priority.splice(Math.min(rank ?? priority.length, priority.length), 0, {
+      id: NEW_ID,
+      name: settings.name.trim() || 'New Reward Calendar',
+      status: 'draft',
+      audience: audienceOf(settings).audience,
+      dates: spanOf(settings.startDate, settings.endDate),
+      self: true,
+      overlapsSelf: false,
+    })
+  }
+
+  const movePriority = (ids: string[]) => {
+    if (!offerId) setRank(ids.indexOf(NEW_ID))
+    onReorder(ids.filter((id) => id !== NEW_ID))
+  }
+
   // Publishing is never blocked by open items, but below 100% the readiness checklist
   // opens first so the risk is clear. "Publish anyway" in it carries on.
   const attempt = (go: () => void) => {
@@ -237,12 +273,12 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
 
   const publish = () => {
     const next = build(settings.startDate > TODAY ? 'scheduled' : 'live')
-    onFinish(next, `${next.name} is ${next.status === 'live' ? 'live' : 'scheduled'}.`)
+    onFinish(next, `${next.name} is ${next.status === 'live' ? 'live' : 'scheduled'}.`, rank ?? undefined)
   }
 
   const saveChanges = () => {
     const next = build(status)
-    onFinish(next, `Changes to ${next.name} are saved.`)
+    onFinish(next, `Changes to ${next.name} are saved.`, rank ?? undefined)
   }
 
   return (
@@ -253,7 +289,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
             kind="Tertiary"
             size="Medium"
             aria-label="Back to offers"
-            iconElement={<Icon icon={ArrowLeft} size="Medium" color="primary" />}
+            iconElement={<ArrowLeft className="size-4 text-primary" />}
             onClick={close}
           />
           <h1>{settings.name.trim() || 'New Reward Calendar'}</h1>
@@ -289,14 +325,26 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
         <div className="editor-actions">
           <VersionHistory versions={versions} saving={snapshot !== savedAs} onRestore={restoreVersion} />
           {step === 1 && (
-            <div className="device-toggle" role="group" aria-label="Preview device">
-              <button type="button" aria-label="Desktop preview" aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>
-                <Icon icon={Monitor} size="Medium" color="current" />
-              </button>
-              <button type="button" aria-label="Mobile preview" aria-pressed={device === 'mobile'} onClick={() => setDevice('mobile')}>
-                <Icon icon={Smartphone} size="Medium" color="current" />
-              </button>
-            </div>
+            <ButtonGroup className="device-toggle" aria-label="Preview device">
+              <Button
+                variant={device === 'desktop' ? 'secondary' : 'outline'}
+                size="icon-lg"
+                aria-label="Desktop preview"
+                aria-pressed={device === 'desktop'}
+                onClick={() => setDevice('desktop')}
+              >
+                <Monitor />
+              </Button>
+              <Button
+                variant={device === 'mobile' ? 'secondary' : 'outline'}
+                size="icon-lg"
+                aria-label="Mobile preview"
+                aria-pressed={device === 'mobile'}
+                onClick={() => setDevice('mobile')}
+              >
+                <Smartphone />
+              </Button>
+            </ButtonGroup>
           )}
           {isDraft ? (
             <Button variant="outline" size="lg" onClick={saveDraft}>
@@ -340,7 +388,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: Cal
 
       <div className={`editor-body${step === 1 ? ' editor-body--rewards' : ''}`}>
         {step === 0 ? (
-          <SettingsStep settings={settings} errors={errors} missing={missing} overlaps={overlapsOf(settings, { offers, selfId: offerId })} onChange={update} />
+          <SettingsStep settings={settings} errors={errors} missing={missing} overlaps={overlapsOf(settings, { offers, selfId: offerId })} priority={priority} live={status === 'live'} onPriorityChange={movePriority} onChange={update} />
         ) : (
           <RewardsStep
             settings={settings}

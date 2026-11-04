@@ -16,6 +16,7 @@ type SelectComboboxProps = {
   onChange: (value: string) => void
   placeholder?: string
   'aria-label': string
+  id?: string
   invalid?: boolean
   className?: string
 }
@@ -34,6 +35,7 @@ export function SelectCombobox({ value, options, onChange, placeholder, invalid,
     >
       <ComboboxInput
         placeholder={placeholder ?? 'Select'}
+        id={props.id}
         aria-label={props['aria-label']}
         aria-invalid={invalid || undefined}
         className={cn('select-combobox', className)}

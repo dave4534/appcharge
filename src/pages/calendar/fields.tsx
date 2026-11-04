@@ -1,33 +1,38 @@
-import type { ReactNode } from 'react'
-import {
-  AttentionBox,
-  Chips,
-  DatePicker,
-  RadioGroup as DsRadioGroup,
-} from '../../design-system/components'
+import { useState, type ReactNode } from 'react'
+import { CalendarIcon, InfoIcon, XIcon } from 'lucide-react'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
+import { Card as UiCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { SelectCombobox } from '@/components/SelectCombobox'
-import { segmentOptions, type FieldError } from './settings'
+import { formatLong } from '../offers/dates'
+import { segmentOptions, type FieldError as FieldErrorInfo } from './settings'
 
+// A section of the form: a shadcn Card with a title and a hint.
 export function Card({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
   return (
-    <section className="card">
-      <h2>{title}</h2>
-      <p className="card-hint">{hint}</p>
-      {children}
-    </section>
+    <UiCard>
+      <CardHeader>
+        <CardTitle className="text-base">{title}</CardTitle>
+        <CardDescription>{hint}</CardDescription>
+      </CardHeader>
+      <CardContent className="grid gap-4">{children}</CardContent>
+    </UiCard>
   )
 }
 
-// The design system date picker hands back a full ISO timestamp for local midnight,
-// so convert to and from the plain "YYYY-MM-DD" strings the form stores.
-const toPickerValue = (day: string) => {
-  if (!day) return ''
+// The form stores plain "YYYY-MM-DD" strings; the calendar works in local dates.
+const toDate = (day: string) => {
+  if (!day) return undefined
   const [y, m, d] = day.split('-').map(Number)
-  return new Date(y, m - 1, d).toISOString()
+  return new Date(y, m - 1, d)
 }
 
-const fromPickerValue = (iso: string) => {
-  const date = new Date(iso)
+const fromDate = (date: Date) => {
   const pad = (n: number) => String(n).padStart(2, '0')
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
@@ -35,23 +40,76 @@ const fromPickerValue = (iso: string) => {
 type DateFieldProps = {
   label: string
   value: string
-  error?: FieldError
+  error?: FieldErrorInfo
   onChange: (value: string) => void
   onBlur: () => void
 }
 
+// A date: a button that opens the shadcn Calendar in a popover.
 export function DateField({ label, value, error, onChange, onBlur }: DateFieldProps) {
+  const [open, setOpen] = useState(false)
+  const date = toDate(value)
   return (
-    <div className="field" onBlur={onBlur}>
-      <DatePicker
-        type="Date"
-        label={label}
-        placeholder="Select a date"
-        value={toPickerValue(value)}
-        onChange={(iso) => onChange(fromPickerValue(iso))}
+    <Field data-invalid={!!error || undefined}>
+      <FieldLabel>{label}</FieldLabel>
+      <Popover
+        open={open}
+        onOpenChange={(next) => {
+          setOpen(next)
+          if (!next) onBlur()
+        }}
+      >
+        <PopoverTrigger
+          render={<Button variant="outline" className="w-full justify-start font-normal" aria-label={label} aria-invalid={!!error || undefined} />}
+        >
+          <CalendarIcon data-icon="inline-start" />
+          {date ? formatLong(value) : <span className="text-muted-foreground">Select a date</span>}
+        </PopoverTrigger>
+        <PopoverContent align="start" className="w-auto p-0">
+          <Calendar
+            mode="single"
+            selected={date}
+            defaultMonth={date}
+            onSelect={(next) => {
+              if (!next) return
+              onChange(fromDate(next))
+              setOpen(false)
+            }}
+          />
+        </PopoverContent>
+      </Popover>
+      {error && <FieldError>{error.message}</FieldError>}
+    </Field>
+  )
+}
+
+const pad = (n: number) => String(n).padStart(2, '0')
+// Every quarter hour, plus the end of the day.
+const QUARTER_HOURS = [...Array.from({ length: 96 }, (_, i) => `${pad(Math.floor(i / 4))}:${pad((i % 4) * 15)}`), '23:59']
+
+type TimeFieldProps = {
+  label: string
+  value: string
+  error?: FieldErrorInfo
+  onChange: (value: string) => void
+  onBlur: () => void
+}
+
+// A time of day, chosen from a shadcn Combobox.
+export function TimeField({ label, value, error, onChange, onBlur }: TimeFieldProps) {
+  const times = QUARTER_HOURS.includes(value) || !value ? QUARTER_HOURS : [value, ...QUARTER_HOURS]
+  return (
+    <Field data-invalid={!!error || undefined} onBlur={onBlur}>
+      <FieldLabel>{label}</FieldLabel>
+      <SelectCombobox
+        aria-label={label}
+        invalid={!!error}
+        value={value}
+        options={times.map((t) => ({ value: t, label: t }))}
+        onChange={onChange}
       />
-      {error && <p className="field-error">{error.message}</p>}
-    </div>
+      {error && <FieldError>{error.message}</FieldError>}
+    </Field>
   )
 }
 
@@ -66,49 +124,47 @@ type RadioSectionProps<T extends string> = {
   impact?: string | null
 }
 
-export function RadioSection<T extends string>({
-  legend,
-  value,
-  options,
-  onChange,
-  inline,
-  hideLegend,
-  impact,
-}: RadioSectionProps<T>) {
+export function RadioSection<T extends string>({ legend, value, options, onChange, inline, hideLegend, impact }: RadioSectionProps<T>) {
+  const name = legend.replace(/\W+/g, '-').toLowerCase()
   return (
-    <div className="radio-section">
-      <h3 className={hideLegend ? 'sr-only' : undefined}>{legend}</h3>
-      <DsRadioGroup
-        aria-label={legend}
-        positioning={inline ? 'horizontal' : 'vertical'}
-        options={options}
-        value={value ?? ''}
-        onChange={(v) => onChange(v as T)}
-      />
+    <FieldSet>
+      <FieldLegend variant="label" className={hideLegend ? 'sr-only' : undefined}>
+        {legend}
+      </FieldLegend>
+      <RadioGroup value={value ?? ''} onValueChange={(v) => onChange(v as T)} className={inline ? 'flex flex-wrap gap-6' : undefined} aria-label={legend}>
+        {options.map((o) => (
+          <Field key={o.value} orientation="horizontal" className="w-auto">
+            <RadioGroupItem id={`${name}-${o.value}`} value={o.value} />
+            <FieldLabel htmlFor={`${name}-${o.value}`} className="font-normal">
+              {o.label}
+            </FieldLabel>
+          </Field>
+        ))}
+      </RadioGroup>
       {impact && (
-        <AttentionBox type="Neutral" compact className="impact">
-          {impact}
-        </AttentionBox>
+        <Alert>
+          <InfoIcon />
+          <AlertDescription>{impact}</AlertDescription>
+        </Alert>
       )}
-    </div>
+    </FieldSet>
   )
 }
 
 type SegmentPickerProps = {
   selected: string[]
-  error?: FieldError
+  error?: FieldErrorInfo
   onChange: (names: string[]) => void
 }
 
-// The design system has no multi-select yet, so this pairs a Combobox that adds
-// segments with removable Chips that show what is selected.
+// A Combobox that adds segments, with removable Badges showing what is selected.
 export function SegmentPicker({ selected, error, onChange }: SegmentPickerProps) {
   const remaining = segmentOptions
     .filter((s) => !selected.includes(s.name))
     .map((s) => ({ value: s.name, label: `${s.name} (${s.size.toLocaleString('en-US')})` }))
 
   return (
-    <div className="segment-picker">
+    <Field data-invalid={!!error || undefined}>
       <SelectCombobox
         aria-label="Add a segment"
         placeholder={selected.length === 0 ? 'Select segments' : 'Add another segment'}
@@ -118,20 +174,23 @@ export function SegmentPicker({ selected, error, onChange }: SegmentPickerProps)
         onChange={(name) => onChange([...selected, name])}
       />
       {selected.length > 0 && (
-        <div className="chip-row">
+        <div className="flex flex-wrap gap-2">
           {selected.map((name) => (
-            <Chips
-              key={name}
-              type="Primary"
-              showCloseButton
-              onClose={() => onChange(selected.filter((n) => n !== name))}
-            >
+            <Badge key={name} variant="secondary" className="h-6 gap-1 pr-1 text-sm">
               {name}
-            </Chips>
+              <button
+                type="button"
+                className="grid size-4 cursor-pointer place-items-center rounded-full hover:bg-black/10"
+                aria-label={`Remove ${name}`}
+                onClick={() => onChange(selected.filter((n) => n !== name))}
+              >
+                <XIcon />
+              </button>
+            </Badge>
           ))}
         </div>
       )}
-      {error && <p className="field-error">{error.message}</p>}
-    </div>
+      {error && <FieldError>{error.message}</FieldError>}
+    </Field>
   )
 }

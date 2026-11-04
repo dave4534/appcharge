@@ -57,98 +57,10 @@
 .editor-body {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: var(--space-32) var(--space-24) var(--space-48);
   background: var(--allgrey-background-color);
-}
-
-.form {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 20px;
-  max-width: 720px;
-  margin: 0 auto;
-}
-
-.card {
-  padding: var(--space-24);
-  border: 1px solid var(--layout-border-color);
-  border-radius: 12px;
-  background: var(--primary-background-color);
-}
-
-.card h2 {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-h3);
-  font-weight: var(--font-weight-semibold);
-}
-
-.card-hint {
-  margin: var(--space-4) 0 var(--space-16);
-  color: var(--secondary-text-color);
-}
-
-.field-error {
-  margin: 6px 0 0;
-  color: var(--negative-color);
-  font-size: var(--font-size-text3);
-}
-
-.schedule-grid {
-  display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1.6fr) minmax(0, 1fr);
-  gap: var(--space-16);
-  align-items: start;
-}
-
-.zone-line {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 6px;
-  margin: var(--space-16) 0 0;
-  color: var(--secondary-text-color);
-}
-
-.zone-select {
-  min-width: 220px;
-}
-
-.radio-section + .radio-section {
-  margin-top: var(--space-24);
-}
-
-.radio-section h3 {
-  margin: 0 0 var(--space-8);
-  font-size: var(--font-size-text2);
-  font-weight: var(--font-weight-semibold);
-}
-
-.impact {
-  margin-top: var(--space-12);
-}
-
-.count {
-  margin: var(--space-12) 0 0;
-  color: var(--secondary-text-color);
-}
-
-.segment-picker {
-  margin-top: var(--space-16);
-}
-
-.chip-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  margin-top: var(--space-12);
-}
-
-.missing {
-  margin: 0;
-  color: var(--secondary-text-color);
-  text-align: center;
 }
 
 .toast {
@@ -238,32 +150,6 @@
   background: var(--allgrey-background-color);
 }
 
-/* Desktop and phone preview toggle: a grey pill, with the chosen side raised and white. */
-.device-toggle {
-  display: inline-flex;
-  padding: var(--space-4);
-  border-radius: 10px;
-  background: var(--allgrey-background-color);
-}
-
-.device-toggle button {
-  display: grid;
-  place-items: center;
-  width: 40px;
-  height: 32px;
-  border: 1px solid transparent;
-  border-radius: var(--radius);
-  background: none;
-  color: var(--icon-color);
-  cursor: pointer;
-}
-
-.device-toggle button[aria-pressed='true'] {
-  border-color: var(--layout-border-color);
-  background: var(--primary-background-color);
-  box-shadow: 0 1px 3px rgba(16, 24, 40, 0.12);
-  color: var(--primary-text-color);
-}
 
 
 
@@ -277,6 +163,23 @@
   align-self: stretch;
 }
 
-.overlap-alert {
-  margin-top: var(--space-16);
+
+/* On narrow windows the header gives up its extras so nothing has to scroll sideways. */
+@media (max-width: 1100px) {
+  .editor-bar {
+    gap: var(--space-12);
+    padding: 0 var(--space-16);
+  }
+
+  .editor-actions {
+    gap: var(--space-8);
+  }
+
+  .device-toggle {
+    display: none;
+  }
+
+  .editor-steps [data-slot='stepper-title'] {
+    display: none;
+  }
 }

@@ -51,7 +51,7 @@ export function ActionDialog({
           {description ? <DialogDescription>{description}</DialogDescription> : <DialogDescription className="sr-only">{title}</DialogDescription>}
         </DialogHeader>
 
-        {children && <div className="min-h-0 flex-1 overflow-y-auto">{children}</div>}
+        {children && <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>}
 
         <DialogFooter>
           {secondaryAction && (

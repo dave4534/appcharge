@@ -1,11 +1,14 @@
 import { useState } from 'react'
 import { CircleAlertIcon, XIcon } from 'lucide-react'
-import { Link, TextField } from '../../design-system/components'
 import { SelectCombobox } from '@/components/SelectCombobox'
 import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
+import { Field as FormField, FieldError as FormError, FieldLabel as FormLabel } from '@/components/ui/field'
+import { Input } from '@/components/ui/input'
 import { formatDay } from '../offers/dates'
 import type { Offer } from '../offers/data'
-import { Card, DateField, RadioSection, SegmentPicker } from './fields'
+import { Card, DateField, RadioSection, SegmentPicker, TimeField } from './fields'
+import { PrioritySection, type PriorityItem } from './PrioritySection'
 import {
   EXAMPLE_WEEKS,
   segmentSize,
@@ -21,12 +24,16 @@ type SettingsStepProps = {
   missing: string[]
   // Other calendars for the same audience that run at the same time as these dates.
   overlaps: Offer[]
+  // Every reward calendar in priority order, with this one marked.
+  priority: PriorityItem[]
+  live: boolean
+  onPriorityChange: (ids: string[]) => void
   onChange: (patch: Partial<CalendarSettings>) => void
 }
 
 const W = EXAMPLE_WEEKS
 
-export function SettingsStep({ settings: s, errors, missing, overlaps, onChange }: SettingsStepProps) {
+export function SettingsStep({ settings: s, errors, missing, overlaps, priority, live, onPriorityChange, onChange }: SettingsStepProps) {
   // Required-field errors wait until the field has been visited; wrong values show at once.
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [changingZone, setChangingZone] = useState(false)
@@ -43,26 +50,27 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, onChange 
   const zone = timezoneOptions.find((z) => z.value === s.timezone)
 
   return (
-    <div className="form">
+    <div className="mx-auto grid w-full max-w-3xl gap-5">
       <Card title="Basics" hint="Name the calendar so you can find it in the offers list.">
-        <TextField
-          label="Name"
-          placeholder="Name this calendar"
-          value={s.name}
-          showIconRight={false}
-          state={errorFor('name') ? 'error' : 'default'}
-          showHelper={!!errorFor('name')}
-          helperText={errorFor('name')?.message}
-          onChange={(e) => onChange({ name: e.target.value })}
-          onBlur={() => touch('name')}
-        />
+        <FormField data-invalid={!!errorFor('name') || undefined}>
+          <FormLabel htmlFor="calendar-name">Name</FormLabel>
+          <Input
+            id="calendar-name"
+            placeholder="Name this calendar"
+            value={s.name}
+            aria-invalid={!!errorFor('name') || undefined}
+            onChange={(e) => onChange({ name: e.target.value })}
+            onBlur={() => touch('name')}
+          />
+          {errorFor('name') && <FormError>{errorFor('name')?.message}</FormError>}
+        </FormField>
       </Card>
 
       <Card
         title="Schedule"
         hint="When the calendar is available to players. Its length follows these dates (up to 10 weeks) and can be adjusted on the Rewards step."
       >
-        <div className="schedule-grid">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1.6fr_1fr]">
           <DateField
             label="Start date"
             value={s.startDate}
@@ -70,14 +78,11 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, onChange 
             onChange={(startDate) => onChange({ startDate })}
             onBlur={() => touch('startDate')}
           />
-          <TextField
+          <TimeField
             label="Start time"
             value={s.startTime}
-            showIconRight={false}
-            state={errorFor('startTime') ? 'error' : 'default'}
-            showHelper={!!errorFor('startTime')}
-            helperText={errorFor('startTime')?.message}
-            onChange={(e) => onChange({ startTime: e.target.value })}
+            error={errorFor('startTime')}
+            onChange={(startTime) => onChange({ startTime })}
             onBlur={() => touch('startTime')}
           />
           <DateField
@@ -87,14 +92,11 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, onChange 
             onChange={(endDate) => onChange({ endDate })}
             onBlur={() => touch('endDate')}
           />
-          <TextField
+          <TimeField
             label="End time"
             value={s.endTime}
-            showIconRight={false}
-            state={errorFor('endTime') ? 'error' : 'default'}
-            showHelper={!!errorFor('endTime')}
-            helperText={errorFor('endTime')?.message}
-            onChange={(e) => onChange({ endTime: e.target.value })}
+            error={errorFor('endTime')}
+            onChange={(endTime) => onChange({ endTime })}
             onBlur={() => touch('endTime')}
           />
         </div>
@@ -118,10 +120,10 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, onChange 
           </Alert>
         )}
 
-        <p className="zone-line">
+        <p className="flex flex-wrap items-center gap-x-1.5 text-sm text-muted-foreground">
           Timezone: {zone?.label ?? s.timezone}. The daily reset happens at 00:00 in this timezone.{' '}
           {changingZone ? (
-            <span className="zone-select">
+            <span className="min-w-56">
               <SelectCombobox
                 aria-label="Timezone"
                 value={s.timezone}
@@ -133,16 +135,14 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, onChange 
               />
             </span>
           ) : (
-            <Link
-              size="Small"
-              href="#"
-              onClick={(e) => {
-                e.preventDefault()
-                setChangingZone(true)
-              }}
+            <Button
+              variant="link"
+              size="sm"
+              className="h-auto p-0"
+              onClick={() => setChangingZone(true)}
             >
               Change
-            </Link>
+            </Button>
           )}
         </p>
       </Card>
@@ -226,7 +226,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, onChange 
               }}
             />
             {s.segments.length > 0 && (
-              <p className="count">
+              <p className="text-sm text-muted-foreground">
                 {segmentSize(s.segments).toLocaleString('en-US')} players selected
                 {s.segments.length > 1 && ' (segments can overlap)'}
               </p>
@@ -235,7 +235,9 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, onChange 
         )}
       </Card>
 
-      {missing.length > 0 && <p className="missing">To continue, set: {missing.join(', ')}.</p>}
+      <PrioritySection items={priority} live={live} onChange={onPriorityChange} />
+
+      {missing.length > 0 && <p className="text-center text-sm text-muted-foreground">To continue, set: {missing.join(', ')}.</p>}
     </div>
   )
 }

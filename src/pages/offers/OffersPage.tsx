@@ -2,7 +2,9 @@ import { useMemo, useState, type CSSProperties } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { ActionDialog } from '@/components/ActionDialog'
 import { SlackIcon } from '@/components/SlackIcon'
-import { EmptyState, Search } from '../../design-system/components'
+import { Search } from 'lucide-react'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { SelectCombobox } from '@/components/SelectCombobox'
@@ -99,22 +101,6 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
     return matches
   }, [order, offersById, query, sort, type, status, audience])
 
-  // Dragging a row only reshuffles the visible offers among their own priority
-  // slots, so hidden offers keep the numbers they already have.
-  const move = (id: string, targetId: string, after: boolean) => {
-    const ids = visible.map((o) => o.id).filter((x) => x !== id)
-    const at = ids.indexOf(targetId)
-    ids.splice(after ? at + 1 : at, 0, id)
-    const shown = new Set(ids)
-    const slots = order.flatMap((x, i) => (shown.has(x) ? [i] : []))
-    const next = [...order]
-    slots.forEach((slot, k) => {
-      next[slot] = ids[k]
-    })
-    onChange(next.map((x) => offersById.get(x)!))
-  }
-
-  const canReorder = sort === 'priority'
   const noun = type === 'all' ? 'offers' : typeLabels[type][visible.length === 1 ? 'singular' : 'plural'].toLowerCase()
 
   const clearFilters = () => {
@@ -124,7 +110,7 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
     setAudience('all')
   }
 
-  const viewProps = { offers: visible, priorityOf, canReorder, onMove: move, onOpen, onDelete: setDeleting, allOffers: offers }
+  const viewProps = { offers: visible, priorityOf, onOpen, onDelete: setDeleting, allOffers: offers }
 
   const confirmDelete = (offer: Offer) => {
     onChange(offers.filter((o) => o.id !== offer.id))
@@ -151,15 +137,17 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
       </header>
 
       <div className="toolbar">
-        <Search
-          size="Medium"
-          className="toolbar-search"
-          placeholder="Search offers"
-          aria-label="Search offers"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onClear={() => setQuery('')}
-        />
+        <InputGroup className="toolbar-search">
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+          <InputGroupInput
+            placeholder="Search offers"
+            aria-label="Search offers"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </InputGroup>
         <ToolbarSelect label="Sort" width={134} value={sort} options={sortOptions} onChange={(v) => setSort(v as SortKey)} />
         <ToolbarSelect label="Type" width={216} value={type} options={typeOptions} onChange={(v) => setType(v as TypeFilter)} />
         <ToolbarSelect label="Status" width={104} value={status} options={statusOptions} onChange={(v) => setStatus(v as StatusFilter)} />
@@ -185,16 +173,20 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
       </div>
       <p className="section-count">
         {visible.length} {noun}
-        {view === 'list' && !canReorder && ' · Sort by priority to reorder'}
       </p>
 
       {visible.length === 0 ? (
-        <EmptyState
-          variant="compact"
-          title="No offers match these filters"
-          description="Try changing or clearing a filter."
-          mainAction={{ label: 'Clear filters', onClick: clearFilters }}
-        />
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyTitle>No offers match these filters</EmptyTitle>
+            <EmptyDescription>Try changing or clearing a filter.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button variant="outline" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          </EmptyContent>
+        </Empty>
       ) : view === 'list' ? (
         <ListView {...viewProps} />
       ) : (
@@ -204,7 +196,6 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
       {visible.length > 0 && view === 'timeline' && (
         <p className="footnote">
           Bars are colored by status. The timeline shows each offer&apos;s start and end date and repeats.
-          {!canReorder && ' Sort by priority to reorder.'}
         </p>
       )}
 

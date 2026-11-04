@@ -32,9 +32,26 @@ export default function App() {
   // Everything is saved as it changes, so a closed tab never loses a draft.
   useEffect(() => saveOffers(offers), [offers])
 
-  // A new draft joins the end of the list, so it gets the lowest priority.
-  const saveOffer = (offer: Offer) =>
-    setOffers((all) => (all.some((o) => o.id === offer.id) ? all.map((o) => (o.id === offer.id ? offer : o)) : [...all, offer]))
+  // A new draft joins the end of the list, so it gets the lowest priority, unless the
+  // user already placed it among the other calendars (`rank` counts calendars only).
+  const saveOffer = (offer: Offer, rank?: number) =>
+    setOffers((all) => {
+      if (all.some((o) => o.id === offer.id)) return all.map((o) => (o.id === offer.id ? offer : o))
+      const calendars = all.filter((o) => o.type === 'reward-calendar')
+      const before = rank !== undefined && rank < calendars.length ? all.indexOf(calendars[rank]) : -1
+      return before < 0 ? [...all, offer] : [...all.slice(0, before), offer, ...all.slice(before)]
+    })
+
+  // Priority is the order of the offers. This puts the reward calendars in the given
+  // order (highest first) and leaves every other offer where it is.
+  const reorderCalendars = (ids: string[]) =>
+    setOffers((all) => {
+      const byId = new Map(all.map((o) => [o.id, o]))
+      const queue = ids.map((id) => byId.get(id)).filter((o): o is Offer => !!o)
+      return queue.length === all.filter((o) => o.type === 'reward-calendar').length
+        ? all.map((o) => (o.type === 'reward-calendar' ? queue.shift()! : o))
+        : all
+    })
 
   const closeEditor = () => {
     setEditing(null)
@@ -59,8 +76,9 @@ export default function App() {
             offer={offers.find((o) => o.id === editing.offerId) ?? null}
             offers={offers}
             onSave={saveOffer}
-            onFinish={(finished, message) => {
-              saveOffer(finished)
+            onReorder={reorderCalendars}
+            onFinish={(finished, message, rank) => {
+              saveOffer(finished, rank)
               closeEditor()
               setNotice({ message })
             }}

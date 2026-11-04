@@ -67,7 +67,8 @@
 .weeks {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: var(--space-16) var(--space-24) var(--space-24);
   background: var(--primary-background-color);
 }
@@ -349,7 +350,8 @@
   min-height: 0;
   margin: var(--space-16);
   padding: var(--space-16);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   border-radius: 12px;
   background: var(--allgrey-background-color);
 }
@@ -750,4 +752,30 @@
   color: var(--secondary-text-color);
   font-size: var(--font-size-text3);
   white-space: nowrap;
+}
+
+/* Narrow windows stack the preview under the calendar instead of squeezing both side by side. */
+@media (max-width: 1100px) {
+  .editor-body--rewards {
+    overflow-y: auto;
+  }
+
+  .rewards-layout {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 100%;
+  }
+
+  .resizer {
+    display: none;
+  }
+
+  .weeks {
+    flex: none;
+    overflow: visible;
+  }
+
+  .preview {
+    min-height: 520px;
+  }
 }

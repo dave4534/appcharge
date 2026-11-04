@@ -1,41 +1,22 @@
-import { Ellipsis, GripVertical, Pencil, Trash2 } from 'lucide-react'
-import type { ButtonHTMLAttributes } from 'react'
-import { Counter, Icon, Label, Link, type LabelColor } from '../../design-system/components'
+import { Ellipsis, Pencil, Trash2 } from 'lucide-react'
 import { IconButton } from '@/components/IconButton'
-import { statusLabels, type Offer, type OfferStatus } from './data'
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
-import { isOpenable } from './rows'
 import { ReadinessDonut } from '@/components/ReadinessDonut'
+import { Badge } from '@/components/ui/badge'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { readinessOfOffer } from '../calendar/readiness'
+import { statusLabels, type Offer, type OfferStatus } from './data'
+import { isOpenable } from './rows'
 
-// Live is Positive, Scheduled is Primary and Draft is Dark, the same mapping the
-// timeline bars use.
-const statusColor: Record<OfferStatus, LabelColor> = {
-  live: 'Positive',
-  scheduled: 'Primary',
-  draft: 'Dark',
+// Live is green, Scheduled is the brand color and Draft is an outline, the same mapping
+// the timeline bars use.
+const statusVariant: Record<OfferStatus, 'success' | 'default' | 'outline'> = {
+  live: 'success',
+  scheduled: 'default',
+  draft: 'outline',
 }
 
 export function StatusPill({ status }: { status: OfferStatus }) {
-  return (
-    <Label color={statusColor[status]} kind={status === 'draft' ? 'Line' : 'Fill'}>
-      {statusLabels[status]}
-    </Label>
-  )
-}
-
-export function DragHandle({ offer, ...rest }: { offer: Offer } & ButtonHTMLAttributes<HTMLButtonElement>) {
-  return (
-    <IconButton
-      kind="Tertiary"
-      size="XS"
-      className="drag-handle"
-      aria-label={`Reorder ${offer.name}. Use the up and down arrow keys.`}
-      disabled={!rest.draggable}
-      iconElement={<Icon icon={GripVertical} size="Small" color="secondary" />}
-      {...rest}
-    />
-  )
+  return <Badge variant={statusVariant[status]}>{statusLabels[status]}</Badge>
 }
 
 // The row's flyout menu: edit it, or delete it (which asks first).
@@ -43,14 +24,7 @@ export function KebabButton({ offer, onEdit, onDelete }: { offer: Offer; onEdit:
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={
-          <IconButton
-            kind="Tertiary"
-            size="Small"
-            aria-label={`More actions for ${offer.name}`}
-            iconElement={<Icon icon={Ellipsis} size="Medium" color="secondary" />}
-          />
-        }
+        render={<IconButton kind="Tertiary" size="Small" aria-label={`More actions for ${offer.name}`} iconElement={<Ellipsis className="size-4" />} />}
       />
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuItem disabled={!isOpenable(offer)} onClick={() => onEdit(offer.id)}>
@@ -68,29 +42,28 @@ export function KebabButton({ offer, onEdit, onDelete }: { offer: Offer; onEdit:
 
 export function PriorityBadge({ priority }: { priority: number }) {
   return (
-    <Counter size="Large" color="Dark" kind="Line" title={`Priority ${priority}`}>
+    <Badge variant="outline" className="size-6 justify-center rounded-full px-0 text-sm" title={`Priority ${priority}`}>
       {priority}
-    </Counter>
+    </Badge>
   )
 }
 
 export function OfferTitle({ offer, onOpen }: { offer: Offer; onOpen: (id: string) => void }) {
   if (isOpenable(offer)) {
     return (
-      <Link
-        size="Large"
+      <a
         href="#"
-        className="offer-title"
+        className="offer-title text-base font-medium text-primary underline-offset-4 hover:underline"
         onClick={(e) => {
           e.preventDefault()
           onOpen(offer.id)
         }}
       >
         {offer.name}
-      </Link>
+      </a>
     )
   }
-  return <div className="offer-title">{offer.name}</div>
+  return <div className="offer-title text-base font-medium">{offer.name}</div>
 }
 
 // How ready a reward calendar is to run. Other offer types are not rated.

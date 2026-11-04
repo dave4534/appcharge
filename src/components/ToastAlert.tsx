@@ -57,7 +57,7 @@ export function ToastAlert({ kind = 'success', message, description, countdown, 
     <Alert
       role="status"
       className={cn(
-        'toast-alert border-transparent py-3 pl-4 shadow-lg *:data-[slot=alert-description]:text-current/85',
+        'toast-alert border-transparent py-3 pl-4 shadow-lg select-none *:data-[slot=alert-description]:text-current/85',
         action ? 'pr-32' : 'pr-12',
         tone,
         className,

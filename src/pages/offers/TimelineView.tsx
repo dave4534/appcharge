@@ -1,18 +1,14 @@
 import { useState, type ReactNode } from 'react'
 import { ChevronLeft, ChevronRight, Repeat } from 'lucide-react'
-import { Icon } from '../../design-system/components'
 import { IconButton } from '@/components/IconButton'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { TIMELINE_DAYS, TIMELINE_START, addDays, dayDiff, dayOfMonth, formatDay, monthLabel } from './dates'
-import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
+import { KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
 import { isOpenable, rowClick } from './rows'
-import { useReorder } from './useReorder'
 
 type TimelineViewProps = {
   offers: Offer[]
   priorityOf: (id: string) => number
-  canReorder: boolean
-  onMove: (id: string, targetId: string, after: boolean) => void
   onOpen: (id: string) => void
   onDelete: (offer: Offer) => void
 }
@@ -67,7 +63,7 @@ function Bars({ offer, from }: { offer: Offer; from: string }) {
           </span>
           {offer.repeatWeeks && (
             <span className="tl-repeat">
-              <Icon icon={Repeat} size={14} color="current" /> every {offer.repeatWeeks} weeks
+              <Repeat className="size-3.5" /> every {offer.repeatWeeks} weeks
             </span>
           )}
         </div>
@@ -81,12 +77,7 @@ function Bars({ offer, from }: { offer: Offer; from: string }) {
   )
 }
 
-export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen, onDelete }: TimelineViewProps) {
-  const reorder = useReorder(
-    offers.map((o) => o.id),
-    canReorder,
-    onMove,
-  )
+export function TimelineView({ offers, priorityOf, onOpen, onDelete }: TimelineViewProps) {
   const [shift, setShift] = useState(0)
 
   const from = addDays(TIMELINE_START, shift * 7)
@@ -123,7 +114,7 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen, o
                 size="XS"
                 aria-label="Show earlier weeks"
                 disabled={shift <= MIN_SHIFT}
-                iconElement={<Icon icon={ChevronLeft} size="Small" color="current" />}
+                iconElement={<ChevronLeft className="size-3" />}
                 onClick={() => setShift((s) => Math.max(MIN_SHIFT, s - 1))}
               />
               <IconButton
@@ -131,7 +122,7 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen, o
                 size="XS"
                 aria-label="Show later weeks"
                 disabled={shift >= MAX_SHIFT}
-                iconElement={<Icon icon={ChevronRight} size="Small" color="current" />}
+                iconElement={<ChevronRight className="size-3" />}
                 onClick={() => setShift((s) => Math.min(MAX_SHIFT, s + 1))}
               />
             </div>
@@ -141,12 +132,10 @@ export function TimelineView({ offers, priorityOf, canReorder, onMove, onOpen, o
         {offers.map((offer) => (
           <div
             key={offer.id}
-            className={`tl-row tl-body${isOpenable(offer) ? ' is-openable' : ''} ${reorder.rowClass(offer.id)}`}
+            className={`tl-row tl-body${isOpenable(offer) ? ' is-openable' : ''} `}
             onClick={rowClick(offer, onOpen)}
-            {...reorder.rowProps(offer.id)}
           >
             <div className="tl-left">
-              <DragHandle offer={offer} {...reorder.handleProps(offer.id)} />
               <PriorityBadge priority={priorityOf(offer.id)} />
               <div className="offer-name">
                 <OfferTitle offer={offer} onOpen={onOpen} />

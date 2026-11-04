@@ -11,7 +11,7 @@ export function ReadinessDonut({ percent, size = 24, className }: ReadinessDonut
   if (percent >= 100) {
     return <CircleCheck size={size} className={className} style={{ color: 'var(--positive-color)' }} aria-hidden="true" />
   }
-  const stroke = 2
+  const stroke = 3
   const radius = (size - stroke) / 2
   const circumference = 2 * Math.PI * radius
   return (
