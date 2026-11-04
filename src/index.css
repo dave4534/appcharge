@@ -245,7 +245,7 @@ body {
 .app-toast {
   position: fixed;
   z-index: 40;
-  bottom: var(--space-24);
+  top: var(--topbar-height);
   left: 50%;
   transform: translateX(-50%);
 }

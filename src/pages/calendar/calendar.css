@@ -153,7 +153,8 @@
 .toast {
   position: fixed;
   z-index: 20;
-  bottom: var(--space-24);
+  /* Top of the toast sits on the bottom edge of the header with the stepper. */
+  top: var(--topbar-height);
   left: 50%;
   transform: translateX(-50%);
 }

@@ -40,11 +40,24 @@
   margin-left: auto;
 }
 
+.rewards-history {
+  display: flex;
+  flex: none;
+  gap: var(--space-4);
+}
+
 .rewards-length,
 .rewards-dates {
   color: var(--secondary-text-color);
   font-size: var(--font-size-text3);
   white-space: nowrap;
+}
+
+/* A long date range shortens before it can push Undo and Redo out of view. */
+.rewards-dates {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .rewards-spacer {
@@ -588,6 +601,10 @@
   background: var(--primary-color);
   color: var(--text-color-on-primary);
   font-weight: var(--font-weight-semibold);
+  /* Faded and inert: it is a preview of the player's button, not an action, so it
+     must not compete with Publish. */
+  opacity: 0.5;
+  pointer-events: none;
   cursor: default;
 }
 

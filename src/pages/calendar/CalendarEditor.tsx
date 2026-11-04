@@ -57,7 +57,11 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   // A calendar whose settings are already complete opens straight on its rewards.
   const [step, setStep] = useState(() => (offer && validate(settingsOf(offer)).valid ? 1 : 0))
   const [device, setDevice] = useState<Device>('desktop')
-  const [toast, setToast] = useState<string | null>(null)
+  const [toast, setToast] = useState<{ message: string; kind: 'success' | 'info' } | null>(null)
+  // Undo and redo for the Rewards step: each change to the plan or the length is a step.
+  type Snap = { rewards: RewardWeek[]; endDate: string }
+  const [past, setPast] = useState<Snap[]>([])
+  const [future, setFuture] = useState<Snap[]>([])
   const [publishing, setPublishing] = useState(false)
 
   const snapshot = JSON.stringify({ settings, rewards })
@@ -111,7 +115,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
   const saveDraft = () => {
     persist()
-    setToast('Draft saved')
+    setToast({ message: 'Draft saved', kind: 'success' })
   }
 
   const close = () => {
@@ -121,9 +125,41 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
   // ----- Rewards step
 
+  const here = (): Snap => ({ rewards, endDate: settings.endDate })
+  const record = () => {
+    setPast((p) => [...p.slice(-49), here()])
+    setFuture([])
+  }
+  const restore = (snap: Snap) => {
+    setRewards(snap.rewards)
+    update({ endDate: snap.endDate })
+  }
+
+  const changePlan = (plan: RewardWeek[]) => {
+    record()
+    setRewards(plan)
+  }
+
   const onLayoutChange = ({ plan, days: nextDays }: Layout) => {
+    record()
     setRewards(plan)
     update({ endDate: endDateFor(settings.startDate, nextDays) })
+  }
+
+  const undo = () => {
+    const last = past[past.length - 1]
+    if (!last) return setToast({ message: 'Nothing to undo.', kind: 'info' })
+    setPast(past.slice(0, -1))
+    setFuture((f) => [...f, here()])
+    restore(last)
+  }
+
+  const redo = () => {
+    const next = future[future.length - 1]
+    if (!next) return setToast({ message: 'Nothing to redo.', kind: 'info' })
+    setFuture(future.slice(0, -1))
+    setPast((p) => [...p, here()])
+    restore(next)
   }
 
   const issues = validatePlan(rewards, days)
@@ -245,7 +281,10 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
             plan={rewards}
             days={days}
             device={device}
-            onPlanChange={setRewards}
+            onPlanChange={changePlan}
+            onUndo={undo}
+            onRedo={redo}
+            onNotify={(message) => setToast({ message, kind: 'info' })}
             onLayoutChange={onLayoutChange}
             onEditSettings={() => setStep(0)}
           />
@@ -272,7 +311,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
       {toast && (
         <div className="toast">
-          <ToastAlert message={toast} onClose={() => setToast(null)} />
+          <ToastAlert kind={toast.kind} message={toast.message} onClose={() => setToast(null)} />
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
-import { Plus } from 'lucide-react'
+import { Plus, Redo2, Undo2 } from 'lucide-react'
 import { AttentionBox, Link } from '../../../design-system/components'
 import { ActionDialog } from '@/components/ActionDialog'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,6 @@ import {
   formatLength,
   setDay,
   weekCountFor,
-  MAX_DAYS,
   type Layout,
 } from './plan'
 import { MAX_WEEKS, dayNumber, daySummary, validatePlan, type DayRewards, type RewardWeek } from './rules'
@@ -33,6 +32,10 @@ type RewardsStepProps = {
   days: number
   device: Device
   onPlanChange: (plan: RewardWeek[]) => void
+  onUndo: () => void
+  onRedo: () => void
+  // Tells the editor to show a toast.
+  onNotify: (message: string) => void
   // Adding or removing days and weeks moves the end date, so the editor updates Settings.
   onLayoutChange: (layout: Layout) => void
   onEditSettings: () => void
@@ -52,6 +55,9 @@ export function RewardsStep({
   days,
   device,
   onPlanChange,
+  onUndo,
+  onRedo,
+  onNotify,
   onLayoutChange,
   onEditSettings,
 }: RewardsStepProps) {
@@ -85,6 +91,15 @@ export function RewardsStep({
       label: 'Delete reward',
       run: () => onPlanChange(setDay(weeks, week, day, [])),
     })
+
+  // Adding days, a week or a month is always available. At the 10-week limit it says so.
+  const addTime = (extra: number) => {
+    const layout = addPeriod(weeks, days, extra)
+    if (!layout) return onNotify(`The calendar is at its ${MAX_WEEKS}-week maximum.`)
+    apply(layout)
+    const added = layout.days - days
+    if (added < extra) onNotify(`Added ${added} ${added === 1 ? 'day' : 'days'}. ${MAX_WEEKS} weeks is the maximum.`)
+  }
 
   const apply = (layout: Layout | null) => {
     if (layout) onLayoutChange(layout)
@@ -154,6 +169,14 @@ export function RewardsStep({
           >
             {formatUs(settings.startDate)} – {formatUs(endDateFor(settings.startDate, days))}
           </Link>
+          <div className="rewards-history">
+            <Button variant="ghost" size="icon-sm" aria-label="Undo" title="Undo" onClick={onUndo}>
+              <Undo2 />
+            </Button>
+            <Button variant="ghost" size="icon-sm" aria-label="Redo" title="Redo" onClick={onRedo}>
+              <Redo2 />
+            </Button>
+          </div>
         </header>
 
         <div className="weeks">
@@ -211,9 +234,8 @@ export function RewardsStep({
               key={label}
               variant="ghost"
               size="lg"
-              disabled={days + extra > MAX_DAYS}
               aria-label={`Add ${extra} ${extra === 1 ? 'day' : 'days'} to the calendar`}
-              onClick={() => apply(addPeriod(weeks, days, extra))}
+              onClick={() => addTime(extra)}
             >
               <Plus data-icon="inline-start" />
               {label}
