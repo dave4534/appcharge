@@ -2,8 +2,9 @@ import { DEFAULT_SKU, productOf } from './catalog'
 
 // Reward logic for the Reward Calendar builder.
 //
-// This is the single place that knows what rewards exist, how they rank, what a
-// "good" calendar looks like and how to suggest the next week. It follows
+// This is the single place that knows how rewards rank, what a "good" calendar looks
+// like, how to suggest the next week and which image a reward uses. Which products
+// exist, and where each one is offered, lives in catalog.ts. It follows
 // "Reward Spec.md", except that lottery tickets are left out until there is art for them.
 // Every amount here is ILLUSTRATIVE: no public source documents
 // a real daily calendar, so the UI labels amounts as assumptions.
@@ -74,8 +75,14 @@ export function chipsTier(quantity: number): 1 | 2 | 3 | 4 | 5 {
   return 5
 }
 
+// Which image a reward uses. This is the one rule for artwork:
+// - Chips: by amount, one of five tier images (chipsTier above).
+// - Diamonds and the XP boost: their own image, named in REWARD_DEFS.
+// - Every other product: public/rewards/<sku>.png. When that file does not exist the
+//   screens fall back to the product's icon (see RewardIcon in tiles.tsx).
 export function rewardImage(item: RewardItem): string | null {
   if (item.kind === 'chips') return `/rewards/chips-tier${chipsTier(item.quantity)}.png`
+  if (item.kind === 'item') return `/rewards/${item.sku}.png`
   return REWARD_DEFS[item.kind].image
 }
 
