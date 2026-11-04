@@ -77,10 +77,10 @@ export default function App() {
             offers={offers}
             onSave={saveOffer}
             onReorder={reorderCalendars}
-            onFinish={(finished, message, rank) => {
+            onFinish={(finished, message, rank, description) => {
               saveOffer(finished, rank)
               closeEditor()
-              setNotice({ message })
+              setNotice({ message, description })
             }}
             onClose={closeEditor}
           />

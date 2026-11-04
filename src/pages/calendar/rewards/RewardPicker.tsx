@@ -119,7 +119,10 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
     setSelection((s) => ({ ...s, [p.sku]: clamp(p.kind, now + direction * REWARD_DEFS[p.kind].step) }))
   }
 
-  const onType = (p: Product, text: string) => {
+  const onType = (p: Product, raw: string) => {
+    // Long plain numbers get thousands separators as they are typed, so a wrong digit shows.
+    const digits = raw.replace(/,/g, '')
+    const text = /^\d{4,15}$/.test(digits) ? Number(digits).toLocaleString('en-US') : raw
     setEditing({ sku: p.sku, text })
     const parsed = parseQuantity(p.kind, text)
     if (parsed === null || parsed <= 0) setInvalid(p.sku)

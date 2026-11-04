@@ -1,4 +1,4 @@
-import { Ellipsis, Pencil, Trash2 } from 'lucide-react'
+import { Ellipsis, Pause, Pencil, Play, Trash2 } from 'lucide-react'
 import { IconButton } from '@/components/IconButton'
 import { ReadinessDonut } from '@/components/ReadinessDonut'
 import { Badge } from '@/components/ui/badge'
@@ -9,8 +9,9 @@ import { isOpenable } from './rows'
 
 // Live is green, Scheduled is the brand color and Draft is an outline, the same mapping
 // the timeline bars use.
-const statusVariant: Record<OfferStatus, 'success' | 'default' | 'outline'> = {
+const statusVariant: Record<OfferStatus, 'success' | 'warning' | 'default' | 'outline'> = {
   live: 'success',
+  paused: 'warning',
   scheduled: 'default',
   draft: 'outline',
 }
@@ -19,8 +20,17 @@ export function StatusPill({ status }: { status: OfferStatus }) {
   return <Badge variant={statusVariant[status]}>{statusLabels[status]}</Badge>
 }
 
-// The row's flyout menu: edit it, or delete it (which asks first).
-export function KebabButton({ offer, onEdit, onDelete }: { offer: Offer; onEdit: (id: string) => void; onDelete: (offer: Offer) => void }) {
+type KebabProps = {
+  offer: Offer
+  onEdit: (id: string) => void
+  onDelete: (offer: Offer) => void
+  // Pausing asks first; resuming does not.
+  onPause: (offer: Offer) => void
+  onResume: (offer: Offer) => void
+}
+
+// The row's flyout menu: edit it, pause or resume it, or delete it (which asks first).
+export function KebabButton({ offer, onEdit, onDelete, onPause, onResume }: KebabProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
@@ -31,6 +41,18 @@ export function KebabButton({ offer, onEdit, onDelete }: { offer: Offer; onEdit:
           <Pencil />
           Edit
         </DropdownMenuItem>
+        {offer.status === 'live' && (
+          <DropdownMenuItem onClick={() => onPause(offer)}>
+            <Pause />
+            Pause
+          </DropdownMenuItem>
+        )}
+        {offer.status === 'paused' && (
+          <DropdownMenuItem onClick={() => onResume(offer)}>
+            <Play />
+            Resume
+          </DropdownMenuItem>
+        )}
         <DropdownMenuItem variant="destructive" onClick={() => onDelete(offer)}>
           <Trash2 />
           Delete

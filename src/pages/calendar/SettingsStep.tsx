@@ -5,7 +5,7 @@ import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/u
 import { Button } from '@/components/ui/button'
 import { Field as FormField, FieldError as FormError, FieldLabel as FormLabel } from '@/components/ui/field'
 import { Input } from '@/components/ui/input'
-import { formatDay } from '../offers/dates'
+import { TODAY, formatDay } from '../offers/dates'
 import type { Offer } from '../offers/data'
 import { Card, DateField, RadioSection, SegmentPicker, TimeField } from './fields'
 import { PrioritySection, type PriorityItem } from './PrioritySection'
@@ -68,13 +68,14 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
 
       <Card
         title="Schedule"
-        hint="When the calendar is available to players. Its length follows these dates (up to 10 weeks) and can be adjusted on the Rewards step."
+        hint="When the calendar is available to players. Its length follows these dates and can be adjusted on the Rewards step."
       >
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1.6fr_1fr]">
           <DateField
             label="Start date"
             value={s.startDate}
             error={errorFor('startDate')}
+            minDate={live ? undefined : TODAY}
             onChange={(startDate) => onChange({ startDate })}
             onBlur={() => touch('startDate')}
           />
@@ -89,6 +90,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
             label="End date"
             value={s.endDate}
             error={errorFor('endDate')}
+            minDate={s.startDate && s.startDate > TODAY ? s.startDate : TODAY}
             onChange={(endDate) => onChange({ endDate })}
             onBlur={() => touch('endDate')}
           />

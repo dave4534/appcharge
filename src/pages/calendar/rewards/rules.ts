@@ -17,7 +17,10 @@ export const DAYS_PER_WEEK = 7
 
 // Days count up across the whole calendar, so Week 2's first day is Day 8.
 export const dayNumber = (week: number, day: number) => week * DAYS_PER_WEEK + day + 1
-export const MAX_WEEKS = 10
+
+// Placeholder counts of players on each week of a live calendar.
+export const LIVE_PLAYERS = [1820, 540, 180, 60]
+export const LIVE_PLAYER_TOTAL = LIVE_PLAYERS.reduce((a, b) => a + b, 0)
 
 const M = 1_000_000
 const B = 1_000_000_000
@@ -95,8 +98,8 @@ export function premiumRank(item: RewardItem): number {
 const trim = (n: number) => String(Math.round(n * 100) / 100)
 
 export function formatChips(quantity: number): string {
-  if (quantity >= B) return `${trim(quantity / B)}B`
-  if (quantity >= M) return `${trim(quantity / M)}M`
+  if (quantity >= B) return `${Number(trim(quantity / B)).toLocaleString('en-US')}B`
+  if (quantity >= M) return `${Number(trim(quantity / M)).toLocaleString('en-US')}M`
   return quantity.toLocaleString('en-US')
 }
 

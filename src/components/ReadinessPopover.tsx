@@ -1,12 +1,14 @@
 import { Blend, CalendarDays, CircleAlert, CircleCheck, SlidersHorizontal, TrendingUp, TriangleAlert, X } from 'lucide-react'
 import type { ComponentType } from 'react'
 import { Button } from '@/components/ui/button'
+import { SubmitRequestButton } from '@/components/SubmitRequestButton'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { ReadinessDonut } from './ReadinessDonut'
 import type { ReadyItem, ReadyStatus, Readiness } from '@/pages/calendar/readiness'
 import './readiness.css'
 
 const ICONS: Record<ReadyItem['id'], ComponentType<{ size?: number }>> = {
+  status: TriangleAlert,
   settings: SlidersHorizontal,
   days: CalendarDays,
   values: TrendingUp,
@@ -29,11 +31,16 @@ type ReadinessPopoverProps = {
   onConfirm: () => void
   // Takes empty days out of the calendar.
   onRemoveEmpty: () => void
+  // A live calendar can't be saved straight away: a manager approves the change in Slack.
+  live?: boolean
+  onSubmitRequest?: () => void
+  // True while nothing can be published, because no day has a reward yet.
+  blocked?: boolean
 }
 
 // The readiness ring in the header. It opens a checklist of what is ready and what is a
 // risk. Anything short of 100% can still be published, and the popover says so.
-export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, onConfirm, onRemoveEmpty }: ReadinessPopoverProps) {
+export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, onConfirm, onRemoveEmpty, live, onSubmitRequest, blocked }: ReadinessPopoverProps) {
   const complete = readiness.percent >= 100
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -65,7 +72,7 @@ export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, 
                 </span>
                 <div className="readiness-text">
                   <strong>{item.label}</strong>
-                  <span className={`readiness-detail readiness-detail--${item.status}`}>{item.detail}</span>
+                  <span className="readiness-detail">{item.detail}</span>
                 </div>
                 <span className={`readiness-status readiness-status--${item.status}`}>
                   {StatusIcon && <StatusIcon size={16} />}
@@ -77,12 +84,28 @@ export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, 
         </ul>
 
         <div className="readiness-foot">
-          {complete ? (
+          {live ? (
+            <p>Changes to a live calendar reach players, so a manager approves them first.</p>
+          ) : blocked ? (
+            <p>Add a reward to at least one day to publish.</p>
+          ) : complete ? (
             <p>Everything checked is ready.</p>
           ) : (
             <p>You can still publish. Open items put players at risk.</p>
           )}
-          {!complete && (
+          {live && (
+            <div className="readiness-actions">
+              <SubmitRequestButton
+                variant="outline"
+                disabled={blocked}
+                onClick={() => {
+                  onOpenChange(false)
+                  onSubmitRequest?.()
+                }}
+              />
+            </div>
+          )}
+          {!live && !complete && (
             <div className="readiness-actions">
               {readiness.emptyDays > 0 && readiness.filledDays > 0 && (
                 <Button
@@ -96,6 +119,7 @@ export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, 
               )}
               <Button
                 size="lg"
+                disabled={blocked}
                 onClick={() => {
                   onOpenChange(false)
                   onConfirm()

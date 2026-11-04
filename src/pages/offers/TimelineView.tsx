@@ -11,6 +11,8 @@ type TimelineViewProps = {
   priorityOf: (id: string) => number
   onOpen: (id: string) => void
   onDelete: (offer: Offer) => void
+  onPause: (offer: Offer) => void
+  onResume: (offer: Offer) => void
 }
 
 // The timeline shows seven weeks at a time and can be moved a week at a time.
@@ -77,7 +79,7 @@ function Bars({ offer, from }: { offer: Offer; from: string }) {
   )
 }
 
-export function TimelineView({ offers, priorityOf, onOpen, onDelete }: TimelineViewProps) {
+export function TimelineView({ offers, priorityOf, onOpen, onDelete, onPause, onResume }: TimelineViewProps) {
   const [shift, setShift] = useState(0)
 
   const from = addDays(TIMELINE_START, shift * 7)
@@ -144,7 +146,7 @@ export function TimelineView({ offers, priorityOf, onOpen, onDelete }: TimelineV
                 </div>
               </div>
               <StatusPill status={offer.status} />
-              <KebabButton offer={offer} onEdit={onOpen} onDelete={onDelete} />
+              <KebabButton offer={offer} onEdit={onOpen} onDelete={onDelete} onPause={onPause} onResume={onResume} />
             </div>
             <Track>
               <Bars offer={offer} from={from} />

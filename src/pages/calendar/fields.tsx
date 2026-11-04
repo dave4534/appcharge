@@ -9,7 +9,7 @@ import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/componen
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { SelectCombobox } from '@/components/SelectCombobox'
-import { formatLong } from '../offers/dates'
+import { TODAY, formatLong } from '../offers/dates'
 import { segmentOptions, type FieldError as FieldErrorInfo } from './settings'
 
 // A section of the form: a shadcn Card with a title and a hint.
@@ -41,12 +41,14 @@ type DateFieldProps = {
   label: string
   value: string
   error?: FieldErrorInfo
+  // Days before this one are greyed out and can't be picked.
+  minDate?: string
   onChange: (value: string) => void
   onBlur: () => void
 }
 
 // A date: a button that opens the shadcn Calendar in a popover.
-export function DateField({ label, value, error, onChange, onBlur }: DateFieldProps) {
+export function DateField({ label, value, error, minDate, onChange, onBlur }: DateFieldProps) {
   const [open, setOpen] = useState(false)
   const date = toDate(value)
   return (
@@ -69,7 +71,9 @@ export function DateField({ label, value, error, onChange, onBlur }: DateFieldPr
           <Calendar
             mode="single"
             selected={date}
-            defaultMonth={date}
+            defaultMonth={date ?? toDate(minDate ?? '')}
+            today={toDate(TODAY)}
+            disabled={minDate ? { before: toDate(minDate)! } : undefined}
             onSelect={(next) => {
               if (!next) return
               onChange(fromDate(next))

@@ -10,11 +10,13 @@ type ListViewProps = {
   priorityOf: (id: string) => number
   onOpen: (id: string) => void
   onDelete: (offer: Offer) => void
+  onPause: (offer: Offer) => void
+  onResume: (offer: Offer) => void
   // Every offer, whatever the filters hide, so overlaps are found against all of them.
   allOffers: Offer[]
 }
 
-export function ListView({ offers, priorityOf, onOpen, onDelete, allOffers }: ListViewProps) {
+export function ListView({ offers, priorityOf, onOpen, onDelete, onPause, onResume, allOffers }: ListViewProps) {
   const rows = useRef<HTMLUListElement>(null)
   const list = useRef<HTMLDivElement>(null)
 
@@ -72,7 +74,7 @@ export function ListView({ offers, priorityOf, onOpen, onDelete, allOffers }: Li
             <div className="col-status">
               <StatusPill status={offer.status} />
             </div>
-            <KebabButton offer={offer} onEdit={onOpen} onDelete={onDelete} />
+            <KebabButton offer={offer} onEdit={onOpen} onDelete={onDelete} onPause={onPause} onResume={onResume} />
           </li>
         ))}
       </ul>

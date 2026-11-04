@@ -10,7 +10,7 @@ import { audienceOf, emptySettings, validate, type CalendarSettings } from './se
 export type ReadyStatus = 'ready' | 'warning' | 'required' | 'unchecked'
 
 export type ReadyItem = {
-  id: 'settings' | 'days' | 'values' | 'overlap'
+  id: 'status' | 'settings' | 'days' | 'values' | 'overlap'
   label: string
   status: ReadyStatus
   detail: string
@@ -39,7 +39,8 @@ const SETTINGS_FIELDS = 8
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
 // What a calendar is checked against: the other offers, and which one this is.
-export type ReadinessContext = { offers: Offer[]; selfId: string | null }
+// `livePlayers` is set when the calendar is live, which adds a Status row with that count.
+export type ReadinessContext = { offers: Offer[]; selfId: string | null; livePlayers?: number }
 
 // Two audiences overlap when either is everyone, either is not chosen yet, or they share a segment.
 function audiencesOverlap(a: string, b: string) {
@@ -121,6 +122,16 @@ export function readinessOf(settings: CalendarSettings, rewards: RewardWeek[], d
   // Schedule overlap only shows up when there is one, and says which calendar it is.
   const overlaps = overlapsOf(settings, context)
   const items: ReadyItem[] = [settingsItem, daysItem, valuesItem]
+  // A live calendar has players on it, so the checklist opens with that. It is a notice,
+  // not a check, so it does not count toward the percentage.
+  if (context?.livePlayers) {
+    items.unshift({
+      id: 'status',
+      label: 'Status',
+      status: 'warning',
+      detail: `This calendar is live to ${context.livePlayers.toLocaleString('en-US')} players`,
+    })
+  }
   if (overlaps.length > 0) {
     const first = overlaps[0]
     const more = overlaps.length > 1 ? ` and ${overlaps.length - 1} more` : ''

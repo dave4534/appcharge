@@ -83,14 +83,6 @@
   font-size: var(--font-size-text2);
 }
 
-.readiness-detail--required {
-  color: var(--negative-color);
-}
-
-.readiness-detail--warning {
-  color: var(--content-color-working-orange-hover);
-}
-
 .readiness-status {
   display: inline-flex;
   align-items: center;

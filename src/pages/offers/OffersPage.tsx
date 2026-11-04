@@ -1,6 +1,8 @@
 import { useMemo, useState, type CSSProperties } from 'react'
 import { ArrowUpRight } from 'lucide-react'
 import { ActionDialog } from '@/components/ActionDialog'
+import { PauseDialog } from '@/components/PauseDialog'
+import { LIVE_PLAYER_TOTAL } from '../calendar/rewards/rules'
 import { SlackIcon } from '@/components/SlackIcon'
 import { Search } from 'lucide-react'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
@@ -11,7 +13,7 @@ import { SelectCombobox } from '@/components/SelectCombobox'
 import { NewOfferMenu } from './NewOfferMenu'
 import { ListView } from './ListView'
 import { TimelineView } from './TimelineView'
-import { statusLabels, typeLabels, type Offer, type OfferStatus, type OfferType } from './data'
+import { hasPlayers, statusLabels, typeLabels, type Offer, type OfferStatus, type OfferType } from './data'
 import './offers.css'
 
 type View = 'list' | 'timeline'
@@ -77,6 +79,8 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
   const [audience, setAudience] = useState('all')
   // The offer the user asked to delete, waiting for confirmation.
   const [deleting, setDeleting] = useState<Offer | null>(null)
+  // The offer the user asked to pause, waiting for confirmation.
+  const [pausing, setPausing] = useState<Offer | null>(null)
 
   // Priority is ranked within each offer type, so every type starts at 1.
   const priorityOf = (id: string) => {
@@ -110,7 +114,17 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
     setAudience('all')
   }
 
-  const viewProps = { offers: visible, priorityOf, onOpen, onDelete: setDeleting, allOffers: offers }
+  const viewProps = { offers: visible, priorityOf, onOpen, onDelete: setDeleting, onPause: setPausing, onResume: (offer: Offer) => setStatusOf(offer, 'live'), allOffers: offers }
+
+  const setStatusOf = (offer: Offer, next: OfferStatus) => {
+    onChange(offers.map((o) => (o.id === offer.id ? { ...o, status: next } : o)))
+    onNotify(next === 'paused' ? `${offer.name} paused` : `${offer.name} resumed`)
+  }
+
+  const confirmPause = (offer: Offer) => {
+    setPausing(null)
+    setStatusOf(offer, 'paused')
+  }
 
   const confirmDelete = (offer: Offer) => {
     onChange(offers.filter((o) => o.id !== offer.id))
@@ -199,19 +213,28 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
         </p>
       )}
 
+      {pausing && (
+        <PauseDialog
+          name={pausing.name}
+          players={LIVE_PLAYER_TOTAL}
+          onClose={() => setPausing(null)}
+          onConfirm={() => confirmPause(pausing)}
+        />
+      )}
+
       {deleting && (
         <ActionDialog
           size="sm"
           title={`Delete ${deleting.name}?`}
           description={
-            deleting.status === 'live'
-              ? `${deleting.name} is live, so players are on it. To delete a live ${typeLabels[deleting.type].singular.toLowerCase()}, you need a manager's approval.`
+            hasPlayers(deleting)
+              ? `${deleting.name} is ${deleting.status}, so players are on it. To delete a live ${typeLabels[deleting.type].singular.toLowerCase()}, you need a manager's approval.`
               : `This removes ${deleting.name}${deleting.rewards ? ' and its rewards' : ''}. You can't undo this.`
           }
           onClose={() => setDeleting(null)}
           secondaryAction={{ label: 'Cancel', onClick: () => setDeleting(null) }}
           primaryAction={
-            deleting.status === 'live'
+            hasPlayers(deleting)
               ? {
                   label: (
                     <>

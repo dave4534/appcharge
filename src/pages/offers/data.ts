@@ -2,7 +2,8 @@ import type { CalendarSettings } from '../calendar/settings'
 import { suggestWeek, type RewardWeek } from '../calendar/rewards/rules'
 
 export type OfferType = 'reward-calendar' | 'bundle' | 'promotion'
-export type OfferStatus = 'live' | 'scheduled' | 'draft'
+// Paused: still live for the players already on it, but not shown to new players.
+export type OfferStatus = 'live' | 'paused' | 'scheduled' | 'draft'
 
 // One autosave of a calendar. The newest version is the current one.
 export type Version = {
@@ -40,9 +41,13 @@ export const typeLabels: Record<OfferType, { singular: string; plural: string }>
 
 export const statusLabels: Record<OfferStatus, string> = {
   live: 'Live',
+  paused: 'Paused',
   scheduled: 'Scheduled',
   draft: 'Draft',
 }
+
+// Live and paused offers have players on them, so changing or deleting them reaches those players.
+export const hasPlayers = (o: { status: OfferStatus }) => o.status === 'live' || o.status === 'paused'
 
 export const audienceLabel = (o: Offer) =>
   o.audienceSize ? `${o.audience} (${o.audienceSize.toLocaleString('en-US')})` : o.audience

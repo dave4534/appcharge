@@ -144,6 +144,12 @@
   --s-border: var(--color-live-border);
 }
 
+.s-paused {
+  --s-bg: var(--color-draft-bg);
+  --s-text: var(--content-color-working-orange-hover);
+  --s-border: var(--content-color-working-orange);
+}
+
 .s-scheduled {
   --s-bg: var(--color-scheduled-bg);
   --s-text: var(--color-scheduled-text);

@@ -24,7 +24,7 @@ import {
   weekCountFor,
   type Layout,
 } from './plan'
-import { MAX_WEEKS, dayNumber, daySummary, validatePlan, type DayRewards, type RewardWeek } from './rules'
+import { LIVE_PLAYERS, LIVE_PLAYER_TOTAL, dayNumber, daySummary, validatePlan, type DayRewards, type RewardWeek } from './rules'
 import './rewards.css'
 
 type RewardsStepProps = {
@@ -53,9 +53,6 @@ const PREVIEW_MIN = 340
 const PREVIEW_MAX = 720
 const clampWidth = (w: number) => Math.max(PREVIEW_MIN, Math.min(PREVIEW_MAX, w))
 
-// Placeholder counts of players on each week of a live calendar.
-const LIVE_PLAYERS = [1820, 540, 180, 60]
-
 type Confirm = { title: string; body: string; label: string; run: () => void }
 
 export function RewardsStep({
@@ -66,7 +63,6 @@ export function RewardsStep({
   onPlanChange,
   onUndo,
   onRedo,
-  onNotify,
   onLayoutChange,
   onEditSettings,
   live,
@@ -91,7 +87,6 @@ export function RewardsStep({
   ].filter((p): p is string => Boolean(p))
   const serious = readiness.emptyDays > 0 || readiness.emptyWeeks > 0
   const shownWeek = Math.min(previewWeek, weekCount - 1)
-  const atMaxWeeks = weekCount >= MAX_WEEKS
 
   // ----- editing days
 
@@ -110,14 +105,8 @@ export function RewardsStep({
       run: () => onPlanChange(setDay(weeks, week, day, [])),
     })
 
-  // Adding days, a week or a month is always available. At the 10-week limit it says so.
-  const addTime = (extra: number) => {
-    const layout = addPeriod(weeks, days, extra)
-    if (!layout) return onNotify('Maximum length reached', `The calendar is at its ${MAX_WEEKS}-week maximum.`)
-    apply(layout)
-    const added = layout.days - days
-    if (added < extra) onNotify(`Added ${added} ${added === 1 ? 'day' : 'days'}`, `${MAX_WEEKS} weeks is the maximum length.`)
-  }
+  // Adding days, a week or a month is always available: a calendar has no length limit.
+  const addTime = (extra: number) => apply(addPeriod(weeks, days, extra))
 
   const apply = (layout: Layout | null) => {
     if (layout) onLayoutChange(layout)
@@ -203,7 +192,7 @@ export function RewardsStep({
               <TriangleAlert />
               <AlertTitle>This calendar is live.</AlertTitle>
               <AlertDescription>
-                {LIVE_PLAYERS.reduce((a, b) => a + b, 0).toLocaleString('en-US')} players are on it. Changes reach them when you save.
+                {LIVE_PLAYER_TOTAL.toLocaleString('en-US')} players are on it. Changes reach them when you save.
               </AlertDescription>
             </Alert>
           )}
@@ -223,7 +212,7 @@ export function RewardsStep({
               week={week}
               activeDays={activeInWeek(days, i)}
               issues={issues.filter((x) => x.week === i)}
-              canDuplicate={!atMaxWeeks}
+              canDuplicate
               canDelete={weekCount > 1}
               players={live ? LIVE_PLAYERS[i] : undefined}
               onOpenDay={(d) => setPicker({ week: i, day: d })}

@@ -1,6 +1,3 @@
-import { dayDiff } from '../offers/dates'
-import { DAYS_PER_WEEK, MAX_WEEKS } from './rewards/rules'
-
 export type MissedDay = 'complete' | 'weekly'
 export type AfterLast = 'restart' | 'end'
 export type PopupTrigger = 'automatic' | 'click'
@@ -72,7 +69,8 @@ export type FieldError = { message: string; required: boolean }
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
 
-export function validate(s: CalendarSettings) {
+// `today` is passed for calendars that have not started, so a start date in the past is caught.
+export function validate(s: CalendarSettings, today?: string) {
   const errors: Partial<Record<Field, FieldError>> = {}
   const missing: string[] = []
 
@@ -99,10 +97,13 @@ export function validate(s: CalendarSettings) {
     `${s.endDate}T${s.endTime}` <= `${s.startDate}T${s.startTime}`
   ) {
     errors.endDate = { message: 'The end must come after the start.', required: false }
-  } else if (s.startDate && s.endDate && dayDiff(s.startDate, s.endDate) + 1 > MAX_WEEKS * DAYS_PER_WEEK) {
-    errors.endDate = { message: `A calendar runs at most ${MAX_WEEKS} weeks (${MAX_WEEKS * DAYS_PER_WEEK} days).`, required: false }
   }
-  if (errors.startTime || errors.endTime || errors.endDate?.required === false) missing.push('valid dates and times')
+  if (today && s.startDate && s.startDate < today) {
+    errors.startDate = { message: "The start date can't be in the past.", required: false }
+  }
+  if (errors.startTime || errors.endTime || errors.startDate?.required === false || errors.endDate?.required === false) {
+    missing.push('valid dates and times')
+  }
 
   if (!s.missedDay) missing.push('what happens when a player misses a day')
   if (!s.afterLast) missing.push('what happens after the last week')

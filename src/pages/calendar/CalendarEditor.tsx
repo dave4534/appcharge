@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Monitor, Smartphone } from 'lucide-react'
+import { ArrowLeft, Monitor, Pause, Play, Smartphone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { ButtonGroup } from '@/components/ui/button-group'
 import { IconButton } from '@/components/IconButton'
 import { ToastAlert } from '@/components/ToastAlert'
+import { PauseDialog } from '@/components/PauseDialog'
 import { ReadinessPopover } from '@/components/ReadinessPopover'
+import { SubmitRequestButton } from '@/components/SubmitRequestButton'
 import { EditorTabs } from '@/components/EditorTabs'
 import { ToastHost } from '@/components/ToastHost'
 import {
@@ -16,13 +18,13 @@ import {
   StepperTrigger,
   StepperIndicator,
 } from '@/components/ui/stepper'
-import type { Offer, Version } from '../offers/data'
+import { hasPlayers, type Offer, type Version } from '../offers/data'
 import { TODAY, dayDiff, formatDay } from '../offers/dates'
 import { StatusPill } from '../offers/parts'
 import type { Device } from './rewards/PreviewPanel'
 import { RewardsStep } from './rewards/RewardsStep'
 import { endDateFor, removeEmptyDays, type Layout } from './rewards/plan'
-import type { RewardWeek } from './rewards/rules'
+import { LIVE_PLAYER_TOTAL, type RewardWeek } from './rewards/rules'
 import { overlapsOf, readinessOf } from './readiness'
 import { SettingsStep } from './SettingsStep'
 import type { PriorityItem } from './PrioritySection'
@@ -52,7 +54,7 @@ type CalendarEditorProps = {
   offer: Offer | null
   onSave: (offer: Offer, rank?: number) => void
   // Saves the calendar and returns to the offers list, which shows `message` in a toast.
-  onFinish: (offer: Offer, message: string, rank?: number) => void
+  onFinish: (offer: Offer, message: string, rank?: number, description?: string) => void
   // Puts the reward calendars in a new priority order (highest first).
   onReorder: (ids: string[]) => void
   onClose: () => void
@@ -83,6 +85,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
   const [past, setPast] = useState<Snap[]>([])
   const [future, setFuture] = useState<Snap[]>([])
   const [readinessOpen, setReadinessOpen] = useState(false)
+  const [pausing, setPausing] = useState(false)
   // Where a calendar that is not saved yet will rank once it is. Saved ones use the offers order.
   const [rank, setRank] = useState<number | null>(null)
   // Problems are only called out once the user has tried to publish.
@@ -98,7 +101,9 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
   const snapshot = JSON.stringify({ settings, rewards })
   const [savedAs, setSavedAs] = useState(snapshot)
 
-  const { errors, missing, valid } = validate(settings)
+  // Live and paused calendars have already started, so only the others are held to a future start date.
+  const started = !!offer && hasPlayers(offer)
+  const { errors, missing, valid } = validate(settings, started ? undefined : TODAY)
   const days = settings.startDate && settings.endDate ? Math.max(0, dayDiff(settings.startDate, settings.endDate) + 1) : 0
 
 
@@ -215,7 +220,10 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
     restore(next)
   }
 
-  const readiness = readinessOf(settings, rewards, days, { offers, selfId: offerId })
+  const readiness = readinessOf(settings, rewards, days, { offers, selfId: offerId, livePlayers: started ? LIVE_PLAYER_TOTAL : undefined })
+  // Nothing can go to players until at least one day has a reward.
+  const noRewards = readiness.filledDays === 0
+  const noRewardsHint = noRewards ? 'Add a reward to at least one day first.' : undefined
 
   // ----- Priority
 
@@ -279,6 +287,18 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
   const saveChanges = () => {
     const next = build(status)
     onFinish(next, `Changes to ${next.name} are saved.`, rank ?? undefined)
+  }
+
+  // Changes to a calendar players are on go to a manager for approval in Slack.
+  const submitRequest = () => {
+    const next = build(status)
+    onFinish(next, 'Change request submitted', rank ?? undefined, `Your manager can approve the changes to ${next.name} in Slack.`)
+  }
+
+  const setPaused = (paused: boolean) => {
+    const next = build(paused ? 'paused' : 'live')
+    setPausing(false)
+    onFinish(next, paused ? `${next.name} paused` : `${next.name} resumed`, rank ?? undefined)
   }
 
   return (
@@ -350,8 +370,27 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
             <Button variant="outline" size="lg" onClick={saveDraft}>
               Save draft
             </Button>
+          ) : started ? (
+            <>
+              {status === 'live' ? (
+                <Button variant="outline" size="lg" onClick={() => setPausing(true)}>
+                  <Pause data-icon="inline-start" />
+                  Pause
+                </Button>
+              ) : (
+                <Button variant="outline" size="lg" onClick={() => setPaused(false)}>
+                  <Play data-icon="inline-start" />
+                  Resume
+                </Button>
+              )}
+              <SubmitRequestButton
+                disabled={noRewards}
+                title={noRewardsHint}
+                onClick={step === 1 ? () => attempt(submitRequest) : submitRequest}
+              />
+            </>
           ) : (
-            <Button size="lg" onClick={step === 1 ? () => attempt(saveChanges) : saveChanges}>
+            <Button size="lg" disabled={noRewards} title={noRewardsHint} onClick={step === 1 ? () => attempt(saveChanges) : saveChanges}>
               Save changes
             </Button>
           )}
@@ -368,7 +407,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
             )
           ) : (
             isDraft && (
-              <Button size="lg" onClick={() => attempt(publish)}>
+              <Button size="lg" disabled={noRewards} title={noRewardsHint} onClick={() => attempt(publish)}>
                 Publish
               </Button>
             )
@@ -381,6 +420,9 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
               confirmLabel={isDraft ? 'Publish anyway' : 'Save anyway'}
               onConfirm={isDraft ? publish : saveChanges}
               onRemoveEmpty={removeEmpty}
+              live={started}
+              onSubmitRequest={submitRequest}
+              blocked={noRewards}
             />
           )}
         </div>
@@ -388,7 +430,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
 
       <div className={`editor-body${step === 1 ? ' editor-body--rewards' : ''}`}>
         {step === 0 ? (
-          <SettingsStep settings={settings} errors={errors} missing={missing} overlaps={overlapsOf(settings, { offers, selfId: offerId })} priority={priority} live={status === 'live'} onPriorityChange={movePriority} onChange={update} />
+          <SettingsStep settings={settings} errors={errors} missing={missing} overlaps={overlapsOf(settings, { offers, selfId: offerId })} priority={priority} live={started} onPriorityChange={movePriority} onChange={update} />
         ) : (
           <RewardsStep
             settings={settings}
@@ -401,11 +443,15 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
             onNotify={(message, description) => setToast({ message, description, kind: 'info' })}
             onLayoutChange={onLayoutChange}
             onEditSettings={() => setStep(0)}
-            live={status === 'live'}
+            live={started}
             showIssues={attempted}
           />
         )}
       </div>
+
+      {pausing && (
+        <PauseDialog name={settings.name.trim() || 'This calendar'} players={LIVE_PLAYER_TOTAL} onClose={() => setPausing(false)} onConfirm={() => setPaused(true)} />
+      )}
 
       <ToastHost toast={toast} className="toast">
         {(t) => (
