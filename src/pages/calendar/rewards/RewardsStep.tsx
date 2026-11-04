@@ -1,16 +1,19 @@
 import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
-import { AttentionBox, Button, Link, Modal } from '../../../design-system/components'
+import { CircleAlert, Plus, Redo2, TriangleAlert, Undo2 } from 'lucide-react'
+import { Link } from '../../../design-system/components'
+import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert'
+import { readinessOf } from '../readiness'
+import { ActionDialog } from '@/components/ActionDialog'
+import { Button } from '@/components/ui/button'
 import { formatUs } from '../../offers/dates'
 import type { CalendarSettings } from '../settings'
-import { CharliePanel, type Message } from './CharliePanel'
 import { PreviewPanel, type Device } from './PreviewPanel'
 import { RewardPicker } from './RewardPicker'
 import { WeekRow } from './WeekRow'
-import { HELP_TEXT, compareText, explainText, intentFor, reviewText, type Intent } from './charlie'
 import {
   activeInWeek,
-  addBlankWeek,
   addDay,
+  addPeriod,
   clearWeek,
   deleteWeek,
   duplicateWeek,
@@ -21,7 +24,7 @@ import {
   weekCountFor,
   type Layout,
 } from './plan'
-import { MAX_WEEKS, chipsOf, daySummary, emptyActiveDays, validatePlan, type DayRewards, type RewardWeek } from './rules'
+import { LIVE_PLAYERS, LIVE_PLAYER_TOTAL, dayNumber, daySummary, validatePlan, type DayRewards, type RewardWeek } from './rules'
 import './rewards.css'
 
 type RewardsStepProps = {
@@ -30,12 +33,18 @@ type RewardsStepProps = {
   // How many days the date range covers.
   days: number
   device: Device
-  charlieOpen: boolean
-  onCharlieClose: () => void
   onPlanChange: (plan: RewardWeek[]) => void
+  onUndo: () => void
+  onRedo: () => void
+  // Tells the editor to show a toast.
+  onNotify: (message: string, description?: string) => void
   // Adding or removing days and weeks moves the end date, so the editor updates Settings.
   onLayoutChange: (layout: Layout) => void
   onEditSettings: () => void
+  // A live calendar has players on it, so edits reach them.
+  live: boolean
+  // The summary banner only appears once the user has tried to publish.
+  showIssues: boolean
 }
 
 // The preview pane can be dragged wider or narrower.
@@ -51,11 +60,13 @@ export function RewardsStep({
   plan,
   days,
   device,
-  charlieOpen,
-  onCharlieClose,
   onPlanChange,
+  onUndo,
+  onRedo,
   onLayoutChange,
   onEditSettings,
+  live,
+  showIssues,
 }: RewardsStepProps) {
   const weekCount = weekCountFor(days)
   const weeks = useMemo(() => ensureWeeks(plan, weekCount).slice(0, weekCount), [plan, weekCount])
@@ -63,16 +74,19 @@ export function RewardsStep({
   const [picker, setPicker] = useState<{ week: number; day: number } | null>(null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
   const [previewWeek, setPreviewWeek] = useState(0)
-  const [messages, setMessages] = useState<Message[]>([])
-  const nextId = useRef(1)
   const layoutRef = useRef<HTMLDivElement>(null)
   const [previewWidth, setPreviewWidth] = useState(CHROME_DEFAULT)
 
   const issues = useMemo(() => validatePlan(weeks, days), [weeks, days])
-  const errors = issues.filter((i) => i.severity === 'error')
+  const readiness = readinessOf(settings, weeks, days)
+  // The problems the summary banner names, most serious first.
+  const problems = !showIssues ? [] : [
+    readiness.emptyDays > 0 && `${readiness.emptyDays} ${readiness.emptyDays === 1 ? 'day has' : 'days have'} no reward.`,
+    readiness.emptyWeeks > 0 && `${readiness.emptyWeeks} ${readiness.emptyWeeks === 1 ? 'week is' : 'weeks are'} empty.`,
+    readiness.unusualDays > 0 && `${readiness.unusualDays} ${readiness.unusualDays === 1 ? 'day has' : 'days have'} unusual values.`,
+  ].filter((p): p is string => Boolean(p))
+  const serious = readiness.emptyDays > 0 || readiness.emptyWeeks > 0
   const shownWeek = Math.min(previewWeek, weekCount - 1)
-  const atMaxWeeks = weekCount >= MAX_WEEKS
-  const nextEmpty = emptyActiveDays(weeks, days)[0] ?? null
 
   // ----- editing days
 
@@ -85,11 +99,14 @@ export function RewardsStep({
 
   const askClearDay = (week: number, day: number) =>
     setConfirm({
-      title: `Delete the reward for Week ${week + 1}, Day ${day + 1}?`,
+      title: `Delete the reward for Week ${week + 1}, Day ${dayNumber(week, day)}?`,
       body: `This removes ${daySummary(weeks[week][day])} from that day.`,
       label: 'Delete reward',
       run: () => onPlanChange(setDay(weeks, week, day, [])),
     })
+
+  // Adding days, a week or a month is always available: a calendar has no length limit.
+  const addTime = (extra: number) => apply(addPeriod(weeks, days, extra))
 
   const apply = (layout: Layout | null) => {
     if (layout) onLayoutChange(layout)
@@ -137,60 +154,12 @@ export function RewardsStep({
     if (e.key === 'ArrowRight') setPreviewWidth((w) => clampWidth(w - 24))
   }
 
-  // ----- Charlie
-
-  const say = (role: Message['role'], text: string, follow?: Message['follow']) =>
-    setMessages((m) => [...m, { id: nextId.current++, role, text, follow }])
-
-  const runIntent = (intent: Intent, label: string) => {
-    say('user', label)
-    switch (intent) {
-      case 'suggest-day': {
-        if (!nextEmpty) {
-          say('charlie', 'Every day in the calendar already has a reward.')
-          return
-        }
-        setPicker(nextEmpty)
-        say(
-          'charlie',
-          `Opened Week ${nextEmpty.week + 1}, Day ${nextEmpty.day + 1} with a suggestion based on your earlier days.\n\nAccept or reject it in the dialog. Nothing is added until you do.`,
-        )
-        return
-      }
-      case 'compare': {
-        // The latest week after Week 1 that already has chips.
-        const target = weeks.reduce((found, w, i) => (i > 0 && w.some((d) => chipsOf(d) > 0) ? i : found), 0)
-        say('charlie', compareText(weeks, target))
-        return
-      }
-      case 'review':
-        say('charlie', reviewText(weeks, days))
-        return
-      case 'explain':
-        say('charlie', explainText(settings, weeks, days))
-        return
-      default:
-        say('charlie', HELP_TEXT)
-    }
-  }
-
   return (
     <div
       ref={layoutRef}
-      className={`rewards-layout${charlieOpen ? ' has-charlie' : ''}`}
+      className="rewards-layout"
       style={{ '--preview-width': `${previewWidth}px` } as CSSProperties}
     >
-      {charlieOpen && (
-        <CharliePanel
-          messages={messages}
-          nextEmpty={nextEmpty}
-          onIntent={runIntent}
-          onSend={(text) => runIntent(intentFor(text), text)}
-          onReset={() => setMessages([])}
-          onClose={onCharlieClose}
-        />
-      )}
-
       <section className="rewards-main" aria-label="Rewards">
         <header className="rewards-head">
           <h2>Rewards</h2>
@@ -207,34 +176,33 @@ export function RewardsStep({
           >
             {formatUs(settings.startDate)} – {formatUs(endDateFor(settings.startDate, days))}
           </Link>
+          <div className="rewards-history">
+            <Button variant="ghost" size="icon-sm" aria-label="Undo" title="Undo" onClick={onUndo}>
+              <Undo2 />
+            </Button>
+            <Button variant="ghost" size="icon-sm" aria-label="Redo" title="Redo" onClick={onRedo}>
+              <Redo2 />
+            </Button>
+          </div>
         </header>
 
         <div className="weeks">
-          {issues.length > 0 && (
-            <AttentionBox
-              type={errors.length > 0 ? 'Negative' : 'Warning'}
-              compact
-              title={`${errors.length > 0 ? `${errors.length} blocking ${errors.length === 1 ? 'error' : 'errors'}, ` : ''}${issues.length - errors.length} ${issues.length - errors.length === 1 ? 'warning' : 'warnings'} to review`}
-            >
-              <ul className="check-list">
-                {[...errors, ...issues.filter((i) => i.severity === 'warning')].slice(0, 4).map((i) => (
-                  <li key={i.id}>
-                    <Link
-                      size="Small"
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setPicker({ week: i.week, day: i.day })
-                      }}
-                    >
-                      Week {i.week + 1}, Day {i.day + 1}
-                    </Link>{' '}
-                    {i.message}
-                  </li>
-                ))}
-                {issues.length > 4 && <li>and {issues.length - 4} more. Ask Charlie to review all weeks.</li>}
-              </ul>
-            </AttentionBox>
+          {live && (
+            <Alert variant="warning">
+              <TriangleAlert />
+              <AlertTitle>This calendar is live.</AlertTitle>
+              <AlertDescription>
+                {LIVE_PLAYER_TOTAL.toLocaleString('en-US')} players are on it. Changes reach them when you save.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {problems.length > 0 && (
+            <Alert variant={serious ? 'destructive' : 'warning'}>
+              {serious ? <CircleAlert /> : <TriangleAlert />}
+              <AlertTitle>{problems[0]}</AlertTitle>
+              <AlertDescription>{[...problems.slice(1), 'You can still publish.'].join(' ')}</AlertDescription>
+            </Alert>
           )}
 
           {weeks.map((week, i) => (
@@ -244,8 +212,9 @@ export function RewardsStep({
               week={week}
               activeDays={activeInWeek(days, i)}
               issues={issues.filter((x) => x.week === i)}
-              canDuplicate={!atMaxWeeks}
+              canDuplicate
               canDelete={weekCount > 1}
+              players={live ? LIVE_PLAYERS[i] : undefined}
               onOpenDay={(d) => setPicker({ week: i, day: d })}
               onClearDay={(d) => askClearDay(i, d)}
               onAddDay={() => apply(addDay(weeks, days))}
@@ -255,9 +224,22 @@ export function RewardsStep({
         </div>
 
         <footer className="rewards-foot">
-          <Button kind="Secondary" size="Large" className="foot-blank" disabled={atMaxWeeks} onClick={() => apply(addBlankWeek(weeks, days))}>
-            + Add blank week
-          </Button>
+          {[
+            { label: 'Day', extra: 1 },
+            { label: 'Week', extra: 7 },
+            { label: 'Month', extra: 28 },
+          ].map(({ label, extra }) => (
+            <Button
+              key={label}
+              variant="ghost"
+              size="lg"
+              aria-label={`Add ${extra} ${extra === 1 ? 'day' : 'days'} to the calendar`}
+              onClick={() => addTime(extra)}
+            >
+              <Plus data-icon="inline-start" />
+              {label}
+            </Button>
+          ))}
         </footer>
       </section>
 
@@ -290,10 +272,10 @@ export function RewardsStep({
       )}
 
       {confirm && (
-        <Modal
-          size="Small"
+        <ActionDialog
+          size="sm"
           title={confirm.title}
-          subtitle={confirm.body}
+          description={confirm.body}
           onClose={() => setConfirm(null)}
           secondaryAction={{ label: 'Cancel', onClick: () => setConfirm(null) }}
           primaryAction={{
@@ -307,7 +289,7 @@ export function RewardsStep({
           }}
         >
           <p className="confirm-note">You can't undo this.</p>
-        </Modal>
+        </ActionDialog>
       )}
     </div>
   )

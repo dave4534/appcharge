@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { ChevronDown, Sparkles } from 'lucide-react'
-import { Icon, Label } from '../design-system/components'
+import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { navSections } from './nav'
 
 type SidebarProps = {
   activeId: string
   onNavigate: (id: string) => void
-  // Charlie works inside a calendar's Rewards step, so it is only available there.
-  charlie: { available: boolean; open: boolean; onToggle: () => void }
+  onGetMcp: () => void
 }
 
-export function Sidebar({ activeId, onNavigate, charlie }: SidebarProps) {
+export function Sidebar({ activeId, onNavigate, onGetMcp }: SidebarProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
   return (
@@ -18,11 +18,6 @@ export function Sidebar({ activeId, onNavigate, charlie }: SidebarProps) {
       <button type="button" className="logo" aria-label="appcharge, go to Reward Calendars" onClick={() => onNavigate('reward-calendars')}>
         appcharge
       </button>
-
-      <div className="store">
-        <span className="store-badge">SI</span>
-        Store
-      </div>
 
       {navSections.map((section) => {
         const expanded = !collapsed[section.id]
@@ -36,7 +31,7 @@ export function Sidebar({ activeId, onNavigate, charlie }: SidebarProps) {
             >
               {section.label}
               <span className="chevron">
-                <Icon icon={ChevronDown} size="Small" color="current" />
+                <ChevronDown className="size-4" />
               </span>
             </button>
 
@@ -48,15 +43,13 @@ export function Sidebar({ activeId, onNavigate, charlie }: SidebarProps) {
                       type="button"
                       className="nav-item"
                       aria-current={item.id === activeId ? 'page' : undefined}
-                      onClick={() => onNavigate(item.id)}
+                      // Only Reward Calendars is built. The other items keep their hover state
+                      // but do nothing when clicked, and the page stays where it is.
+                      onClick={() => item.id === 'reward-calendars' && onNavigate(item.id)}
                     >
-                      <Icon icon={item.icon} size={18} color="current" />
+                      <item.icon className="size-[18px]" />
                       {item.label}
-                      {item.beta && (
-                        <Label color="Primary" size="Small">
-                          Beta
-                        </Label>
-                      )}
+                      {item.beta && <Badge className="h-4 px-1.5 text-[10px]">Beta</Badge>}
                     </button>
                   </li>
                 ))}
@@ -67,17 +60,10 @@ export function Sidebar({ activeId, onNavigate, charlie }: SidebarProps) {
       })}
 
       <div className="nav-bottom">
-        <button
-          type="button"
-          className="nav-item"
-          aria-pressed={charlie.open}
-          disabled={!charlie.available}
-          title={charlie.available ? undefined : 'Open the Rewards step of a calendar to use Charlie'}
-          onClick={charlie.onToggle}
-        >
-          <Icon icon={Sparkles} size={18} color="current" />
-          Charlie
-        </button>
+        <Button variant="ghost" size="sm" className="mcp-cta cursor-pointer" onClick={onGetMcp}>
+          <Sparkles data-icon="inline-start" />
+          Get Appcharge MCP
+        </Button>
       </div>
     </nav>
   )

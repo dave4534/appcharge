@@ -5,7 +5,7 @@ import type { RewardKind } from './rules'
 // products that have artwork, so the prototype never shows generated visuals.
 //
 // The bank also holds the availability policy, which is the source of truth for what a
-// day offers. The picker, the warnings, the suggestions and Charlie all read it, so
+// day offers. The picker, the warnings, and the suggestions all read it, so
 // they can never disagree. The manager only ever sees products that are available
 // for the day they are editing, never a status.
 

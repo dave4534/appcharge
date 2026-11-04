@@ -13,29 +13,6 @@
   position: relative;
 }
 
-/* On narrower screens Charlie slides over the weeks; on wide screens it docks beside them. */
-.charlie {
-  position: absolute;
-  z-index: 5;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 340px;
-  box-shadow: 8px 0 24px rgba(16, 24, 40, 0.12);
-}
-
-@media (min-width: 1700px) {
-  .rewards-layout.has-charlie {
-    grid-template-columns: 340px minmax(0, 1fr) 8px var(--preview-width, 460px);
-  }
-
-  .charlie {
-    position: static;
-    width: auto;
-    box-shadow: none;
-  }
-}
-
 .rewards-main {
   display: flex;
   flex-direction: column;
@@ -43,9 +20,7 @@
   min-height: 0;
 }
 
-/* The Rewards and Charlie headers share one height and style, so they line up. */
-.rewards-head,
-.charlie-head {
+.rewards-head {
   display: flex;
   flex: none;
   align-items: center;
@@ -54,20 +29,21 @@
   padding: 0 var(--space-24);
 }
 
-.rewards-head h2,
-.charlie-head h2 {
+.rewards-head h2 {
   margin: 0;
   font-family: var(--font-family-heading);
   font-size: var(--font-size-h3);
   font-weight: var(--font-weight-semibold);
 }
 
-.charlie-head {
-  justify-content: space-between;
-}
-
 .rewards-dates {
   margin-left: auto;
+}
+
+.rewards-history {
+  display: flex;
+  flex: none;
+  gap: var(--space-4);
 }
 
 .rewards-length,
@@ -77,6 +53,13 @@
   white-space: nowrap;
 }
 
+/* A long date range shortens before it can push Undo and Redo out of view. */
+.rewards-dates {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .rewards-spacer {
   flex: 1;
 }
@@ -84,7 +67,8 @@
 .weeks {
   flex: 1;
   min-height: 0;
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   padding: var(--space-16) var(--space-24) var(--space-24);
   background: var(--primary-background-color);
 }
@@ -102,8 +86,8 @@
 .rewards-foot {
   display: grid;
   flex: none;
-  grid-template-columns: 1fr;
-  gap: var(--space-12);
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--space-8);
   padding: var(--space-12) var(--space-24);
   border-top: 1px solid var(--layout-border-color);
   background: var(--primary-background-color);
@@ -114,11 +98,23 @@
   justify-content: center;
 }
 
-.foot-blank {
-  border-style: dashed !important;
+/* Weeks and tiles */
+
+.players-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--secondary-text-color);
+  font-size: var(--font-size-text3);
+  font-weight: var(--font-weight-medium);
 }
 
-/* Weeks and tiles */
+.players-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--content-color-dark-orange);
+}
 
 .week-head {
   display: flex;
@@ -272,13 +268,13 @@
 }
 
 .tile--empty:hover,
-.tile--empty:focus-within {
+.tile--empty:has(:focus-visible) {
   border-color: var(--primary-color);
   background: var(--primary-highlighted-color);
 }
 
 .tile--empty:hover .tile-cta,
-.tile--empty:focus-within .tile-cta {
+.tile--empty:has(:focus-visible) .tile-cta {
   opacity: 1;
 }
 
@@ -334,55 +330,16 @@
 }
 
 .tile:hover .tile-delete,
-.tile:focus-within .tile-delete {
+.tile:has(:focus-visible) .tile-delete {
   opacity: 1;
 }
 
 .tile:hover .tile-flag,
-.tile:focus-within .tile-flag {
+.tile:has(:focus-visible) .tile-flag {
   display: none;
 }
 
 /* Suggestion banner in the reward picker */
-
-.suggest-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-12);
-  padding: var(--space-12);
-  border: 1px solid var(--primary-color);
-  border-radius: var(--radius);
-  background: var(--primary-highlighted-color);
-}
-
-.suggested-icon {
-  display: inline-flex;
-  align-items: center;
-  /* The same height as the title line, so the sparkle sits level with the title. */
-  height: 20px;
-}
-
-.suggested-text {
-  display: grid;
-  flex: 1;
-  min-width: 0;
-  font-size: var(--font-size-text3);
-}
-
-.suggested-text strong {
-  font-size: var(--font-size-text2);
-  line-height: 20px;
-}
-
-.suggested-text span {
-  color: var(--secondary-text-color);
-}
-
-.suggested-actions {
-  display: flex;
-  align-self: center;
-  gap: var(--space-8);
-}
 
 /* Player preview */
 
@@ -393,7 +350,8 @@
   min-height: 0;
   margin: var(--space-16);
   padding: var(--space-16);
-  overflow: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   border-radius: 12px;
   background: var(--allgrey-background-color);
 }
@@ -502,10 +460,14 @@
 }
 
 .pv-coins {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   margin-left: auto;
   padding: 2px 10px;
   border-radius: 999px;
   background: var(--ui-background-color);
+  white-space: nowrap;
 }
 
 .pv-card {
@@ -613,13 +575,25 @@
 }
 
 .pv-collect {
-  position: absolute;
-  bottom: -1px;
-  padding: 1px 10px;
-  border-radius: 999px;
+  display: block;
+  width: 100%;
+  margin-top: var(--space-12);
+  padding: var(--space-8) var(--space-16);
+  border: 0;
+  border-radius: var(--radius);
   background: var(--primary-color);
   color: var(--text-color-on-primary);
   font-weight: var(--font-weight-semibold);
+  /* Faded and inert: it is a preview of the player's button, not an action, so it
+     must not compete with Publish. */
+  opacity: 0.5;
+  pointer-events: none;
+  cursor: default;
+}
+
+.pv-collect:disabled {
+  background: var(--ui-background-color);
+  color: var(--disabled-text-color);
 }
 
 .pv-hint {
@@ -653,97 +627,6 @@
 
 .pv-offer span + span {
   height: 6px;
-}
-
-/* Charlie */
-
-.charlie {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  border-right: 1px solid var(--layout-border-color);
-  background: var(--primary-background-color);
-}
-
-.charlie-body {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: var(--space-16);
-}
-
-.charlie-start {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-12);
-  padding-top: var(--space-24);
-}
-
-.charlie-start > * {
-  width: 100%;
-}
-
-.charlie-start h3 {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-h2);
-  text-align: center;
-}
-
-.charlie-spark {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  margin: 0 auto;
-  border-radius: 50%;
-  background: var(--primary-selected-color);
-}
-
-.charlie-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  margin-top: var(--space-8);
-}
-
-.charlie-chat {
-  display: grid;
-  gap: var(--space-12);
-}
-
-.bubble p {
-  margin: 0;
-  white-space: pre-line;
-}
-
-.bubble--user {
-  justify-self: end;
-  max-width: 85%;
-  padding: var(--space-8) var(--space-16);
-  border-radius: 12px;
-  background: var(--primary-color);
-  color: var(--text-color-on-primary);
-  font-weight: var(--font-weight-medium);
-}
-
-.bubble--charlie {
-  font-size: var(--font-size-text2);
-}
-
-.charlie-input {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: var(--space-8);
-  padding: var(--space-12) var(--space-16) 0;
-}
-
-.charlie-note {
-  margin: 0;
-  padding: var(--space-8) var(--space-16) var(--space-16);
-  color: var(--secondary-text-color);
-  font-size: 11px;
 }
 
 /* Reward picker */
@@ -869,4 +752,30 @@
   color: var(--secondary-text-color);
   font-size: var(--font-size-text3);
   white-space: nowrap;
+}
+
+/* Narrow windows stack the preview under the calendar instead of squeezing both side by side. */
+@media (max-width: 1100px) {
+  .editor-body--rewards {
+    overflow-y: auto;
+  }
+
+  .rewards-layout {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+    min-height: 100%;
+  }
+
+  .resizer {
+    display: none;
+  }
+
+  .weeks {
+    flex: none;
+    overflow: visible;
+  }
+
+  .preview {
+    min-height: 520px;
+  }
 }

@@ -1,9 +1,19 @@
 import { useMemo, useState, type CSSProperties } from 'react'
-import { ButtonGroup, Dropdown, EmptyState, Search } from '../../design-system/components'
+import { ArrowUpRight } from 'lucide-react'
+import { ActionDialog } from '@/components/ActionDialog'
+import { PauseDialog } from '@/components/PauseDialog'
+import { LIVE_PLAYER_TOTAL } from '../calendar/rewards/rules'
+import { SlackIcon } from '@/components/SlackIcon'
+import { Search } from 'lucide-react'
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { SelectCombobox } from '@/components/SelectCombobox'
 import { NewOfferMenu } from './NewOfferMenu'
 import { ListView } from './ListView'
 import { TimelineView } from './TimelineView'
-import { statusLabels, typeLabels, type Offer, type OfferStatus, type OfferType } from './data'
+import { hasPlayers, statusLabels, typeLabels, type Offer, type OfferStatus, type OfferType } from './data'
 import './offers.css'
 
 type View = 'list' | 'timeline'
@@ -30,6 +40,7 @@ type OffersPageProps = {
   onChange: (offers: Offer[]) => void
   onNew: () => void
   onOpen: (id: string) => void
+  onNotify: (message: string, description?: string) => void
 }
 
 type ToolbarSelectProps = {
@@ -45,12 +56,12 @@ function ToolbarSelect({ label, value, options, onChange, width }: ToolbarSelect
   return (
     <div className="tool" style={width ? ({ '--tool-width': `${width}px` } as CSSProperties) : undefined}>
       <span className="tool-label">{label}</span>
-      <Dropdown size="Medium" aria-label={label} value={value} options={options} onChange={onChange} />
+      <SelectCombobox aria-label={label} value={value} options={options} onChange={onChange} />
     </div>
   )
 }
 
-export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps) {
+export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: OffersPageProps) {
   const offersById = useMemo(() => new Map(offers.map((o) => [o.id, o])), [offers])
   const order = useMemo(() => offers.map((o) => o.id), [offers])
   const audienceOptions = useMemo(
@@ -66,6 +77,10 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
   const [type, setType] = useState<TypeFilter>('reward-calendar')
   const [status, setStatus] = useState<StatusFilter>('all')
   const [audience, setAudience] = useState('all')
+  // The offer the user asked to delete, waiting for confirmation.
+  const [deleting, setDeleting] = useState<Offer | null>(null)
+  // The offer the user asked to pause, waiting for confirmation.
+  const [pausing, setPausing] = useState<Offer | null>(null)
 
   // Priority is ranked within each offer type, so every type starts at 1.
   const priorityOf = (id: string) => {
@@ -90,22 +105,6 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
     return matches
   }, [order, offersById, query, sort, type, status, audience])
 
-  // Dragging a row only reshuffles the visible offers among their own priority
-  // slots, so hidden offers keep the numbers they already have.
-  const move = (id: string, targetId: string, after: boolean) => {
-    const ids = visible.map((o) => o.id).filter((x) => x !== id)
-    const at = ids.indexOf(targetId)
-    ids.splice(after ? at + 1 : at, 0, id)
-    const shown = new Set(ids)
-    const slots = order.flatMap((x, i) => (shown.has(x) ? [i] : []))
-    const next = [...order]
-    slots.forEach((slot, k) => {
-      next[slot] = ids[k]
-    })
-    onChange(next.map((x) => offersById.get(x)!))
-  }
-
-  const canReorder = sort === 'priority'
   const noun = type === 'all' ? 'offers' : typeLabels[type][visible.length === 1 ? 'singular' : 'plural'].toLowerCase()
 
   const clearFilters = () => {
@@ -115,7 +114,29 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
     setAudience('all')
   }
 
-  const viewProps = { offers: visible, priorityOf, canReorder, onMove: move, onOpen }
+  const viewProps = { offers: visible, priorityOf, onOpen, onDelete: setDeleting, onPause: setPausing, onResume: (offer: Offer) => setStatusOf(offer, 'live'), allOffers: offers }
+
+  const setStatusOf = (offer: Offer, next: OfferStatus) => {
+    onChange(offers.map((o) => (o.id === offer.id ? { ...o, status: next } : o)))
+    onNotify(next === 'paused' ? `${offer.name} paused` : `${offer.name} resumed`)
+  }
+
+  const confirmPause = (offer: Offer) => {
+    setPausing(null)
+    setStatusOf(offer, 'paused')
+  }
+
+  const confirmDelete = (offer: Offer) => {
+    onChange(offers.filter((o) => o.id !== offer.id))
+    setDeleting(null)
+    onNotify(`${offer.name} deleted`)
+  }
+
+  // A live offer has players on it, so deleting it needs a manager to approve.
+  const requestCancellation = (offer: Offer) => {
+    setDeleting(null)
+    onNotify('Cancellation request submitted', `Your manager can approve deleting ${offer.name} in Slack.`)
+  }
 
   return (
     <div className="offers">
@@ -130,65 +151,97 @@ export function OffersPage({ offers, onChange, onNew, onOpen }: OffersPageProps)
       </header>
 
       <div className="toolbar">
-        <Search
-          size="Medium"
-          className="toolbar-search"
-          placeholder="Search offers"
-          aria-label="Search offers"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          onClear={() => setQuery('')}
-        />
+        <InputGroup className="toolbar-search">
+          <InputGroupAddon>
+            <Search />
+          </InputGroupAddon>
+          <InputGroupInput
+            placeholder="Search offers"
+            aria-label="Search offers"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </InputGroup>
         <ToolbarSelect label="Sort" width={134} value={sort} options={sortOptions} onChange={(v) => setSort(v as SortKey)} />
         <ToolbarSelect label="Type" width={216} value={type} options={typeOptions} onChange={(v) => setType(v as TypeFilter)} />
         <ToolbarSelect label="Status" width={104} value={status} options={statusOptions} onChange={(v) => setStatus(v as StatusFilter)} />
         <ToolbarSelect label="Audience" width={138} value={audience} options={audienceOptions} onChange={setAudience} />
 
-        <ButtonGroup
-          className="view-toggle"
-          size="Medium"
-          aria-label="View"
-          items={[
-            { label: 'List', value: 'list' },
-            { label: 'Timeline', value: 'timeline' },
-          ]}
-          value={view}
-          onChange={(v) => setView(v as View)}
-        />
+        <Tabs className="view-toggle" value={view} onValueChange={(v) => setView(v as View)}>
+          <TabsList aria-label="View">
+            <TabsTrigger value="list">List</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       <div className="section-line">
         <h2>Popup offers</h2>
-        <span>
-          Showing {type === 'all' ? 'all offers' : typeLabels[type].plural}, {visible.length} of {offers.length}.
-          Priority 1 shows first within each offer type.
-        </span>
       </div>
+      <p className="section-count">
+        {visible.length} {noun}
+      </p>
 
       {visible.length === 0 ? (
-        <EmptyState
-          variant="compact"
-          title="No offers match these filters"
-          description="Try changing or clearing a filter."
-          mainAction={{ label: 'Clear filters', onClick: clearFilters }}
-        />
+        <Empty className="border">
+          <EmptyHeader>
+            <EmptyTitle>No offers match these filters</EmptyTitle>
+            <EmptyDescription>Try changing or clearing a filter.</EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Button variant="outline" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          </EmptyContent>
+        </Empty>
       ) : view === 'list' ? (
         <ListView {...viewProps} />
       ) : (
         <TimelineView {...viewProps} />
       )}
 
-      {visible.length > 0 && view === 'list' && (
-        <p className="footnote">
-          {visible.length} {noun}
-          {!canReorder && ' · Sort by priority to reorder'}
-        </p>
-      )}
       {visible.length > 0 && view === 'timeline' && (
         <p className="footnote">
           Bars are colored by status. The timeline shows each offer&apos;s start and end date and repeats.
-          {!canReorder && ' Sort by priority to reorder.'}
         </p>
+      )}
+
+      {pausing && (
+        <PauseDialog
+          name={pausing.name}
+          players={LIVE_PLAYER_TOTAL}
+          onClose={() => setPausing(null)}
+          onConfirm={() => confirmPause(pausing)}
+        />
+      )}
+
+      {deleting && (
+        <ActionDialog
+          size="sm"
+          title={`Delete ${deleting.name}?`}
+          description={
+            hasPlayers(deleting)
+              ? `${deleting.name} is ${deleting.status}, so players are on it. To delete a live ${typeLabels[deleting.type].singular.toLowerCase()}, you need a manager's approval.`
+              : `This removes ${deleting.name}${deleting.rewards ? ' and its rewards' : ''}. You can't undo this.`
+          }
+          onClose={() => setDeleting(null)}
+          secondaryAction={{ label: 'Cancel', onClick: () => setDeleting(null) }}
+          primaryAction={
+            hasPlayers(deleting)
+              ? {
+                  label: (
+                    <>
+                      <SlackIcon />
+                      Submit Cancellation Request
+                      <ArrowUpRight />
+                    </>
+                  ),
+                  destructive: true,
+                  onClick: () => requestCancellation(deleting),
+                }
+              : { label: 'Delete', destructive: true, onClick: () => confirmDelete(deleting) }
+          }
+        />
       )}
     </div>
   )

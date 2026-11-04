@@ -1,28 +1,63 @@
 import { useEffect, useState } from 'react'
-import { ArrowLeft, Cloud, CloudCheck, Monitor, Smartphone } from 'lucide-react'
-import { Button, Icon, IconButton, Modal, Steps, Toast } from '../../design-system/components'
-import type { Offer } from '../offers/data'
-import { TODAY, dayDiff } from '../offers/dates'
+import { ArrowLeft, Monitor, Pause, Play, Smartphone } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { IconButton } from '@/components/IconButton'
+import { ToastAlert } from '@/components/ToastAlert'
+import { PauseDialog } from '@/components/PauseDialog'
+import { ReadinessPopover } from '@/components/ReadinessPopover'
+import { SubmitRequestButton } from '@/components/SubmitRequestButton'
+import { EditorTabs } from '@/components/EditorTabs'
+import { ToastHost } from '@/components/ToastHost'
+import {
+  Stepper,
+  StepperItem,
+  StepperNav,
+  StepperSeparator,
+  StepperTitle,
+  StepperTrigger,
+  StepperIndicator,
+} from '@/components/ui/stepper'
+import { hasPlayers, type Offer, type Version } from '../offers/data'
+import { TODAY, dayDiff, formatDay } from '../offers/dates'
 import { StatusPill } from '../offers/parts'
 import type { Device } from './rewards/PreviewPanel'
 import { RewardsStep } from './rewards/RewardsStep'
-import { endDateFor, weekCountFor, type Layout } from './rewards/plan'
-import { emptyActiveDays, validatePlan, type RewardWeek } from './rewards/rules'
+import { endDateFor, removeEmptyDays, type Layout } from './rewards/plan'
+import { LIVE_PLAYER_TOTAL, type RewardWeek } from './rewards/rules'
+import { overlapsOf, readinessOf } from './readiness'
 import { SettingsStep } from './SettingsStep'
+import type { PriorityItem } from './PrioritySection'
+import { VersionHistory } from './VersionHistory'
 import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
 import './calendar.css'
 
+// Stands in for a calendar that has no id yet in the priority list.
+const NEW_ID = '__new__'
+
+// The current version plus 50 earlier autosaves.
+const MAX_VERSIONS = 51
+
+// How long a removal can be undone from its toast.
+const UNDO_SECONDS = 5
+
+// Stable reference: the Stepper defines its steps once.
+const EDITOR_STEPS = [
+  { id: 'settings', title: 'Settings' },
+  { id: 'rewards', title: 'Rewards' },
+]
+
 type CalendarEditorProps = {
+  // Every offer, so Readiness can spot calendars that overlap this one.
+  offers: Offer[]
   // The draft being reopened, or null for a new calendar.
   offer: Offer | null
-  onSave: (offer: Offer) => void
+  onSave: (offer: Offer, rank?: number) => void
   // Saves the calendar and returns to the offers list, which shows `message` in a toast.
-  onFinish: (offer: Offer, message: string) => void
+  onFinish: (offer: Offer, message: string, rank?: number, description?: string) => void
+  // Puts the reward calendars in a new priority order (highest first).
+  onReorder: (ids: string[]) => void
   onClose: () => void
-  charlieOpen: boolean
-  onCharlieClose: () => void
-  // Lets the app know which step is showing, so Charlie only appears on Rewards.
-  onStepChange: (step: number) => void
 }
 
 const settingsOf = (offer: Offer | null): CalendarSettings => {
@@ -37,33 +72,50 @@ const settingsOf = (offer: Offer | null): CalendarSettings => {
   )
 }
 
-export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, onCharlieClose, onStepChange }: CalendarEditorProps) {
+export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onClose }: CalendarEditorProps) {
   const [settings, setSettings] = useState(() => settingsOf(offer))
   const [rewards, setRewards] = useState<RewardWeek[]>(() => offer?.rewards ?? [])
   const [offerId, setOfferId] = useState(offer?.id ?? null)
   // A calendar whose settings are already complete opens straight on its rewards.
   const [step, setStep] = useState(() => (offer && validate(settingsOf(offer)).valid ? 1 : 0))
   const [device, setDevice] = useState<Device>('desktop')
-  const [toast, setToast] = useState<string | null>(null)
-  const [publishing, setPublishing] = useState(false)
+  const [toast, setToast] = useState<{ message: string; description?: string; kind: 'success' | 'info'; undo?: boolean; seconds?: number } | null>(null)
+  // Undo and redo for the Rewards step: each change to the plan or the length is a step.
+  type Snap = { rewards: RewardWeek[]; endDate: string }
+  const [past, setPast] = useState<Snap[]>([])
+  const [future, setFuture] = useState<Snap[]>([])
+  const [readinessOpen, setReadinessOpen] = useState(false)
+  const [pausing, setPausing] = useState(false)
+  // Where a calendar that is not saved yet will rank once it is. Saved ones use the offers order.
+  const [rank, setRank] = useState<number | null>(null)
+  // Problems are only called out once the user has tried to publish.
+  const [attempted, setAttempted] = useState(false)
+  // A scheduled or live calendar with complete Settings is already set up, so its two
+  // sections are tabs rather than steps. Decided when it opens, so editing never swaps them.
+  const [tabbed] = useState(() => !!offer && offer.status !== 'draft' && validate(settingsOf(offer)).valid)
+  // A calendar opened without history starts at version 1, as it looked when opened.
+  const [versions, setVersions] = useState<Version[]>(() =>
+    offer?.versions ?? (offer ? [{ n: 1, savedAt: Date.now(), by: 'Dave', settings: settingsOf(offer), rewards: offer.rewards ?? [] }] : []),
+  )
 
   const snapshot = JSON.stringify({ settings, rewards })
   const [savedAs, setSavedAs] = useState(snapshot)
 
-  const { errors, missing, valid } = validate(settings)
+  // Live and paused calendars have already started, so only the others are held to a future start date.
+  const started = !!offer && hasPlayers(offer)
+  const { errors, missing, valid } = validate(settings, started ? undefined : TODAY)
   const days = settings.startDate && settings.endDate ? Math.max(0, dayDiff(settings.startDate, settings.endDate) + 1) : 0
 
-  useEffect(() => onStepChange(step), [step, onStepChange])
 
   useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(null), 2500)
+    const t = setTimeout(() => setToast(null), (toast.seconds ?? 2.5) * 1000)
     return () => clearTimeout(t)
   }, [toast])
 
   const update = (patch: Partial<CalendarSettings>) => setSettings((s) => ({ ...s, ...patch }))
 
-  const build = (status: Offer['status']): Offer => ({
+  const build = (status: Offer['status'], history: Version[] = versions): Offer => ({
     ...offer,
     id: offerId ?? `calendar-${Date.now()}`,
     name: settings.name.trim() || 'Untitled calendar',
@@ -74,6 +126,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
     status,
     settings,
     rewards,
+    versions: history,
   })
 
   // Published calendars keep their status; only drafts are drafts.
@@ -81,10 +134,18 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
   const isDraft = status === 'draft'
 
   const persist = () => {
-    const next = build(status)
-    onSave(next)
+    // Every autosave that changed something becomes a new version, newest last.
+    let history = versions
+    if (snapshot !== savedAs) {
+      const n = (history[history.length - 1]?.n ?? 0) + 1
+      history = [...history, { n, savedAt: Date.now(), by: 'Dave', settings, rewards }].slice(-MAX_VERSIONS)
+      setVersions(history)
+    }
+    const next = build(status, history)
+    onSave(next, rank ?? undefined)
     setOfferId(next.id)
     setSavedAs(snapshot)
+    return next
   }
 
   // Everything is saved as a draft shortly after each change, so closing the page
@@ -97,9 +158,9 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snapshot])
 
+  // Saving a draft takes the user back to the offers list.
   const saveDraft = () => {
-    persist()
-    setToast('Draft saved')
+    onFinish(persist(), 'Draft saved', rank ?? undefined)
   }
 
   const close = () => {
@@ -109,33 +170,135 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
 
   // ----- Rewards step
 
+  const here = (): Snap => ({ rewards, endDate: settings.endDate })
+  const record = () => {
+    // Problems are called out when Publish is clicked, and clear as soon as the user edits.
+    setAttempted(false)
+    setPast((p) => [...p.slice(-49), here()])
+    setFuture([])
+  }
+  const restore = (snap: Snap) => {
+    setRewards(snap.rewards)
+    update({ endDate: snap.endDate })
+  }
+
+  const changePlan = (plan: RewardWeek[]) => {
+    record()
+    setRewards(plan)
+  }
+
   const onLayoutChange = ({ plan, days: nextDays }: Layout) => {
+    record()
     setRewards(plan)
     update({ endDate: endDateFor(settings.startDate, nextDays) })
   }
 
-  const issues = validatePlan(rewards, days)
-  const blockers = [
-    ...issues.filter((i) => i.severity === 'error').map((i) => `Week ${i.week + 1}, Day ${i.day + 1}: ${i.message}`),
-    ...emptyActiveDays(
-      Array.from({ length: weekCountFor(days) }, (_, i) => rewards[i] ?? Array.from({ length: 7 }, () => [])),
-      days,
-    ).map((d) => `Week ${d.week + 1}, Day ${d.day + 1} has no reward yet.`),
-  ]
+  // Restoring brings an old version back as the current one; the next autosave
+  // keeps it as a new version, so nothing in the history is lost.
+  const restoreVersion = (v: Version) => {
+    record()
+    setSettings(v.settings)
+    setRewards(v.rewards)
+    setToast({ message: `Restored version ${v.n}`, description: 'It will be saved as a new version.', kind: 'success' })
+  }
 
-  // Publishing goes straight back to the list. Only blockers stop it, with a dialog.
-  const publish = () => {
-    if (blockers.length > 0) {
-      setPublishing(true)
-      return
+  const undo = () => {
+    const last = past[past.length - 1]
+    if (!last) return setToast({ message: 'Nothing to undo.', kind: 'info' })
+    setAttempted(false)
+    setPast(past.slice(0, -1))
+    setFuture((f) => [...f, here()])
+    restore(last)
+  }
+
+  const redo = () => {
+    const next = future[future.length - 1]
+    if (!next) return setToast({ message: 'Nothing to redo.', kind: 'info' })
+    setAttempted(false)
+    setFuture(future.slice(0, -1))
+    setPast((p) => [...p, here()])
+    restore(next)
+  }
+
+  const readiness = readinessOf(settings, rewards, days, { offers, selfId: offerId, livePlayers: started ? LIVE_PLAYER_TOTAL : undefined })
+  // Nothing can go to players until at least one day has a reward.
+  const noRewards = readiness.filledDays === 0
+  const noRewardsHint = noRewards ? 'Add a reward to at least one day first.' : undefined
+
+  // ----- Priority
+
+  const overlapIds = new Set(overlapsOf(settings, { offers, selfId: offerId }).map((o) => o.id))
+  const spanOf = (start: string | null, end: string | null) => (start && end ? `${formatDay(start)} to ${formatDay(end)}` : 'No dates yet')
+  const priority: PriorityItem[] = offers
+    .filter((o) => o.type === 'reward-calendar')
+    .map((o) =>
+      o.id === offerId
+        ? { id: o.id, name: settings.name.trim() || o.name, status: o.status, audience: audienceOf(settings).audience, dates: spanOf(settings.startDate, settings.endDate), self: true, overlapsSelf: false }
+        : { id: o.id, name: o.name, status: o.status, audience: o.audience, dates: spanOf(o.start, o.end), self: false, overlapsSelf: overlapIds.has(o.id) },
+    )
+  if (!offerId) {
+    priority.splice(Math.min(rank ?? priority.length, priority.length), 0, {
+      id: NEW_ID,
+      name: settings.name.trim() || 'New Reward Calendar',
+      status: 'draft',
+      audience: audienceOf(settings).audience,
+      dates: spanOf(settings.startDate, settings.endDate),
+      self: true,
+      overlapsSelf: false,
+    })
+  }
+
+  const movePriority = (ids: string[]) => {
+    if (!offerId) setRank(ids.indexOf(NEW_ID))
+    onReorder(ids.filter((id) => id !== NEW_ID))
+  }
+
+  // Publishing is never blocked by open items, but below 100% the readiness checklist
+  // opens first so the risk is clear. "Publish anyway" in it carries on.
+  const attempt = (go: () => void) => {
+    if (readiness.percent < 100) {
+      setAttempted(true)
+      setReadinessOpen(true)
     }
+    else go()
+  }
+
+  // Takes the empty days out and offers a few seconds to undo it.
+  const removeEmpty = () => {
+    const layout = removeEmptyDays(rewards, days)
+    if (!layout) return
+    const removed = days - layout.days
+    setReadinessOpen(false)
+    onLayoutChange(layout)
+    setToast({
+      message: `Removed ${removed} empty ${removed === 1 ? 'day' : 'days'}`,
+      description: `The calendar is now ${layout.days} ${layout.days === 1 ? 'day' : 'days'} long.`,
+      kind: 'info',
+      undo: true,
+      seconds: UNDO_SECONDS,
+    })
+  }
+
+  const publish = () => {
     const next = build(settings.startDate > TODAY ? 'scheduled' : 'live')
-    onFinish(next, `${next.name} is ${next.status === 'live' ? 'live' : 'scheduled'}.`)
+    onFinish(next, `${next.name} is ${next.status === 'live' ? 'live' : 'scheduled'}.`, rank ?? undefined)
   }
 
   const saveChanges = () => {
     const next = build(status)
-    onFinish(next, `Changes to ${next.name} are saved.`)
+    onFinish(next, `Changes to ${next.name} are saved.`, rank ?? undefined)
+  }
+
+  // Changes to a calendar players are on go to a manager for approval in Slack.
+  const submitRequest = () => {
+    const next = build(status)
+    onFinish(next, 'Change request submitted', rank ?? undefined, `Your manager can approve the changes to ${next.name} in Slack.`)
+  }
+
+  const setPaused = (paused: boolean) => {
+    const next = build(paused ? 'paused' : 'live')
+    setPausing(false)
+    onFinish(next, paused ? `${next.name} paused` : `${next.name} resumed`, rank ?? undefined)
   }
 
   return (
@@ -146,116 +309,162 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
             kind="Tertiary"
             size="Medium"
             aria-label="Back to offers"
-            iconElement={<Icon icon={ArrowLeft} size="Medium" color="primary" />}
+            iconElement={<ArrowLeft className="size-4 text-primary" />}
             onClick={close}
           />
           <h1>{settings.name.trim() || 'New Reward Calendar'}</h1>
           <StatusPill status={status} />
         </div>
 
-        <Steps
-          type="Gallery"
-          className="editor-steps"
-          currentStep={step + 1}
-          totalSteps={2}
-          onPrevious={() => setStep(0)}
-          onNext={() => valid && setStep(1)}
-        />
+        {tabbed ? (
+          <div className="editor-steps editor-steps--tabs">
+            <EditorTabs tabs={EDITOR_STEPS} value={EDITOR_STEPS[step].id} onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)} />
+          </div>
+        ) : (
+          <Stepper
+            steps={EDITOR_STEPS}
+            defaultValue={EDITOR_STEPS[step].id}
+            value={EDITOR_STEPS[step].id}
+            onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)}
+            className="editor-steps"
+          >
+            <StepperNav className="flex items-center gap-2">
+              {EDITOR_STEPS.map((s, i) => (
+                <StepperItem key={s.id} stepId={s.id} disabled={i === 1 && !valid}>
+                  <StepperTrigger>
+                    <StepperIndicator>{i + 1}</StepperIndicator>
+                    <StepperTitle>{s.title}</StepperTitle>
+                  </StepperTrigger>
+                  {i === 0 && <StepperSeparator className="w-8 flex-none" />}
+                </StepperItem>
+              ))}
+            </StepperNav>
+          </Stepper>
+        )}
 
         <div className="editor-actions">
-          {/* An icon, not text, so the autosave state never changes the header's width. */}
-          <span
-            className="save-status"
-            role="status"
-            title={snapshot === savedAs ? 'All changes saved' : 'Saving…'}
-            aria-label={snapshot === savedAs ? 'All changes saved' : 'Saving changes'}
-          >
-            {(snapshot !== savedAs || offerId) && (
-              <Icon icon={snapshot === savedAs ? CloudCheck : Cloud} size="Medium" color={snapshot === savedAs ? 'positive' : 'secondary'} />
-            )}
-          </span>
+          <VersionHistory versions={versions} saving={snapshot !== savedAs} onRestore={restoreVersion} />
           {step === 1 && (
-            <div className="device-toggle" role="group" aria-label="Preview device">
-              <button type="button" aria-label="Desktop preview" aria-pressed={device === 'desktop'} onClick={() => setDevice('desktop')}>
-                <Icon icon={Monitor} size="Medium" color="current" />
-              </button>
-              <button type="button" aria-label="Mobile preview" aria-pressed={device === 'mobile'} onClick={() => setDevice('mobile')}>
-                <Icon icon={Smartphone} size="Medium" color="current" />
-              </button>
-            </div>
+            <Tabs className="device-toggle" value={device} onValueChange={(v) => setDevice(v as Device)}>
+              <TabsList aria-label="Preview device">
+                <TabsTrigger value="desktop" aria-label="Desktop preview">
+                  <Monitor />
+                </TabsTrigger>
+                <TabsTrigger value="mobile" aria-label="Mobile preview">
+                  <Smartphone />
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           )}
           {isDraft ? (
-            <Button kind="Secondary" size="Large" onClick={saveDraft}>
+            <Button variant="outline" size="lg" onClick={saveDraft}>
               Save draft
             </Button>
+          ) : started ? (
+            <>
+              {status === 'live' ? (
+                <Button variant="outline" size="lg" onClick={() => setPausing(true)}>
+                  <Pause data-icon="inline-start" />
+                  Pause
+                </Button>
+              ) : (
+                <Button variant="outline" size="lg" onClick={() => setPaused(false)}>
+                  <Play data-icon="inline-start" />
+                  Resume
+                </Button>
+              )}
+              <SubmitRequestButton
+                disabled={noRewards}
+                title={noRewardsHint}
+                onClick={step === 1 ? () => attempt(submitRequest) : submitRequest}
+              />
+            </>
           ) : (
-            <Button kind="Primary" size="Large" onClick={saveChanges}>
+            <Button size="lg" disabled={noRewards} title={noRewardsHint} onClick={step === 1 ? () => attempt(saveChanges) : saveChanges}>
               Save changes
             </Button>
           )}
           {step === 0 ? (
+            !tabbed && (
             <Button
-              kind="Primary"
-              size="Large"
+              size="lg"
               disabled={!valid}
               title={valid ? undefined : `Still needed: ${missing.join(', ')}`}
               onClick={() => setStep(1)}
             >
               Next
             </Button>
+            )
           ) : (
             isDraft && (
-              <Button kind="Primary" size="Large" onClick={publish}>
+              <Button size="lg" disabled={noRewards} title={noRewardsHint} onClick={() => attempt(publish)}>
                 Publish
               </Button>
             )
+          )}
+          {step === 1 && (
+            <ReadinessPopover
+              readiness={readiness}
+              open={readinessOpen}
+              onOpenChange={setReadinessOpen}
+              confirmLabel={isDraft ? 'Publish anyway' : 'Save anyway'}
+              onConfirm={isDraft ? publish : saveChanges}
+              onRemoveEmpty={removeEmpty}
+              live={started}
+              onSubmitRequest={submitRequest}
+              blocked={noRewards}
+            />
           )}
         </div>
       </header>
 
       <div className={`editor-body${step === 1 ? ' editor-body--rewards' : ''}`}>
         {step === 0 ? (
-          <SettingsStep settings={settings} errors={errors} missing={missing} onChange={update} />
+          <SettingsStep settings={settings} errors={errors} missing={missing} overlaps={overlapsOf(settings, { offers, selfId: offerId })} priority={priority} live={started} onPriorityChange={movePriority} onChange={update} />
         ) : (
           <RewardsStep
             settings={settings}
             plan={rewards}
             days={days}
             device={device}
-            onPlanChange={setRewards}
+            onPlanChange={changePlan}
+            onUndo={undo}
+            onRedo={redo}
+            onNotify={(message, description) => setToast({ message, description, kind: 'info' })}
             onLayoutChange={onLayoutChange}
-            charlieOpen={charlieOpen}
-            onCharlieClose={onCharlieClose}
             onEditSettings={() => setStep(0)}
+            live={started}
+            showIssues={attempted}
           />
         )}
       </div>
 
-      {publishing && (
-        <Modal
-          size="Medium"
-          title="Fix these before publishing"
-          subtitle="These need attention first."
-          onClose={() => setPublishing(false)}
-          secondaryAction={{ label: 'Cancel', onClick: () => setPublishing(false) }}
-          primaryAction={{ label: 'Back to rewards', onClick: () => setPublishing(false) }}
-        >
-          <ul className="publish-list publish-list--blockers">
-            {blockers.slice(0, 8).map((b) => (
-              <li key={b}>{b}</li>
-            ))}
-            {blockers.length > 8 && <li>and {blockers.length - 8} more.</li>}
-          </ul>
-        </Modal>
+      {pausing && (
+        <PauseDialog name={settings.name.trim() || 'This calendar'} players={LIVE_PLAYER_TOTAL} onClose={() => setPausing(false)} onConfirm={() => setPaused(true)} />
       )}
 
-      {toast && (
-        <div className="toast" role="status">
-          <Toast type="Positive" onClose={() => setToast(null)}>
-            {toast}
-          </Toast>
-        </div>
-      )}
+      <ToastHost toast={toast} className="toast">
+        {(t) => (
+          <ToastAlert
+            kind={t.kind}
+            message={t.message}
+            description={t.description}
+            countdown={t.undo ? t.seconds : undefined}
+            action={
+              t.undo
+                ? {
+                    label: 'Undo',
+                    onClick: () => {
+                      undo()
+                      setToast(null)
+                    },
+                  }
+                : undefined
+            }
+            onClose={() => setToast(null)}
+          />
+        )}
+      </ToastHost>
     </div>
   )
 }

@@ -11,6 +11,8 @@ type WeekRowProps = {
   issues: Issue[]
   canDuplicate: boolean
   canDelete: boolean
+  // Players currently on this week, shown for live calendars.
+  players?: number
   onOpenDay: (day: number) => void
   onClearDay: (day: number) => void
   onAddDay: () => void
@@ -24,6 +26,7 @@ export function WeekRow({
   issues,
   canDuplicate,
   canDelete,
+  players,
   onOpenDay,
   onClearDay,
   onAddDay,
@@ -33,11 +36,17 @@ export function WeekRow({
     <section className="week" aria-label={`Week ${index + 1}`}>
       <header className="week-head">
         <h3>Week {index + 1}</h3>
+        {players ? (
+          <span className="players-chip">
+            <span className="players-dot" aria-hidden="true" />
+            {players.toLocaleString('en-US')} players on this week
+          </span>
+        ) : null}
         <MenuButton
           label={`Week ${index + 1} actions`}
           items={[
             { id: 'duplicate', label: 'Duplicate week', icon: Copy, disabled: !canDuplicate },
-            { id: 'clear', label: 'Clear week', icon: Eraser, destructive: true },
+            { id: 'clear', label: 'Clear week', icon: Eraser },
             { id: 'delete', label: 'Delete week', icon: Trash2, disabled: !canDelete, destructive: true },
           ]}
           onSelect={(id) => onMenu(id as 'duplicate' | 'clear' | 'delete')}

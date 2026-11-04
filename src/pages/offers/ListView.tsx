@@ -1,43 +1,53 @@
+import { useLayoutEffect, useRef } from 'react'
 import { Repeat } from 'lucide-react'
-import { Icon } from '../../design-system/components'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { formatDay } from './dates'
-import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
+import { KebabButton, OfferTitle, PriorityBadge, ReadinessCell, StatusPill } from './parts'
 import { isOpenable, rowClick } from './rows'
-import { useReorder } from './useReorder'
 
 type ListViewProps = {
   offers: Offer[]
   priorityOf: (id: string) => number
-  canReorder: boolean
-  onMove: (id: string, targetId: string, after: boolean) => void
   onOpen: (id: string) => void
+  onDelete: (offer: Offer) => void
+  onPause: (offer: Offer) => void
+  onResume: (offer: Offer) => void
+  // Every offer, whatever the filters hide, so overlaps are found against all of them.
+  allOffers: Offer[]
 }
 
-export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: ListViewProps) {
-  const reorder = useReorder(
-    offers.map((o) => o.id),
-    canReorder,
-    onMove,
-  )
+export function ListView({ offers, priorityOf, onOpen, onDelete, onPause, onResume, allOffers }: ListViewProps) {
+  const rows = useRef<HTMLUListElement>(null)
+  const list = useRef<HTMLDivElement>(null)
+
+  // The rows scroll on their own. Measure the scrollbar so the cards can give up that much
+  // padding and still line up with the rest of the page.
+  useLayoutEffect(() => {
+    const el = rows.current
+    if (!el) return
+    const measure = () => list.current?.style.setProperty('--scrollbar', `${el.offsetWidth - el.clientWidth}px`)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [offers.length])
 
   return (
-    <div className="list">
+    <div className="list" ref={list}>
       <div className="list-grid list-head" aria-hidden="true">
         <span className="col-audience">Audience</span>
         <span className="col-dates">Start and end</span>
+        <span className="col-readiness">Readiness</span>
         <span className="col-status">Status</span>
       </div>
 
-      <ul className="list-rows">
+      <ul className="list-rows" ref={rows}>
         {offers.map((offer) => (
           <li
             key={offer.id}
-            className={`list-grid list-row${isOpenable(offer) ? ' is-openable' : ''} ${reorder.rowClass(offer.id)}`}
+            className={`list-grid list-row${isOpenable(offer) ? ' is-openable' : ''} `}
             onClick={rowClick(offer, onOpen)}
-            {...reorder.rowProps(offer.id)}
           >
-            <DragHandle offer={offer} {...reorder.handleProps(offer.id)} />
             <PriorityBadge priority={priorityOf(offer.id)} />
             <div className="offer-name">
               <OfferTitle offer={offer} onOpen={onOpen} />
@@ -50,7 +60,7 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: Lis
                   {formatDay(offer.start)} to {formatDay(offer.end)}
                   {offer.repeatWeeks && (
                     <span className="repeat" title={`Repeats every ${offer.repeatWeeks} weeks`}>
-                      <Icon icon={Repeat} size="Small" color="current" />
+                      <Repeat className="size-4" />
                     </span>
                   )}
                 </>
@@ -58,10 +68,13 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: Lis
                 <span className="muted">No dates yet</span>
               )}
             </div>
+            <div className="col-readiness">
+              <ReadinessCell offer={offer} offers={allOffers} />
+            </div>
             <div className="col-status">
               <StatusPill status={offer.status} />
             </div>
-            <KebabButton offer={offer} />
+            <KebabButton offer={offer} onEdit={onOpen} onDelete={onDelete} onPause={onPause} onResume={onResume} />
           </li>
         ))}
       </ul>

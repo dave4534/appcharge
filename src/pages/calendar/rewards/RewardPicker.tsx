@@ -1,21 +1,22 @@
 import { CircleAlert, Minus, Plus, Sparkles, TriangleAlert } from 'lucide-react'
 import { useMemo, useState } from 'react'
-import {
-  Button,
-  Checkbox,
-  Dropdown,
-  Icon,
-  IconButton,
-  Modal,
-  Search,
-  TextField,
-} from '../../../design-system/components'
+import { Search } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Input } from '@/components/ui/input'
+import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { SelectCombobox } from '@/components/SelectCombobox'
+import { IconButton } from '@/components/IconButton'
+import { ActionDialog } from '@/components/ActionDialog'
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/reui/alert'
+import { Button } from '@/components/ui/button'
 import { PRODUCTS, offeredOn, type Product } from './catalog'
 import { ensureWeeks, setDay } from './plan'
 import { RewardIcon } from './tiles'
 import {
   REWARD_DEFS,
   chipsOf,
+  dayNumber,
   daySummary,
   formatChipsExact,
   formatQuantity,
@@ -118,7 +119,10 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
     setSelection((s) => ({ ...s, [p.sku]: clamp(p.kind, now + direction * REWARD_DEFS[p.kind].step) }))
   }
 
-  const onType = (p: Product, text: string) => {
+  const onType = (p: Product, raw: string) => {
+    // Long plain numbers get thousands separators as they are typed, so a wrong digit shows.
+    const digits = raw.replace(/,/g, '')
+    const text = /^\d{4,15}$/.test(digits) ? Number(digits).toLocaleString('en-US') : raw
     setEditing({ sku: p.sku, text })
     const parsed = parseQuantity(p.kind, text)
     if (parsed === null || parsed <= 0) setInvalid(p.sku)
@@ -130,61 +134,60 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
     }
   }
 
-  const accept = () => onSave(suggestion.items)
+  // Accepting keeps the dialog open: the suggestion is already picked, so this only
+  // dismisses the banner and enables the primary button.
+  const accept = () => setShowSuggestion(false)
   const reject = () => {
     setShowSuggestion(false)
     setSelection({})
   }
 
   return (
-    <Modal
-      size="Large"
-      scroll
-      className="modal--picker"
-      title={`Select reward for Day ${day + 1}`}
-      subtitle={`Week ${week + 1}. Amounts are illustrative.`}
+    <ActionDialog
+      size="lg"
+      className="min-h-[60vh]"
+      title={`Select reward for Day ${dayNumber(week, day)}`}
+      description={`Week ${week + 1}. Amounts are illustrative.`}
       onClose={onClose}
       secondaryAction={{ label: 'Cancel', onClick: onClose }}
       primaryAction={{
-        label: isNew ? `Add to Day ${day + 1}` : 'Save changes',
+        label: isNew ? `Add to Day ${dayNumber(week, day)}` : 'Save changes',
         disabled: suggestionPending || items.length === 0 || blocked || invalid !== null,
         onClick: () => onSave(items),
       }}
     >
       <div className="picker">
         {suggestionPending && (
-          <div className="suggest-banner">
-            <span className="suggested-icon" aria-hidden="true">
-              <Icon icon={Sparkles} size="Small" color="primary" />
-            </span>
-            <div className="suggested-text">
-              <strong>
-                Suggested for Day {day + 1}: {daySummary(suggestion.items)}
-              </strong>
-              <span>{suggestion.basis}</span>
-            </div>
-            <div className="suggested-actions">
-              <Button kind="Secondary" size="Small" onClick={reject}>
+          <Alert variant="info" className="suggest-alert">
+            <Sparkles />
+            <AlertTitle className="line-clamp-none">
+              Suggested for Day {dayNumber(week, day)}: {daySummary(suggestion.items)}
+            </AlertTitle>
+            <AlertDescription>{suggestion.basis}</AlertDescription>
+            <AlertAction>
+              <Button variant="outline" size="sm" onClick={reject}>
                 Reject
               </Button>
-              <Button kind="Primary" size="Small" onClick={accept}>
+              <Button size="sm" onClick={accept}>
                 Accept
               </Button>
-            </div>
-          </div>
+            </AlertAction>
+          </Alert>
         )}
 
         <div className="picker-filters">
-          <Search
-            size="Medium"
-            placeholder="Search by name or SKU"
-            aria-label="Search the product bank"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onClear={() => setQuery('')}
-          />
-          <Dropdown
-            size="Medium"
+          <InputGroup>
+            <InputGroupAddon>
+              <Search />
+            </InputGroupAddon>
+            <InputGroupInput
+              placeholder="Search by name or SKU"
+              aria-label="Search the product bank"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+            />
+          </InputGroup>
+          <SelectCombobox
             aria-label="Store category"
             value={category}
             onChange={setCategory}
@@ -192,36 +195,35 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
           />
         </div>
 
-        <table className="picker-table">
-          <thead>
-            <tr>
-              <th className="picker-check">
+        <Table className="picker-table table-fixed">
+          <TableHeader>
+            <TableRow>
+              <TableHead className="picker-check">
                 <Checkbox
-                  showLabel={false}
                   aria-label="Select everything listed"
-                  state={allPicked ? 'selected' : pickedCount > 0 ? 'indeterminate' : 'regular'}
                   checked={allPicked}
+                  indeterminate={!allPicked && pickedCount > 0}
                   disabled={rows.length === 0}
-                  onChange={toggleAll}
+                  onCheckedChange={toggleAll}
                 />
-              </th>
-              <th>Name and SKU ID</th>
-              <th>Store category</th>
-              <th>Price</th>
-              <th>Quantity</th>
-            </tr>
-          </thead>
-          <tbody>
+              </TableHead>
+              <TableHead className="w-[34%]">Name and SKU ID</TableHead>
+              <TableHead className="w-[16%]">Store category</TableHead>
+              <TableHead className="w-[16%]">Price</TableHead>
+              <TableHead>Quantity</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
             {rows.map((p) => {
               const quantity = selection[p.sku]
               const picked = quantity !== undefined
               const shownText = editing?.sku === p.sku ? editing.text : picked ? formatQuantity(makeItem(p.kind, quantity, p.sku)) : ''
               return (
-                <tr key={p.sku} className={picked ? 'is-picked' : undefined}>
-                  <td className="picker-check">
-                    <Checkbox showLabel={false} aria-label={`Select ${p.name}`} checked={picked} onChange={() => toggle(p)} />
-                  </td>
-                  <td>
+                <TableRow key={p.sku} className={picked ? 'is-picked bg-primary/5' : undefined}>
+                  <TableCell className="picker-check">
+                    <Checkbox aria-label={`Select ${p.name}`} checked={picked} onCheckedChange={() => toggle(p)} />
+                  </TableCell>
+                  <TableCell>
                     <div className="picker-name">
                       <RewardIcon item={makeItem(p.kind, quantity ?? 1, p.sku)} size={36} />
                       <div>
@@ -229,28 +231,25 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
                         <div className="picker-sku">{p.kind === 'chips' && picked ? formatChipsExact(quantity) : p.sku}</div>
                       </div>
                     </div>
-                  </td>
-                  <td className="picker-muted">{p.category}</td>
-                  <td className="picker-muted">{p.price}</td>
-                  <td>
+                  </TableCell>
+                  <TableCell className="picker-muted">{p.category}</TableCell>
+                  <TableCell className="picker-muted">{p.price}</TableCell>
+                  <TableCell>
                     <div className={`stepper${picked ? '' : ' is-off'}`}>
                       <IconButton
                         kind="Tertiary"
                         size="XS"
                         aria-label={`Decrease ${p.name}`}
                         disabled={!picked}
-                        iconElement={<Icon icon={Minus} size="Small" color="current" />}
+                        iconElement={<Minus className="size-3" />}
                         onClick={() => step(p, -1)}
                       />
-                      <TextField
-                        size="Small"
-                        label=""
-                        showHelper={false}
-                        showIconRight={false}
+                      <Input
+                        className="h-8 min-w-0 flex-1 px-2 text-center"
                         aria-label={`${p.name} quantity`}
+                        aria-invalid={invalid === p.sku || undefined}
                         placeholder="–"
                         disabled={!picked}
-                        state={invalid === p.sku ? 'error' : 'default'}
                         value={shownText}
                         onFocus={() => picked && setEditing({ sku: p.sku, text: formatQuantity(makeItem(p.kind, quantity, p.sku)) })}
                         onChange={(e) => onType(p, e.target.value)}
@@ -264,21 +263,21 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
                         size="XS"
                         aria-label={`Increase ${p.name}`}
                         disabled={!picked}
-                        iconElement={<Icon icon={Plus} size="Small" color="current" />}
+                        iconElement={<Plus className="size-3" />}
                         onClick={() => step(p, 1)}
                       />
                     </div>
-                  </td>
-                </tr>
+                  </TableCell>
+                </TableRow>
               )
             })}
-          </tbody>
-        </table>
+          </TableBody>
+        </Table>
 
         {rows.length === 0 && <p className="picker-empty">Nothing matches. Clear the search or the category.</p>}
 
         {invalid && (
-          <p className="field-error">
+          <p className="text-sm text-destructive">
             {PRODUCTS.find((p) => p.sku === invalid)?.kind === 'chips'
               ? 'Enter chips like 1.5B, 500M or 1,500,000,000.'
               : 'Enter a whole number.'}
@@ -289,7 +288,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
           <ul className="picker-issues" aria-label="Checks for this day">
             {issues.map((i) => (
               <li key={i.id} className={`issue issue--${i.severity}`}>
-                <Icon icon={i.severity === 'error' ? CircleAlert : TriangleAlert} size="Small" color={i.severity === 'error' ? 'negative' : 'warning'} />
+                {i.severity === 'error' ? <CircleAlert className="size-4 text-destructive" /> : <TriangleAlert className="size-4" style={{ color: 'var(--content-color-working-orange-hover)' }} />}
                 <span>
                   {i.message}
                   {i.severity === 'error' && ' This blocks saving.'}
@@ -301,6 +300,6 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
 
         <p className="picker-selected">{items.length} selected</p>
       </div>
-    </Modal>
+    </ActionDialog>
   )
 }

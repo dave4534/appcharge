@@ -1,0 +1,129 @@
+/* Readiness ring in the editor header, and the checklist popover it opens. */
+
+.readiness-trigger {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.readiness-trigger:hover {
+  background: var(--primary-background-hover-color);
+}
+
+.readiness-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-16) var(--space-16) var(--space-12);
+}
+
+.readiness-title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-bold);
+}
+
+.readiness-sub {
+  color: var(--secondary-text-color);
+}
+
+.readiness-close {
+  position: absolute;
+  top: var(--space-12);
+  right: var(--space-12);
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--secondary-text-color);
+}
+
+.readiness-close:hover {
+  background: var(--primary-background-hover-color);
+  color: var(--primary-text-color);
+}
+
+.readiness-list {
+  margin: 0;
+  padding: 0 var(--space-16);
+  list-style: none;
+}
+
+.readiness-row {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-12);
+  padding: var(--space-12) 0;
+  border-top: 1px solid var(--layout-border-color);
+}
+
+.readiness-icon {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--allgrey-background-color);
+  color: var(--primary-text-color);
+}
+
+.readiness-text {
+  display: grid;
+}
+
+.readiness-detail {
+  color: var(--secondary-text-color);
+  font-size: var(--font-size-text2);
+}
+
+.readiness-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--secondary-text-color);
+  font-size: 12px;
+  font-weight: var(--font-weight-bold);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.readiness-status--required {
+  color: var(--negative-color);
+}
+
+.readiness-status--warning {
+  color: var(--content-color-working-orange-hover);
+}
+
+.readiness-status--ready {
+  color: var(--positive-color);
+}
+
+.readiness-foot {
+  display: grid;
+  gap: var(--space-12);
+  padding: var(--space-16);
+  border-top: 1px solid var(--layout-border-color);
+  color: var(--secondary-text-color);
+}
+
+.readiness-foot p {
+  margin: 0;
+}
+
+.readiness-actions {
+  display: flex;
+  gap: var(--space-8);
+}
+
+/* The two actions share the width equally. */
+.readiness-actions > * {
+  flex: 1;
+}

@@ -1,8 +1,22 @@
 /* Offers page. Controls come from the design system; this file only lays them out. */
 
 .offers {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
   padding-top: var(--space-4);
-  max-width: 1600px;
+}
+
+/* Everything above the rows stays put. */
+.offers > * {
+  flex: none;
+}
+
+.offers > .list,
+.offers > .tl-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .offers-head {
@@ -82,7 +96,7 @@
   flex-wrap: wrap;
   align-items: baseline;
   gap: var(--space-8) 20px;
-  margin: 22px 0 var(--space-12);
+  margin: 22px 0 var(--space-4);
 }
 
 .section-line h2 {
@@ -90,10 +104,6 @@
   font-family: var(--font-family-heading);
   font-size: var(--font-size-h3);
   font-weight: var(--font-weight-semibold);
-}
-
-.section-line span {
-  color: var(--secondary-text-color);
 }
 
 .footnote {
@@ -134,6 +144,12 @@
   --s-border: var(--color-live-border);
 }
 
+.s-paused {
+  --s-bg: var(--color-draft-bg);
+  --s-text: var(--content-color-working-orange-hover);
+  --s-border: var(--content-color-working-orange);
+}
+
 .s-scheduled {
   --s-bg: var(--color-scheduled-bg);
   --s-text: var(--color-scheduled-text);
@@ -146,55 +162,81 @@
   --s-border: var(--color-draft-border);
 }
 
-/* Reorder states, shared by both views */
-
-.is-dragging {
-  outline: 2px dashed var(--primary-color);
-  outline-offset: -2px;
-  background: var(--primary-highlighted-color) !important;
-}
-
-.is-dragging > * {
-  opacity: 0.55;
-}
-
-.drop-before,
-.drop-after {
-  position: relative;
-}
-
-.drop-before::before,
-.drop-after::after {
-  content: '';
-  position: absolute;
-  z-index: 2;
-  left: 0;
-  right: 0;
-  height: 3px;
-  border-radius: 2px;
-  background: var(--primary-color);
-}
-
-.drop-before::before {
-  top: var(--drop-offset, -2px);
-}
-
-.drop-after::after {
-  bottom: var(--drop-offset, -2px);
-}
-
-.drag-handle {
-  cursor: grab;
-}
-
 /* List view */
 
 .list-grid {
   display: grid;
-  grid-template-columns: 24px 32px minmax(0, 1fr) minmax(140px, 200px) minmax(130px, 170px) 100px 32px;
+  grid-template-columns: 32px minmax(0, 1fr) minmax(120px, 190px) minmax(120px, 160px) 130px 100px 32px;
   align-items: center;
-  column-gap: 20px;
+  column-gap: 16px;
   padding: 0 20px;
+}
+
+/* The header places its labels by column, so they follow the row when columns drop out. */
+.list-head .col-audience {
+  grid-column: 3;
+}
+
+.list-head .col-dates {
+  grid-column: 4;
+}
+
+.list-head .col-readiness {
+  grid-column: 5;
+}
+
+.list-head .col-status {
+  grid-column: 6;
+}
+
+/* Narrower windows drop columns instead of scrolling sideways. */
+@media (max-width: 1180px) {
+  .list-grid {
+    grid-template-columns: 32px minmax(0, 1fr) minmax(120px, 160px) 130px 100px 32px;
+  }
+
+  .list-grid .col-audience {
+    display: none;
+  }
+
+  .list-head .col-dates {
+    grid-column: 3;
+  }
+
+  .list-head .col-readiness {
+    grid-column: 4;
+  }
+
+  .list-head .col-status {
+    grid-column: 5;
+  }
+}
+
+@media (max-width: 960px) {
+  .list-grid {
+    grid-template-columns: 32px minmax(0, 1fr) minmax(110px, 150px) 100px 32px;
+  }
+
+  .list-grid .col-readiness {
+    display: none;
+  }
+
+  .list-head .col-status {
+    grid-column: 4;
+  }
+}
+
+.section-count {
+  margin: 0 0 var(--space-12);
+  color: var(--secondary-text-color);
+  font-size: var(--font-size-text3);
+}
+
+.readiness-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  white-space: nowrap;
 }
 
 .list-head {
@@ -206,17 +248,24 @@
   text-transform: uppercase;
 }
 
-.list-head .col-audience {
-  grid-column: 4;
+.list {
+  display: flex;
+  flex-direction: column;
 }
 
 .list-rows {
-  --drop-offset: -7px;
   display: grid;
+  flex: 1;
+  align-content: start;
   gap: 10px;
-  margin: 0;
-  padding: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   list-style: none;
+  /* The scrollbar sits at the window edge, and the padding takes its width off, so the
+     cards end where the rest of the page ends. */
+  margin: 0 calc(var(--space-32) * -1) 0 0;
+  padding: 2px calc(var(--space-32) - var(--scrollbar, 0px)) var(--space-8) 0;
 }
 
 .list-row {
@@ -241,19 +290,20 @@
 /* Timeline view */
 
 .tl-scroll {
-  overflow-x: auto;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid var(--layout-border-color);
   border-radius: 12px;
   background: var(--primary-background-color);
 }
 
 .tl {
-  min-width: 960px;
+  min-width: 0;
 }
 
 .tl-row {
   display: grid;
-  grid-template-columns: minmax(500px, 38%) 1fr;
+  grid-template-columns: minmax(300px, 36%) minmax(0, 1fr);
   border-top: 1px solid var(--layout-border-color);
 }
 
@@ -263,7 +313,7 @@
 
 .tl-left {
   display: grid;
-  grid-template-columns: 24px 32px minmax(0, 1fr) 88px 32px;
+  grid-template-columns: 32px minmax(0, 1fr) auto 32px;
   align-items: center;
   column-gap: 12px;
   padding: 0 14px 0 18px;
@@ -275,7 +325,11 @@
 }
 
 .tl-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   min-height: 70px;
+  background: var(--primary-background-color);
 }
 
 .tl-head-left {
@@ -289,15 +343,16 @@
 }
 
 .tl-head-left .tl-col-offer {
-  grid-column: 3;
+  grid-column: 1 / 3;
 }
 
 .tl-head-left .tl-col-status {
-  grid-column: 4;
+  grid-column: 3;
 }
 
 .tl-track {
   position: relative;
+  overflow: hidden;
   background-image: linear-gradient(to right, var(--layout-border-color) 1px, transparent 1px);
   background-size: calc(100% / 7) 100%;
 }

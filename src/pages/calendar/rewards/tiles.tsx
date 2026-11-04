@@ -1,8 +1,10 @@
 import { CircleAlert, Plus, Trash2, TriangleAlert } from 'lucide-react'
-import { Icon, IconButton } from '../../../design-system/components'
+import { Icon } from '../../../design-system/components'
+import { IconButton } from '@/components/IconButton'
 import {
   DAY7_BADGE_IMAGE,
   DAYS_PER_WEEK,
+  dayNumber,
   itemName,
   formatQuantity,
   daySummary,
@@ -26,7 +28,7 @@ export function RewardIcon({ item, size = 28 }: { item: RewardItem; size?: numbe
 const headline = (day: DayRewards) => day.find((i) => i.kind === 'chips') ?? orderedItems(day)[0]
 
 // A tile's artwork and text. Several rewards show as "Multiple" with overlapping icons.
-export function TileBody({ day, dayIndex }: { day: DayRewards; dayIndex: number }) {
+export function TileBody({ day, dayIndex, week }: { day: DayRewards; dayIndex: number; week: number }) {
   const items = orderedItems(day)
   const lead = headline(day)
   const multiple = items.length > 1
@@ -35,7 +37,7 @@ export function TileBody({ day, dayIndex }: { day: DayRewards; dayIndex: number 
   return (
     <>
       <span className="tile-label">
-        Day {dayIndex + 1}
+        Day {dayNumber(week, dayIndex)}
         {isDay7 && <img className="tile-crown" src={DAY7_BADGE_IMAGE} width={18} height={18} alt="Main reward" />}
       </span>
       <span className={`tile-art${multiple ? ' tile-art--multiple' : ''}`}>
@@ -66,12 +68,13 @@ type DayTileProps = {
 }
 
 export function DayTile({ week, day, rewards, inactive, canAddDay, issues, onOpen, onClear, onAddDay }: DayTileProps) {
-  const where = `Week ${week + 1}, Day ${day + 1}`
+  const num = dayNumber(week, day)
+  const where = `Week ${week + 1}, Day ${num}`
 
   if (inactive) {
     return (
       <div className="tile tile--inactive" title="After the end date">
-        <span className="tile-label">Day {day + 1}</span>
+        <span className="tile-label">Day {num}</span>
         {canAddDay && (
           <button type="button" className="tile-add-day" onClick={onAddDay} aria-label={`Add a day: extends the end date to include ${where}`}>
             <Plus size={14} /> Add day
@@ -85,7 +88,7 @@ export function DayTile({ week, day, rewards, inactive, canAddDay, issues, onOpe
     return (
       <div className="tile tile--empty">
         <button type="button" className="tile-main" onClick={onOpen} aria-label={`Add reward to ${where}`}>
-          <span className="tile-label">Day {day + 1}</span>
+          <span className="tile-label">Day {num}</span>
           <span className="tile-cta">+ Reward</span>
         </button>
       </div>
@@ -103,7 +106,7 @@ export function DayTile({ week, day, rewards, inactive, canAddDay, issues, onOpe
         aria-label={`${where}: ${daySummary(rewards)}. Edit reward`}
         title={daySummary(rewards)}
       >
-        <TileBody day={rewards} dayIndex={day} />
+        <TileBody day={rewards} dayIndex={day} week={week} />
       </button>
       {worst && (
         <span className="tile-flag" title={issues.map((i) => i.message).join('\n')}>
