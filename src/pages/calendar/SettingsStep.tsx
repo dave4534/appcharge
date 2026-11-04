@@ -251,7 +251,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
         )}
       </Card>
 
-      <PrioritySection items={priority} live={live} onChange={onPriorityChange} />
+      {priority.length > 1 && <PrioritySection items={priority} live={live} onChange={onPriorityChange} />}
 
       {missing.length > 0 && <p className="text-center text-sm text-muted-foreground">To continue, set: {missing.join(', ')}.</p>}
     </div>

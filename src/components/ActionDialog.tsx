@@ -27,6 +27,8 @@ type ActionDialogProps = {
   secondaryAction?: Action
   onClose: () => void
   className?: string
+  // Replaces the body's default scrolling, for a body that scrolls only part of itself.
+  bodyClassName?: string
 }
 
 const WIDTH = { sm: 'sm:max-w-md', md: 'sm:max-w-lg', lg: 'sm:max-w-4xl' }
@@ -42,6 +44,7 @@ export function ActionDialog({
   secondaryAction,
   onClose,
   className,
+  bodyClassName,
 }: ActionDialogProps) {
   return (
     <Dialog open onOpenChange={(open) => !open && onClose()}>
@@ -51,7 +54,7 @@ export function ActionDialog({
           {description ? <DialogDescription>{description}</DialogDescription> : <DialogDescription className="sr-only">{title}</DialogDescription>}
         </DialogHeader>
 
-        {children && <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">{children}</div>}
+        {children && <div className={cn('min-h-0 flex-1 overflow-y-auto overflow-x-hidden', bodyClassName)}>{children}</div>}
 
         <DialogFooter>
           {secondaryAction && (

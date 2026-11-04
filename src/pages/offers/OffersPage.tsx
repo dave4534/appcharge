@@ -106,8 +106,6 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
     return matches
   }, [order, offersById, query, sort, type, status, audience])
 
-  const noun = type === 'all' ? 'offers' : typeLabels[type][visible.length === 1 ? 'singular' : 'plural'].toLowerCase()
-
   // The very first view: there are no reward calendars at all, and nothing is filtered.
   const firstTime =
     visible.length === 0 &&
@@ -160,6 +158,7 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
         <NewOfferMenu onNewCalendar={onNew} />
       </header>
 
+      {!firstTime && (
       <div className="toolbar">
         <InputGroup className="toolbar-search">
           <InputGroupAddon>
@@ -184,19 +183,13 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
           </TabsList>
         </Tabs>
       </div>
-
-      <div className="section-line">
-        <h2>Popup offers</h2>
-      </div>
-      <p className="section-count">
-        {visible.length} {noun}
-      </p>
+      )}
 
       {firstTime ? (
         <Empty className="offers-empty border-solid border bg-muted">
           <EmptyHeader className="max-w-md">
-            <EmptyMedia>
-              <img src={chest} alt="" width={230} className="h-auto" />
+            <EmptyMedia style={{ marginBottom: 24 }}>
+              <img src={chest} alt="" width={210} className="h-auto" />
             </EmptyMedia>
             <EmptyTitle className="text-xl font-semibold">Give players a reason to come back</EmptyTitle>
             <EmptyDescription className="text-base text-foreground">

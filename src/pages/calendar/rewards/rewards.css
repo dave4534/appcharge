@@ -632,8 +632,22 @@
 /* Reward picker */
 
 .picker {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-12);
+  flex: 1;
+  min-height: 0;
+}
+
+/* Only the rows scroll. The suggestion, search, count and checks stay in place above them. */
+.picker-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.picker-scroll [data-slot='table-container'] {
+  overflow: visible;
 }
 
 .picker-filters {

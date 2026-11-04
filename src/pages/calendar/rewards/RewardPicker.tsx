@@ -145,9 +145,9 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
   return (
     <ActionDialog
       size="lg"
-      className="min-h-[60vh]"
+      className="h-[80vh]"
+      bodyClassName="flex flex-col overflow-hidden"
       title={`Select reward for Day ${dayNumber(week, day)}`}
-      description={`Week ${week + 1}. Amounts are illustrative.`}
       onClose={onClose}
       secondaryAction={{ label: 'Cancel', onClick: onClose }}
       primaryAction={{
@@ -163,7 +163,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
             <AlertTitle className="line-clamp-none">
               Suggested for Day {dayNumber(week, day)}: {daySummary(suggestion.items)}
             </AlertTitle>
-            <AlertDescription>{suggestion.basis}</AlertDescription>
+            <AlertDescription>Based on performance data</AlertDescription>
             <AlertAction>
               <Button variant="outline" size="sm" onClick={reject}>
                 Reject
@@ -195,6 +195,31 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
           />
         </div>
 
+
+        <p className="picker-selected">{items.length} selected</p>
+        {invalid && (
+          <p className="text-sm text-destructive">
+            {PRODUCTS.find((p) => p.sku === invalid)?.kind === 'chips'
+              ? 'Enter chips like 1.5B, 500M or 1,500,000,000.'
+              : 'Enter a whole number.'}
+          </p>
+        )}
+
+        {issues.length > 0 && (
+          <ul className="picker-issues" aria-label="Checks for this day">
+            {issues.map((i) => (
+              <li key={i.id} className={`issue issue--${i.severity}`}>
+                {i.severity === 'error' ? <CircleAlert className="size-4 text-destructive" /> : <TriangleAlert className="size-4" style={{ color: 'var(--content-color-working-orange-hover)' }} />}
+                <span>
+                  {i.message}
+                  {i.severity === 'error' && ' This blocks saving.'}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+
+        <div className="picker-scroll">
         <Table className="picker-table table-fixed">
           <TableHeader>
             <TableRow>
@@ -275,30 +300,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
         </Table>
 
         {rows.length === 0 && <p className="picker-empty">Nothing matches. Clear the search or the category.</p>}
-
-        {invalid && (
-          <p className="text-sm text-destructive">
-            {PRODUCTS.find((p) => p.sku === invalid)?.kind === 'chips'
-              ? 'Enter chips like 1.5B, 500M or 1,500,000,000.'
-              : 'Enter a whole number.'}
-          </p>
-        )}
-
-        {issues.length > 0 && (
-          <ul className="picker-issues" aria-label="Checks for this day">
-            {issues.map((i) => (
-              <li key={i.id} className={`issue issue--${i.severity}`}>
-                {i.severity === 'error' ? <CircleAlert className="size-4 text-destructive" /> : <TriangleAlert className="size-4" style={{ color: 'var(--content-color-working-orange-hover)' }} />}
-                <span>
-                  {i.message}
-                  {i.severity === 'error' && ' This blocks saving.'}
-                </span>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        <p className="picker-selected">{items.length} selected</p>
+        </div>
       </div>
     </ActionDialog>
   )
