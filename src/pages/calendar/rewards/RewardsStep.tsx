@@ -43,6 +43,8 @@ type RewardsStepProps = {
   onEditSettings: () => void
   // A live calendar has players on it, so edits reach them.
   live: boolean
+  // Empty days and the summary banner only appear once the user has tried to publish.
+  showIssues: boolean
 }
 
 // The preview pane can be dragged wider or narrower.
@@ -68,6 +70,7 @@ export function RewardsStep({
   onLayoutChange,
   onEditSettings,
   live,
+  showIssues,
 }: RewardsStepProps) {
   const weekCount = weekCountFor(days)
   const weeks = useMemo(() => ensureWeeks(plan, weekCount).slice(0, weekCount), [plan, weekCount])
@@ -81,7 +84,7 @@ export function RewardsStep({
   const issues = useMemo(() => validatePlan(weeks, days), [weeks, days])
   const readiness = readinessOf(settings, weeks, days)
   // The problems the summary banner names, most serious first.
-  const problems = [
+  const problems = !showIssues ? [] : [
     readiness.emptyDays > 0 && `${readiness.emptyDays} ${readiness.emptyDays === 1 ? 'day has' : 'days have'} no reward.`,
     readiness.emptyWeeks > 0 && `${readiness.emptyWeeks} ${readiness.emptyWeeks === 1 ? 'week is' : 'weeks are'} empty.`,
     readiness.unusualDays > 0 && `${readiness.unusualDays} ${readiness.unusualDays === 1 ? 'day has' : 'days have'} unusual values.`,
@@ -223,6 +226,7 @@ export function RewardsStep({
               canDuplicate={!atMaxWeeks}
               canDelete={weekCount > 1}
               players={live ? LIVE_PLAYERS[i] : undefined}
+              flagMissing={showIssues}
               onOpenDay={(d) => setPicker({ week: i, day: d })}
               onClearDay={(d) => askClearDay(i, d)}
               onAddDay={() => apply(addDay(weeks, days))}

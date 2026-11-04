@@ -3,6 +3,7 @@ import { ArrowLeft, Monitor, Smartphone } from 'lucide-react'
 import { Button, Icon, IconButton } from '../../design-system/components'
 import { ToastAlert } from '@/components/ToastAlert'
 import { ReadinessPopover } from '@/components/ReadinessPopover'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import {
   Stepper,
   StepperItem,
@@ -68,6 +69,11 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   const [past, setPast] = useState<Snap[]>([])
   const [future, setFuture] = useState<Snap[]>([])
   const [readinessOpen, setReadinessOpen] = useState(false)
+  // Problems are only called out once the user has tried to publish.
+  const [attempted, setAttempted] = useState(false)
+  // A scheduled or live calendar with complete Settings is already set up, so its two
+  // sections are tabs rather than steps. Decided when it opens, so editing never swaps them.
+  const [tabbed] = useState(() => !!offer && offer.status !== 'draft' && validate(settingsOf(offer)).valid)
   // A calendar opened without history starts at version 1, as it looked when opened.
   const [versions, setVersions] = useState<Version[]>(() =>
     offer?.versions ?? (offer ? [{ n: 1, savedAt: Date.now(), by: 'Dave', settings: settingsOf(offer), rewards: offer.rewards ?? [] }] : []),
@@ -193,7 +199,10 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   // Publishing is never blocked by open items, but below 100% the readiness checklist
   // opens first so the risk is clear. "Publish anyway" in it carries on.
   const attempt = (go: () => void) => {
-    if (readiness.percent < 100) setReadinessOpen(true)
+    if (readiness.percent < 100) {
+      setAttempted(true)
+      setReadinessOpen(true)
+    }
     else go()
   }
 
@@ -222,25 +231,41 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
           <StatusPill status={status} />
         </div>
 
-        <Stepper
-          steps={EDITOR_STEPS}
-          defaultValue={EDITOR_STEPS[step].id}
-          value={EDITOR_STEPS[step].id}
-          onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)}
-          className="editor-steps"
-        >
-          <StepperNav className="flex items-center gap-2">
-            {EDITOR_STEPS.map((s, i) => (
-              <StepperItem key={s.id} stepId={s.id} disabled={i === 1 && !valid}>
-                <StepperTrigger>
-                  <StepperIndicator>{i + 1}</StepperIndicator>
-                  <StepperTitle>{s.title}</StepperTitle>
-                </StepperTrigger>
-                {i === 0 && <StepperSeparator className="w-8 flex-none" />}
-              </StepperItem>
-            ))}
-          </StepperNav>
-        </Stepper>
+        {tabbed ? (
+          <Tabs
+            value={EDITOR_STEPS[step].id}
+            onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)}
+            className="editor-steps"
+          >
+            <TabsList variant="line" className="h-10 rounded-none border-b p-0">
+              {EDITOR_STEPS.map((s) => (
+                <TabsTrigger key={s.id} value={s.id} className="border-0 px-5 text-base group-data-horizontal/tabs:after:-bottom-[0.5px]">
+                  {s.title}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        ) : (
+          <Stepper
+            steps={EDITOR_STEPS}
+            defaultValue={EDITOR_STEPS[step].id}
+            value={EDITOR_STEPS[step].id}
+            onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)}
+            className="editor-steps"
+          >
+            <StepperNav className="flex items-center gap-2">
+              {EDITOR_STEPS.map((s, i) => (
+                <StepperItem key={s.id} stepId={s.id} disabled={i === 1 && !valid}>
+                  <StepperTrigger>
+                    <StepperIndicator>{i + 1}</StepperIndicator>
+                    <StepperTitle>{s.title}</StepperTitle>
+                  </StepperTrigger>
+                  {i === 0 && <StepperSeparator className="w-8 flex-none" />}
+                </StepperItem>
+              ))}
+            </StepperNav>
+          </Stepper>
+        )}
 
         <div className="editor-actions">
           <VersionHistory versions={versions} saving={snapshot !== savedAs} onRestore={restoreVersion} />
@@ -264,6 +289,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
             </Button>
           )}
           {step === 0 ? (
+            !tabbed && (
             <Button
               kind="Primary"
               size="Large"
@@ -273,6 +299,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
             >
               Next
             </Button>
+            )
           ) : (
             isDraft && (
               <Button kind="Primary" size="Large" onClick={() => attempt(publish)}>
@@ -308,6 +335,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
             onLayoutChange={onLayoutChange}
             onEditSettings={() => setStep(0)}
             live={status === 'live'}
+            showIssues={attempted}
           />
         )}
       </div>
