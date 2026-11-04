@@ -21,10 +21,15 @@ type Editing = { offerId: string | null; scene?: EditorScene; nonce?: number } |
 
 export default function App() {
   const [activeId, setActiveId] = useState('reward-calendars')
-  // ?empty shows the app as a first-time visitor sees it, with no offers, and never saves over
-  // the offers kept in this browser.
+  // A first visit starts with no offers, so the empty state is the first thing seen. Browsers
+  // that already saved offers get them back. ?demo starts from the sample calendars instead,
+  // and ?empty shows the empty state without saving over what this browser holds.
   const [preview] = useState(() => new URLSearchParams(window.location.search).has('empty'))
-  const [offers, setOffers] = useState<Offer[]>(() => (preview ? [] : loadOffers(initialOffers)))
+  const [offers, setOffers] = useState<Offer[]>(() => {
+    if (preview) return []
+    if (new URLSearchParams(window.location.search).has('demo')) return initialOffers
+    return loadOffers([])
+  })
   const [editing, setEditing] = useState<Editing>(null)
   const [notice, setNotice] = useState<{ message: string; description?: string } | null>(null)
   const [mcpOpen, setMcpOpen] = useState(false)
@@ -68,7 +73,13 @@ export default function App() {
   // Opens a place the walkthrough points at: the right calendar, with the right thing showing.
   const showPlace = (id: PlaceId) => {
     const { offerId, scene } = placeTargets[id]
-    const target = offers.find((o) => o.id === offerId)
+    let target = offers.find((o) => o.id === offerId)
+    // The tour points at the sample calendars, so bring them in when they are not there yet.
+    const sample = initialOffers.find((o) => o.id === offerId)
+    if (!target && sample) {
+      setOffers((all) => [...all, ...initialOffers.filter((o) => !all.some((x) => x.id === o.id))])
+      target = sample
+    }
     if (id === 'history' && target && (target.versions?.length ?? 0) < 3) {
       saveOffer({ ...target, versions: demoVersions(target) })
     }

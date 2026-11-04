@@ -3,7 +3,7 @@ import type { Offer } from '../pages/offers/data'
 // Offers (including every draft) are saved in the browser so nothing is lost if the
 // page closes. Bump VERSION when the saved shape changes and old data should be dropped.
 const KEY = 'appcharge-prototype:offers'
-const VERSION = 5
+const VERSION = 6
 
 export function loadOffers(fallback: Offer[]): Offer[] {
   try {
