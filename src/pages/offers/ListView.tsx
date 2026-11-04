@@ -1,3 +1,4 @@
+import { useLayoutEffect, useRef } from 'react'
 import { Repeat } from 'lucide-react'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { formatDay } from './dates'
@@ -14,8 +15,23 @@ type ListViewProps = {
 }
 
 export function ListView({ offers, priorityOf, onOpen, onDelete, allOffers }: ListViewProps) {
+  const rows = useRef<HTMLUListElement>(null)
+  const list = useRef<HTMLDivElement>(null)
+
+  // The rows scroll on their own. Measure the scrollbar so the cards can give up that much
+  // padding and still line up with the rest of the page.
+  useLayoutEffect(() => {
+    const el = rows.current
+    if (!el) return
+    const measure = () => list.current?.style.setProperty('--scrollbar', `${el.offsetWidth - el.clientWidth}px`)
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [offers.length])
+
   return (
-    <div className="list">
+    <div className="list" ref={list}>
       <div className="list-grid list-head" aria-hidden="true">
         <span className="col-audience">Audience</span>
         <span className="col-dates">Start and end</span>
@@ -23,7 +39,7 @@ export function ListView({ offers, priorityOf, onOpen, onDelete, allOffers }: Li
         <span className="col-status">Status</span>
       </div>
 
-      <ul className="list-rows">
+      <ul className="list-rows" ref={rows}>
         {offers.map((offer) => (
           <li
             key={offer.id}

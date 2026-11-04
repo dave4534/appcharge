@@ -46,7 +46,7 @@ export function WeekRow({
           label={`Week ${index + 1} actions`}
           items={[
             { id: 'duplicate', label: 'Duplicate week', icon: Copy, disabled: !canDuplicate },
-            { id: 'clear', label: 'Clear week', icon: Eraser, destructive: true },
+            { id: 'clear', label: 'Clear week', icon: Eraser },
             { id: 'delete', label: 'Delete week', icon: Trash2, disabled: !canDelete, destructive: true },
           ]}
           onSelect={(id) => onMenu(id as 'duplicate' | 'clear' | 'delete')}

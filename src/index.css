@@ -85,13 +85,15 @@ body {
   flex-direction: column;
   min-width: 0;
   min-height: 0;
-  /* The top bar and the page share one scroll area, so a scrollbar never leaves them
-     with different right edges. */
-  overflow-y: auto;
+  /* The page itself never scrolls: on the offers page only the rows do. */
+  overflow: hidden;
 }
 
 .content {
-  flex: none;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
   padding: 0 var(--space-32) var(--space-32);
 }
 
@@ -217,10 +219,6 @@ body {
 /* Top bar */
 
 .topbar {
-  position: sticky;
-  top: 0;
-  z-index: 5;
-  background: var(--primary-background-color);
   display: flex;
   align-items: center;
   justify-content: space-between;

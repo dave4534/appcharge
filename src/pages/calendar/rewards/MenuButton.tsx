@@ -13,7 +13,7 @@ export function MenuButton({ label, items, onSelect }: MenuButtonProps) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        render={<IconButton kind="Tertiary" size="Small" aria-label={label} iconElement={<Ellipsis className="size-4" />} />}
+        render={<IconButton kind="Tertiary" size="Small" className="ml-auto" aria-label={label} iconElement={<Ellipsis className="size-4" />} />}
       />
       <DropdownMenuContent align="end" className="w-44" aria-label={label}>
         {items.map(({ id, label, icon: ItemIcon, disabled, destructive }) => (

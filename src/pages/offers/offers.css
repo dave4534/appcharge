@@ -1,7 +1,22 @@
 /* Offers page. Controls come from the design system; this file only lays them out. */
 
 .offers {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
   padding-top: var(--space-4);
+}
+
+/* Everything above the rows stays put. */
+.offers > * {
+  flex: none;
+}
+
+.offers > .list,
+.offers > .tl-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
 }
 
 .offers-head {
@@ -227,13 +242,24 @@
   text-transform: uppercase;
 }
 
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
 .list-rows {
-  --drop-offset: -7px;
   display: grid;
+  flex: 1;
+  align-content: start;
   gap: 10px;
-  margin: 0;
-  padding: 0;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
   list-style: none;
+  /* The scrollbar sits at the window edge, and the padding takes its width off, so the
+     cards end where the rest of the page ends. */
+  margin: 0 calc(var(--space-32) * -1) 0 0;
+  padding: 2px calc(var(--space-32) - var(--scrollbar, 0px)) var(--space-8) 0;
 }
 
 .list-row {
@@ -258,7 +284,8 @@
 /* Timeline view */
 
 .tl-scroll {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   border: 1px solid var(--layout-border-color);
   border-radius: 12px;
   background: var(--primary-background-color);
@@ -292,7 +319,11 @@
 }
 
 .tl-head {
+  position: sticky;
+  top: 0;
+  z-index: 4;
   min-height: 70px;
+  background: var(--primary-background-color);
 }
 
 .tl-head-left {

@@ -1,4 +1,4 @@
-import { GripVertical, InfoIcon, TriangleAlertIcon } from 'lucide-react'
+import { GripVertical, TriangleAlertIcon } from 'lucide-react'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -53,14 +53,10 @@ export function PrioritySection({ items, live, onChange }: PrioritySectionProps)
 
   return (
     <Card title="Priority" hint="Which calendar players see first when they qualify for more than one.">
-      <Alert>
-        <InfoIcon />
-        <AlertTitle>How priority works</AlertTitle>
-        <AlertDescription>
-          A player sees one calendar at a time. If they qualify for several, the one highest in this list shows first, and the
-          ones below it wait until it ends or the player has collected. Drag a calendar to change its place.
-        </AlertDescription>
-      </Alert>
+      <p className="text-sm text-muted-foreground">
+        A player sees one calendar at a time. If they qualify for several, the one highest in this list shows first, and the ones
+        below it wait until it ends or the player has collected. Drag a calendar to change its place.
+      </p>
 
       <ol className="grid gap-2" aria-label="Calendar priority, highest first">
         {items.map((item, index) => (
