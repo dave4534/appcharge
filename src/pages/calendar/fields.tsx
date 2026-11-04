@@ -131,16 +131,18 @@ type RadioSectionProps<T extends string> = {
   hideLegend?: boolean
   // A plain-language example of what the selected option does.
   impact?: string | null
+  // Shown when the choice was required and is still empty.
+  error?: string
 }
 
-export function RadioSection<T extends string>({ legend, value, options, onChange, inline, hideLegend, impact }: RadioSectionProps<T>) {
+export function RadioSection<T extends string>({ legend, value, options, onChange, inline, hideLegend, impact, error }: RadioSectionProps<T>) {
   const name = legend.replace(/\W+/g, '-').toLowerCase()
   return (
     <FieldSet>
       <FieldLegend variant="label" className={hideLegend ? 'sr-only' : undefined}>
         {legend}
       </FieldLegend>
-      <RadioGroup value={value ?? ''} onValueChange={(v) => onChange(v as T)} className={inline ? 'flex flex-wrap gap-6' : undefined} aria-label={legend}>
+      <RadioGroup value={value ?? ''} onValueChange={(v) => onChange(v as T)} className={inline ? 'flex flex-wrap gap-6' : undefined} aria-label={legend} aria-invalid={!!error || undefined}>
         {options.map((o) => (
           <Field key={o.value} orientation="horizontal" className="w-auto">
             <RadioGroupItem id={`${name}-${o.value}`} value={o.value} />
@@ -150,6 +152,7 @@ export function RadioSection<T extends string>({ legend, value, options, onChang
           </Field>
         ))}
       </RadioGroup>
+      {error && <FieldError>{error}</FieldError>}
       {impact && (
         <Alert>
           <InfoIcon />

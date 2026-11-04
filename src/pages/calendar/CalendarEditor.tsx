@@ -93,6 +93,8 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
   const [rank, setRank] = useState<number | null>(null)
   // Problems are only called out once the user has tried to publish.
   const [attempted, setAttempted] = useState(false)
+  // Set when Next is clicked while Settings is incomplete, which shows every problem at once.
+  const [triedNext, setTriedNext] = useState(0)
   // A scheduled or live calendar with complete Settings is already set up, so its two
   // sections are tabs rather than steps. Decided when it opens, so editing never swaps them.
   const [tabbed] = useState(() => !!offer && offer.status !== 'draft' && validate(settingsOf(offer)).valid)
@@ -122,6 +124,22 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
     const t = setTimeout(() => document.getElementById(scene.scrollTo!)?.scrollIntoView({ block: 'center' }), 250)
     return () => clearTimeout(t)
   }, [scene])
+
+  // Continuing is always possible. If Settings is incomplete, this shows what is missing
+  // instead of leaving a disabled button that gives no reason.
+  const goToRewards = () => {
+    if (valid) return setStep(1)
+    setTriedNext((n) => n + 1)
+  }
+  useEffect(() => {
+    if (triedNext === 0) return
+    // Wait for the errors to render, then bring the first one into view.
+    const t = setTimeout(() => {
+      const first = document.querySelector<HTMLElement>('.editor-body [aria-invalid="true"]')
+      first?.scrollIntoView({ block: 'center', behavior: 'smooth' })
+    }, 50)
+    return () => clearTimeout(t)
+  }, [triedNext])
 
   const update = (patch: Partial<CalendarSettings>) => setSettings((s) => ({ ...s, ...patch }))
 
@@ -335,12 +353,12 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
             steps={EDITOR_STEPS}
             defaultValue={EDITOR_STEPS[step].id}
             value={EDITOR_STEPS[step].id}
-            onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)}
+            onValueChange={(id) => (id === 'rewards' ? goToRewards() : setStep(0))}
             className="editor-steps"
           >
             <StepperNav className="flex items-center gap-2">
               {EDITOR_STEPS.map((s, i) => (
-                <StepperItem key={s.id} stepId={s.id} disabled={i === 1 && !valid}>
+                <StepperItem key={s.id} stepId={s.id}>
                   <StepperTrigger>
                     <StepperIndicator>{i + 1}</StepperIndicator>
                     <StepperTitle>{s.title}</StepperTitle>
@@ -396,12 +414,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
           )}
           {step === 0 ? (
             !tabbed && (
-            <Button
-              size="lg"
-              disabled={!valid}
-              title={valid ? undefined : `Still needed: ${missing.join(', ')}`}
-              onClick={() => setStep(1)}
-            >
+            <Button size="lg" onClick={goToRewards}>
               Next
             </Button>
             )
@@ -430,7 +443,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
 
       <div className={`editor-body${step === 1 ? ' editor-body--rewards' : ''}`}>
         {step === 0 ? (
-          <SettingsStep settings={settings} errors={errors} missing={missing} overlaps={overlapsOf(settings, { offers, selfId: offerId })} priority={priority} live={started} onPriorityChange={movePriority} onChange={update} />
+          <SettingsStep settings={settings} errors={errors} missing={missing} overlaps={overlapsOf(settings, { offers, selfId: offerId })} priority={priority} live={started} showAll={triedNext > 0} onPriorityChange={movePriority} onChange={update} />
         ) : (
           <RewardsStep
             settings={settings}

@@ -64,7 +64,18 @@ export function audienceOf(s: CalendarSettings): { audience: string; audienceSiz
   return { audience: 'Not set' }
 }
 
-export type Field = 'name' | 'startDate' | 'startTime' | 'endDate' | 'endTime' | 'segments'
+export type Field =
+  | 'name'
+  | 'startDate'
+  | 'startTime'
+  | 'endDate'
+  | 'endTime'
+  | 'segments'
+  | 'missedDay'
+  | 'afterLast'
+  | 'popupTrigger'
+  | 'collection'
+  | 'audienceMode'
 export type FieldError = { message: string; required: boolean }
 
 const TIME = /^([01]\d|2[0-3]):[0-5]\d$/
@@ -105,12 +116,28 @@ export function validate(s: CalendarSettings, today?: string) {
     missing.push('valid dates and times')
   }
 
-  if (!s.missedDay) missing.push('what happens when a player misses a day')
-  if (!s.afterLast) missing.push('what happens after the last week')
-  if (!s.popupTrigger) missing.push('the popup trigger')
-  if (!s.collection) missing.push('how players collect')
-  if (!s.audienceMode) missing.push('an audience')
-  else if (s.audienceMode === 'segments' && s.segments.length === 0) {
+  // Choices start empty on purpose, so each one is a decision. They are only called out once
+  // the user tries to continue.
+  if (!s.missedDay) {
+    errors.missedDay = { message: 'Choose what happens when a player misses a day.', required: true }
+    missing.push('what happens when a player misses a day')
+  }
+  if (!s.afterLast) {
+    errors.afterLast = { message: 'Choose what happens after the last week.', required: true }
+    missing.push('what happens after the last week')
+  }
+  if (!s.popupTrigger) {
+    errors.popupTrigger = { message: 'Choose when the popup appears.', required: true }
+    missing.push('the popup trigger')
+  }
+  if (!s.collection) {
+    errors.collection = { message: 'Choose how players collect.', required: true }
+    missing.push('how players collect')
+  }
+  if (!s.audienceMode) {
+    errors.audienceMode = { message: 'Choose who sees this calendar.', required: true }
+    missing.push('an audience')
+  } else if (s.audienceMode === 'segments' && s.segments.length === 0) {
     errors.segments = { message: 'Pick at least one segment.', required: true }
     missing.push('at least one segment')
   }

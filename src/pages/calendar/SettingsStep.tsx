@@ -27,13 +27,15 @@ type SettingsStepProps = {
   // Every reward calendar in priority order, with this one marked.
   priority: PriorityItem[]
   live: boolean
+  // Set once the user has tried to continue: every problem shows, even in fields not visited yet.
+  showAll?: boolean
   onPriorityChange: (ids: string[]) => void
   onChange: (patch: Partial<CalendarSettings>) => void
 }
 
 const W = EXAMPLE_WEEKS
 
-export function SettingsStep({ settings: s, errors, missing, overlaps, priority, live, onPriorityChange, onChange }: SettingsStepProps) {
+export function SettingsStep({ settings: s, errors, missing, overlaps, priority, live, showAll, onPriorityChange, onChange }: SettingsStepProps) {
   // Required-field errors wait until the field has been visited; wrong values show at once.
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [changingZone, setChangingZone] = useState(false)
@@ -46,7 +48,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
   const touch = (f: Field) => setTouched((t) => ({ ...t, [f]: true }))
   const errorFor = (f: Field) => {
     const e = errors[f]
-    return e && (!e.required || touched[f]) ? e : undefined
+    return e && (!e.required || touched[f] || showAll) ? e : undefined
   }
 
   const zone = timezoneOptions.find((z) => z.value === s.timezone)
@@ -159,6 +161,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
       <Card title="Rules" hint="What happens when a player misses a day or finishes the calendar.">
         <RadioSection
           legend="When a player misses a day"
+          error={errorFor('missedDay')?.message}
           value={s.missedDay}
           onChange={(missedDay) => onChange({ missedDay })}
           options={[
@@ -175,6 +178,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
         />
         <RadioSection
           legend="After the last week"
+          error={errorFor('afterLast')?.message}
           value={s.afterLast}
           onChange={(afterLast) => onChange({ afterLast })}
           options={[
@@ -194,6 +198,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
       <Card title="Popup and collection" hint="When players see the popup and whether they must collect.">
         <RadioSection
           legend="Popup trigger"
+          error={errorFor('popupTrigger')?.message}
           value={s.popupTrigger}
           onChange={(popupTrigger) => onChange({ popupTrigger })}
           options={[
@@ -203,6 +208,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
         />
         <RadioSection
           legend="Collection"
+          error={errorFor('collection')?.message}
           value={s.collection}
           onChange={(collection) => onChange({ collection })}
           options={[
@@ -215,6 +221,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
       <Card id="settings-audience" title="Audience" hint="Who sees this calendar.">
         <RadioSection
           legend="Audience"
+          error={errorFor('audienceMode')?.message}
           inline
           hideLegend
           value={s.audienceMode}

@@ -1,7 +1,8 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react'
-import { X } from 'lucide-react'
+import { ArrowUpRight, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { walkthroughSteps } from './steps'
+import { walkthroughSteps, type WalkthroughBlock } from './steps'
+import { Lightbox } from './Lightbox'
 import type { PlaceId } from './places'
 import './walkthrough.css'
 
@@ -46,7 +47,8 @@ const timeOfDay = () => {
 }
 
 // Plain text with [label](url) links; {timeOfDay} becomes morning, afternoon or evening.
-function RichText({ text }: { text: string }) {
+// A link starting with image: opens that image in the lightbox instead of leaving the page.
+function RichText({ text, onImage }: { text: string; onImage: (src: string) => void }) {
   const parts: Array<string | { label: string; href: string }> = []
   const pattern = /\[([^\]]+)\]\(([^)\s]+)\)/g
   const source = text.replace('{timeOfDay}', timeOfDay())
@@ -58,13 +60,57 @@ function RichText({ text }: { text: string }) {
   parts.push(source.slice(last))
   return (
     <>
-      {parts.map((p, i) =>
-        typeof p === 'string' ? (
-          <Fragment key={i}>{p}</Fragment>
-        ) : (
+      {parts.map((p, i) => {
+        if (typeof p === 'string') return <Fragment key={i}>{p}</Fragment>
+        if (p.href.startsWith('image:')) {
+          return (
+            <button key={i} type="button" className="walkthrough-link" onClick={() => onImage(p.href.slice('image:'.length))}>
+              {p.label}
+            </button>
+          )
+        }
+        return (
           <a key={i} href={p.href} target="_blank" rel="noreferrer">
             {p.label}
           </a>
+        )
+      })}
+    </>
+  )
+}
+
+// Paragraphs stay paragraphs; neighbouring bullets share one list, each with its 16px icon.
+function Blocks({ blocks, onImage }: { blocks: WalkthroughBlock[]; onImage: (src: string) => void }) {
+  const groups: Array<{ list: boolean; items: WalkthroughBlock[] }> = []
+  for (const b of blocks) {
+    const list = typeof b !== 'string'
+    const tail = groups[groups.length - 1]
+    if (tail && tail.list === list && list) tail.items.push(b)
+    else groups.push({ list, items: [b] })
+  }
+  return (
+    <>
+      {groups.map((g, gi) =>
+        g.list ? (
+          <ul className="walkthrough-list" key={gi}>
+            {g.items.map((b) => {
+              const { icon: Icon, text } = b as Exclude<WalkthroughBlock, string>
+              return (
+                <li key={text}>
+                  <Icon className="walkthrough-bullet" size={16} aria-hidden="true" />
+                  <span>
+                    <RichText text={text} onImage={onImage} />
+                  </span>
+                </li>
+              )
+            })}
+          </ul>
+        ) : (
+          g.items.map((b) => (
+            <p key={b as string}>
+              <RichText text={b as string} onImage={onImage} />
+            </p>
+          ))
         ),
       )}
     </>
@@ -82,8 +128,8 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   const [step, setStep] = useState(initial.step)
   // Where the circle was dragged to. Null until then, so it keeps its default spot.
   const [pos, setPos] = useState<Point | null>(() => (initial.pos ? clampToWindow(initial.pos) : null))
-  // The place the reviewer last opened from this step, so its note can show.
-  const [place, setPlace] = useState<PlaceId | null>(null)
+  // The image open in the lightbox, if any.
+  const [image, setImage] = useState<string | null>(null)
   // First visit: open once on the first step. After that the guide stays closed.
   const [open, setOpen] = useState(!initial.seen)
   // Which side of the circle the card sits on, and how tall it may be there.
@@ -139,7 +185,6 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   const last = walkthroughSteps.length - 1
   const goTo = useCallback(
     (i: number) => {
-      setPlace(null)
       setStep(Math.min(Math.max(i, 0), last))
     },
     [last],
@@ -188,7 +233,6 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   }
 
   const current = walkthroughSteps[step]
-  const activePlace = current.places?.find((p) => p.id === place)
 
   return (
     <div
@@ -225,14 +269,11 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
             </Button>
           </div>
 
+          <h2 className="walkthrough-title">{current.title}</h2>
+
           <div className="walkthrough-scroll" aria-live="polite">
-            <h2 className="walkthrough-title">{current.title}</h2>
             <div className="walkthrough-body">
-              {current.body.map((p) => (
-                <p key={p}>
-                  <RichText text={p} />
-                </p>
-              ))}
+              <Blocks blocks={current.body} onImage={setImage} />
             </div>
 
             {current.places && onShowPlace && (
@@ -243,19 +284,15 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
                     <Button
                       key={p.id}
                       type="button"
-                      variant={p.id === place ? 'default' : 'outline'}
+                      variant="outline"
                       className="rounded-full px-3 text-[15px]"
-                      aria-pressed={p.id === place}
-                      onClick={() => {
-                        setPlace(p.id)
-                        onShowPlace(p.id)
-                      }}
+                      onClick={() => onShowPlace(p.id)}
                     >
                       {p.label}
+                      <ArrowUpRight data-icon="inline-end" aria-hidden="true" />
                     </Button>
                   ))}
                 </div>
-                {activePlace?.note && <p className="walkthrough-place-note">{activePlace.note}</p>}
               </div>
             )}
           </div>
@@ -264,12 +301,14 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
             <Button variant="ghost" size="lg" className="text-[15px]" disabled={step === 0} onClick={() => goTo(step - 1)}>
               Back
             </Button>
-            <Button size="lg" className="text-[15px]" onClick={() => (step === last ? close() : goTo(step + 1))}>
-              {step === last ? 'Done' : 'Next'}
+            <Button size="lg" className="text-[15px]" onClick={() => goTo(step === last ? 0 : step + 1)}>
+              {step === last ? 'Start over' : 'Next'}
             </Button>
           </div>
         </div>
       )}
+
+      {image && <Lightbox src={image} onClose={() => setImage(null)} />}
 
       <div className="walkthrough-anchor">
         <button
