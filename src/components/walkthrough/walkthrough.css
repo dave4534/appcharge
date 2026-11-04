@@ -84,19 +84,20 @@
   flex: 1;
 }
 
-/* Each step is a dashed line: gray by default, blue when it is the current one. */
+/* One solid line per step: gray by default, blue when it is the current one.
+   The button is taller than the line so it is easy to click. */
 .walkthrough-dash {
   display: block;
   width: 100%;
   height: 12px;
   padding: 0;
   border: 0;
-  background: linear-gradient(to right, var(--walkthrough-gray) 0 60%, transparent 60% 100%) center / 8px 3px repeat-x;
+  background: linear-gradient(var(--walkthrough-gray), var(--walkthrough-gray)) center / 100% 3px no-repeat;
   cursor: pointer;
 }
 
 .walkthrough-dash[data-active='true'] {
-  background-image: linear-gradient(to right, var(--walkthrough-blue) 0 60%, transparent 60% 100%);
+  background-image: linear-gradient(var(--walkthrough-blue), var(--walkthrough-blue));
 }
 
 .walkthrough-dash:focus-visible {
