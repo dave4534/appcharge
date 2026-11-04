@@ -8,7 +8,7 @@ import { Search } from 'lucide-react'
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty'
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group'
 import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { SelectCombobox } from '@/components/SelectCombobox'
 import { NewOfferMenu } from './NewOfferMenu'
 import { ListView } from './ListView'
@@ -167,19 +167,12 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
         <ToolbarSelect label="Status" width={104} value={status} options={statusOptions} onChange={(v) => setStatus(v as StatusFilter)} />
         <ToolbarSelect label="Audience" width={138} value={audience} options={audienceOptions} onChange={setAudience} />
 
-        <ButtonGroup className="view-toggle" aria-label="View">
-          {(['list', 'timeline'] as const).map((v) => (
-            <Button
-              key={v}
-              variant={view === v ? 'secondary' : 'outline'}
-              size="lg"
-              aria-pressed={view === v}
-              onClick={() => setView(v)}
-            >
-              {v === 'list' ? 'List' : 'Timeline'}
-            </Button>
-          ))}
-        </ButtonGroup>
+        <Tabs className="view-toggle" value={view} onValueChange={(v) => setView(v as View)}>
+          <TabsList aria-label="View">
+            <TabsTrigger value="list">List</TabsTrigger>
+            <TabsTrigger value="timeline">Timeline</TabsTrigger>
+          </TabsList>
+        </Tabs>
       </div>
 
       <div className="section-line">

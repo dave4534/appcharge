@@ -37,6 +37,8 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
   // Required-field errors wait until the field has been visited; wrong values show at once.
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [changingZone, setChangingZone] = useState(false)
+  // Choosing a start date opens the end date picker next.
+  const [endOpen, setEndOpen] = useState(false)
   // Closing the overlap notice hides it until the overlap itself changes.
   const [dismissed, setDismissed] = useState('')
   const overlapKey = overlaps.map((o) => `${o.id}:${s.startDate}:${s.endDate}`).join('|')
@@ -76,7 +78,10 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
             value={s.startDate}
             error={errorFor('startDate')}
             minDate={live ? undefined : TODAY}
-            onChange={(startDate) => onChange({ startDate })}
+            onChange={(startDate) => {
+              onChange({ startDate })
+              setTimeout(() => setEndOpen(true), 80)
+            }}
             onBlur={() => touch('startDate')}
           />
           <TimeField
@@ -91,6 +96,8 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
             value={s.endDate}
             error={errorFor('endDate')}
             minDate={s.startDate && s.startDate > TODAY ? s.startDate : TODAY}
+            open={endOpen}
+            onOpenChange={setEndOpen}
             onChange={(endDate) => onChange({ endDate })}
             onBlur={() => touch('endDate')}
           />

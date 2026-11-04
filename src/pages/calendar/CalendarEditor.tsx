@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Monitor, Pause, Play, Smartphone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { ButtonGroup } from '@/components/ui/button-group'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { IconButton } from '@/components/IconButton'
 import { ToastAlert } from '@/components/ToastAlert'
 import { PauseDialog } from '@/components/PauseDialog'
@@ -345,26 +345,16 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
         <div className="editor-actions">
           <VersionHistory versions={versions} saving={snapshot !== savedAs} onRestore={restoreVersion} />
           {step === 1 && (
-            <ButtonGroup className="device-toggle" aria-label="Preview device">
-              <Button
-                variant={device === 'desktop' ? 'secondary' : 'outline'}
-                size="icon-lg"
-                aria-label="Desktop preview"
-                aria-pressed={device === 'desktop'}
-                onClick={() => setDevice('desktop')}
-              >
-                <Monitor />
-              </Button>
-              <Button
-                variant={device === 'mobile' ? 'secondary' : 'outline'}
-                size="icon-lg"
-                aria-label="Mobile preview"
-                aria-pressed={device === 'mobile'}
-                onClick={() => setDevice('mobile')}
-              >
-                <Smartphone />
-              </Button>
-            </ButtonGroup>
+            <Tabs className="device-toggle" value={device} onValueChange={(v) => setDevice(v as Device)}>
+              <TabsList aria-label="Preview device">
+                <TabsTrigger value="desktop" aria-label="Desktop preview">
+                  <Monitor />
+                </TabsTrigger>
+                <TabsTrigger value="mobile" aria-label="Mobile preview">
+                  <Smartphone />
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           )}
           {isDraft ? (
             <Button variant="outline" size="lg" onClick={saveDraft}>

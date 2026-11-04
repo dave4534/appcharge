@@ -42,13 +42,14 @@ export function PrioritySection({ items, live, onChange }: PrioritySectionProps)
   const above = items.slice(0, selfIndex).filter((i) => i.overlapsSelf)
   const below = items.slice(selfIndex + 1).filter((i) => i.overlapsSelf)
 
+  // One short sentence: what the order does to players right now.
   let impact: string
   if (above.length > 0) {
-    impact = `${names(above)} ${above.length === 1 ? 'runs' : 'run'} at the same time and rank${above.length === 1 ? 's' : ''} above this calendar. Players in both audiences see ${above.length === 1 ? 'it' : 'them'} first, so this calendar can be hidden from them.`
+    impact = `${names(above)} ${above.length === 1 ? 'ranks' : 'rank'} above this one and overlap${above.length === 1 ? 's' : ''} it, so players in both audiences may never see it.`
   } else if (below.length > 0) {
-    impact = `This calendar ranks above ${names(below)}. Players in both audiences see this one first, and ${below.length === 1 ? 'that calendar waits' : 'those calendars wait'} until it ends or they have collected.`
+    impact = `This ranks above ${names(below)}, so players in both audiences see this one first.`
   } else {
-    impact = 'No other calendar runs at the same time for an overlapping audience, so the order has no effect right now. It matters as soon as dates or audiences overlap.'
+    impact = 'No other calendar overlaps this one, so the order has no effect yet.'
   }
 
   return (
@@ -57,6 +58,15 @@ export function PrioritySection({ items, live, onChange }: PrioritySectionProps)
         A player sees one calendar at a time. If they qualify for several, the one highest in this list shows first, and the ones
         below it wait until it ends or the player has collected. Drag a calendar to change its place.
       </p>
+
+      <Alert className="border-[var(--content-color-working-orange)]">
+        <TriangleAlertIcon style={{ color: 'var(--content-color-working-orange-hover)' }} />
+        <AlertTitle>Risk of changing the order</AlertTitle>
+        <AlertDescription>
+          {impact}
+          {live && ' Live: changes reach players on save.'}
+        </AlertDescription>
+      </Alert>
 
       <ol className="grid gap-2" aria-label="Calendar priority, highest first">
         {items.map((item, index) => (
@@ -92,15 +102,6 @@ export function PrioritySection({ items, live, onChange }: PrioritySectionProps)
           </li>
         ))}
       </ol>
-
-      <Alert className="border-[var(--content-color-working-orange)]">
-        <TriangleAlertIcon style={{ color: 'var(--content-color-working-orange-hover)' }} />
-        <AlertTitle>Risk of changing the order</AlertTitle>
-        <AlertDescription>
-          {impact}
-          {live && ' This calendar is live, so a change to the order reaches players as soon as you save.'}
-        </AlertDescription>
-      </Alert>
     </Card>
   )
 }

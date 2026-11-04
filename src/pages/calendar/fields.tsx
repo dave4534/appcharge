@@ -43,13 +43,18 @@ type DateFieldProps = {
   error?: FieldErrorInfo
   // Days before this one are greyed out and can't be picked.
   minDate?: string
+  // Lets the form open this picker itself, for example the end date after the start date.
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
   onChange: (value: string) => void
   onBlur: () => void
 }
 
 // A date: a button that opens the shadcn Calendar in a popover.
-export function DateField({ label, value, error, minDate, onChange, onBlur }: DateFieldProps) {
-  const [open, setOpen] = useState(false)
+export function DateField({ label, value, error, minDate, open: controlledOpen, onOpenChange, onChange, onBlur }: DateFieldProps) {
+  const [ownOpen, setOwnOpen] = useState(false)
+  const open = controlledOpen ?? ownOpen
+  const setOpen = (next: boolean) => (onOpenChange ? onOpenChange(next) : setOwnOpen(next))
   const date = toDate(value)
   return (
     <Field data-invalid={!!error || undefined}>
