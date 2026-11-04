@@ -85,7 +85,7 @@ export function DayTile({ week, day, rewards, inactive, canAddDay, issues, onOpe
 
   if (rewards.length === 0) {
     return (
-      <div className="tile tile--empty">
+      <div className="tile tile--empty tile--missing">
         <button type="button" className="tile-main" onClick={onOpen} aria-label={`Add reward to ${where}`}>
           <span className="tile-label">Day {num}</span>
           <span className="tile-cta">+ Reward</span>

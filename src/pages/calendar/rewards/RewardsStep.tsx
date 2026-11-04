@@ -1,6 +1,8 @@
 import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
-import { Plus, Redo2, Undo2 } from 'lucide-react'
-import { AttentionBox, Link } from '../../../design-system/components'
+import { CircleAlert, Plus, Redo2, TriangleAlert, Undo2 } from 'lucide-react'
+import { Link } from '../../../design-system/components'
+import { Alert, AlertDescription, AlertTitle } from '@/components/reui/alert'
+import { readinessOf } from '../readiness'
 import { ActionDialog } from '@/components/ActionDialog'
 import { Button } from '@/components/ui/button'
 import { formatUs } from '../../offers/dates'
@@ -39,6 +41,8 @@ type RewardsStepProps = {
   // Adding or removing days and weeks moves the end date, so the editor updates Settings.
   onLayoutChange: (layout: Layout) => void
   onEditSettings: () => void
+  // A live calendar has players on it, so edits reach them.
+  live: boolean
 }
 
 // The preview pane can be dragged wider or narrower.
@@ -46,6 +50,9 @@ const CHROME_DEFAULT = 460
 const PREVIEW_MIN = 340
 const PREVIEW_MAX = 720
 const clampWidth = (w: number) => Math.max(PREVIEW_MIN, Math.min(PREVIEW_MAX, w))
+
+// Placeholder counts of players on each week of a live calendar.
+const LIVE_PLAYERS = [1820, 540, 180, 60]
 
 type Confirm = { title: string; body: string; label: string; run: () => void }
 
@@ -60,6 +67,7 @@ export function RewardsStep({
   onNotify,
   onLayoutChange,
   onEditSettings,
+  live,
 }: RewardsStepProps) {
   const weekCount = weekCountFor(days)
   const weeks = useMemo(() => ensureWeeks(plan, weekCount).slice(0, weekCount), [plan, weekCount])
@@ -71,7 +79,14 @@ export function RewardsStep({
   const [previewWidth, setPreviewWidth] = useState(CHROME_DEFAULT)
 
   const issues = useMemo(() => validatePlan(weeks, days), [weeks, days])
-  const errors = issues.filter((i) => i.severity === 'error')
+  const readiness = readinessOf(settings, weeks, days)
+  // The problems the summary banner names, most serious first.
+  const problems = [
+    readiness.emptyDays > 0 && `${readiness.emptyDays} ${readiness.emptyDays === 1 ? 'day has' : 'days have'} no reward.`,
+    readiness.emptyWeeks > 0 && `${readiness.emptyWeeks} ${readiness.emptyWeeks === 1 ? 'week is' : 'weeks are'} empty.`,
+    readiness.unusualDays > 0 && `${readiness.unusualDays} ${readiness.unusualDays === 1 ? 'day has' : 'days have'} unusual values.`,
+  ].filter((p): p is string => Boolean(p))
+  const serious = readiness.emptyDays > 0 || readiness.emptyWeeks > 0
   const shownWeek = Math.min(previewWeek, weekCount - 1)
   const atMaxWeeks = weekCount >= MAX_WEEKS
 
@@ -180,31 +195,22 @@ export function RewardsStep({
         </header>
 
         <div className="weeks">
-          {issues.length > 0 && (
-            <AttentionBox
-              type={errors.length > 0 ? 'Negative' : 'Warning'}
-              compact
-              title={`${errors.length > 0 ? `${errors.length} blocking ${errors.length === 1 ? 'error' : 'errors'}, ` : ''}${issues.length - errors.length} ${issues.length - errors.length === 1 ? 'warning' : 'warnings'} to review`}
-            >
-              <ul className="check-list">
-                {[...errors, ...issues.filter((i) => i.severity === 'warning')].slice(0, 4).map((i) => (
-                  <li key={i.id}>
-                    <Link
-                      size="Small"
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        setPicker({ week: i.week, day: i.day })
-                      }}
-                    >
-                      Week {i.week + 1}, Day {dayNumber(i.week, i.day)}
-                    </Link>{' '}
-                    {i.message}
-                  </li>
-                ))}
-                {issues.length > 4 && <li>and {issues.length - 4} more.</li>}
-              </ul>
-            </AttentionBox>
+          {live && (
+            <Alert variant="warning">
+              <TriangleAlert />
+              <AlertTitle>This calendar is live.</AlertTitle>
+              <AlertDescription>
+                {LIVE_PLAYERS.reduce((a, b) => a + b, 0).toLocaleString('en-US')} players are on it. Changes reach them when you save.
+              </AlertDescription>
+            </Alert>
+          )}
+
+          {problems.length > 0 && (
+            <Alert variant={serious ? 'destructive' : 'warning'}>
+              {serious ? <CircleAlert /> : <TriangleAlert />}
+              <AlertTitle>{problems[0]}</AlertTitle>
+              <AlertDescription>{[...problems.slice(1), 'You can still publish.'].join(' ')}</AlertDescription>
+            </Alert>
           )}
 
           {weeks.map((week, i) => (
@@ -216,6 +222,7 @@ export function RewardsStep({
               issues={issues.filter((x) => x.week === i)}
               canDuplicate={!atMaxWeeks}
               canDelete={weekCount > 1}
+              players={live ? LIVE_PLAYERS[i] : undefined}
               onOpenDay={(d) => setPicker({ week: i, day: d })}
               onClearDay={(d) => askClearDay(i, d)}
               onAddDay={() => apply(addDay(weeks, days))}

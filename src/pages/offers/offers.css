@@ -191,10 +191,17 @@
 
 .list-grid {
   display: grid;
-  grid-template-columns: 24px 32px minmax(0, 1fr) minmax(140px, 200px) minmax(130px, 170px) 100px 32px;
+  grid-template-columns: 24px 32px minmax(0, 1fr) minmax(140px, 200px) minmax(130px, 170px) 100px 130px 32px;
   align-items: center;
   column-gap: 20px;
   padding: 0 20px;
+}
+
+.readiness-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-8);
+  white-space: nowrap;
 }
 
 .list-head {

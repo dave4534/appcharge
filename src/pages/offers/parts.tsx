@@ -3,6 +3,8 @@ import type { ButtonHTMLAttributes } from 'react'
 import { Counter, Icon, IconButton, Label, Link, type LabelColor } from '../../design-system/components'
 import { statusLabels, type Offer, type OfferStatus } from './data'
 import { isOpenable } from './rows'
+import { ReadinessDonut } from '@/components/ReadinessDonut'
+import { readinessOfOffer } from '../calendar/readiness'
 
 // Live is Positive, Scheduled is Primary and Draft is Dark, the same mapping the
 // timeline bars use.
@@ -70,4 +72,17 @@ export function OfferTitle({ offer, onOpen }: { offer: Offer; onOpen: (id: strin
     )
   }
   return <div className="offer-title">{offer.name}</div>
+}
+
+// How ready a reward calendar is to run. Other offer types are not rated.
+export function ReadinessCell({ offer }: { offer: Offer }) {
+  const readiness = readinessOfOffer(offer)
+  if (!readiness) return <span className="muted">–</span>
+  const ready = readiness.percent >= 100
+  return (
+    <span className="readiness-cell" title={readiness.items.map((i) => `${i.label}: ${i.detail}`).join('\n')}>
+      <ReadinessDonut percent={readiness.percent} size={24} />
+      {ready ? 'Ready' : `${readiness.percent}% ready`}
+    </span>
+  )
 }

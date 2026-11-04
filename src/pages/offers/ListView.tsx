@@ -2,7 +2,7 @@ import { Repeat } from 'lucide-react'
 import { Icon } from '../../design-system/components'
 import { audienceLabel, typeLabels, type Offer } from './data'
 import { formatDay } from './dates'
-import { DragHandle, KebabButton, OfferTitle, PriorityBadge, StatusPill } from './parts'
+import { DragHandle, KebabButton, OfferTitle, PriorityBadge, ReadinessCell, StatusPill } from './parts'
 import { isOpenable, rowClick } from './rows'
 import { useReorder } from './useReorder'
 
@@ -27,6 +27,7 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: Lis
         <span className="col-audience">Audience</span>
         <span className="col-dates">Start and end</span>
         <span className="col-status">Status</span>
+        <span className="col-readiness">Readiness</span>
       </div>
 
       <ul className="list-rows">
@@ -60,6 +61,9 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen }: Lis
             </div>
             <div className="col-status">
               <StatusPill status={offer.status} />
+            </div>
+            <div className="col-readiness">
+              <ReadinessCell offer={offer} />
             </div>
             <KebabButton offer={offer} />
           </li>

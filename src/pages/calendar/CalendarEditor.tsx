@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { ArrowLeft, Monitor, Smartphone } from 'lucide-react'
 import { Button, Icon, IconButton } from '../../design-system/components'
 import { ToastAlert } from '@/components/ToastAlert'
-import { ActionDialog } from '@/components/ActionDialog'
+import { ReadinessPopover } from '@/components/ReadinessPopover'
 import {
   Stepper,
   StepperItem,
@@ -17,8 +17,9 @@ import { TODAY, dayDiff } from '../offers/dates'
 import { StatusPill } from '../offers/parts'
 import type { Device } from './rewards/PreviewPanel'
 import { RewardsStep } from './rewards/RewardsStep'
-import { endDateFor, weekCountFor, type Layout } from './rewards/plan'
-import { emptyActiveDays, validatePlan, type RewardWeek } from './rewards/rules'
+import { endDateFor, type Layout } from './rewards/plan'
+import type { RewardWeek } from './rewards/rules'
+import { readinessOf } from './readiness'
 import { SettingsStep } from './SettingsStep'
 import { VersionHistory } from './VersionHistory'
 import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
@@ -66,7 +67,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   type Snap = { rewards: RewardWeek[]; endDate: string }
   const [past, setPast] = useState<Snap[]>([])
   const [future, setFuture] = useState<Snap[]>([])
-  const [publishing, setPublishing] = useState(false)
+  const [readinessOpen, setReadinessOpen] = useState(false)
   // A calendar opened without history starts at version 1, as it looked when opened.
   const [versions, setVersions] = useState<Version[]>(() =>
     offer?.versions ?? (offer ? [{ n: 1, savedAt: Date.now(), by: 'Dave', settings: settingsOf(offer), rewards: offer.rewards ?? [] }] : []),
@@ -187,21 +188,16 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
     restore(next)
   }
 
-  const issues = validatePlan(rewards, days)
-  const blockers = [
-    ...issues.filter((i) => i.severity === 'error').map((i) => `Week ${i.week + 1}, Day ${i.day + 1}: ${i.message}`),
-    ...emptyActiveDays(
-      Array.from({ length: weekCountFor(days) }, (_, i) => rewards[i] ?? Array.from({ length: 7 }, () => [])),
-      days,
-    ).map((d) => `Week ${d.week + 1}, Day ${d.day + 1} has no reward yet.`),
-  ]
+  const readiness = readinessOf(settings, rewards, days)
 
-  // Publishing goes straight back to the list. Only blockers stop it, with a dialog.
+  // Publishing is never blocked by open items, but below 100% the readiness checklist
+  // opens first so the risk is clear. "Publish anyway" in it carries on.
+  const attempt = (go: () => void) => {
+    if (readiness.percent < 100) setReadinessOpen(true)
+    else go()
+  }
+
   const publish = () => {
-    if (blockers.length > 0) {
-      setPublishing(true)
-      return
-    }
     const next = build(settings.startDate > TODAY ? 'scheduled' : 'live')
     onFinish(next, `${next.name} is ${next.status === 'live' ? 'live' : 'scheduled'}.`)
   }
@@ -263,7 +259,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
               Save draft
             </Button>
           ) : (
-            <Button kind="Primary" size="Large" onClick={saveChanges}>
+            <Button kind="Primary" size="Large" onClick={step === 1 ? () => attempt(saveChanges) : saveChanges}>
               Save changes
             </Button>
           )}
@@ -279,10 +275,19 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
             </Button>
           ) : (
             isDraft && (
-              <Button kind="Primary" size="Large" onClick={publish}>
+              <Button kind="Primary" size="Large" onClick={() => attempt(publish)}>
                 Publish
               </Button>
             )
+          )}
+          {step === 1 && (
+            <ReadinessPopover
+              readiness={readiness}
+              open={readinessOpen}
+              onOpenChange={setReadinessOpen}
+              confirmLabel={isDraft ? 'Publish anyway' : 'Save anyway'}
+              onConfirm={isDraft ? publish : saveChanges}
+            />
           )}
         </div>
       </header>
@@ -302,27 +307,10 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
             onNotify={(message, description) => setToast({ message, description, kind: 'info' })}
             onLayoutChange={onLayoutChange}
             onEditSettings={() => setStep(0)}
+            live={status === 'live'}
           />
         )}
       </div>
-
-      {publishing && (
-        <ActionDialog
-          size="md"
-          title="Fix these before publishing"
-          description="These need attention first."
-          onClose={() => setPublishing(false)}
-          secondaryAction={{ label: 'Cancel', onClick: () => setPublishing(false) }}
-          primaryAction={{ label: 'Back to rewards', onClick: () => setPublishing(false) }}
-        >
-          <ul className="publish-list publish-list--blockers">
-            {blockers.slice(0, 8).map((b) => (
-              <li key={b}>{b}</li>
-            ))}
-            {blockers.length > 8 && <li>and {blockers.length - 8} more.</li>}
-          </ul>
-        </ActionDialog>
-      )}
 
       {toast && (
         <div className="toast">
