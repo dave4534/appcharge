@@ -4,9 +4,6 @@
 .mcp-cta {
   width: 100%;
   justify-content: flex-start;
-  color: var(--primary-color);
-  border-color: var(--primary-selected-color);
-  background: var(--primary-highlighted-color);
 }
 
 .mcp-title {
@@ -32,6 +29,10 @@
   font-family: var(--font-family-heading);
   font-size: var(--font-size-h3);
   font-weight: var(--font-weight-bold);
+}
+
+.mcp-help {
+  color: var(--secondary-text-color);
 }
 
 .mcp-card {

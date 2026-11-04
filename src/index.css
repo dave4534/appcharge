@@ -53,9 +53,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-button {
-  font: inherit;
-  color: inherit;
+/* In the base layer so Tailwind utilities (shadcn buttons) can set their own color. */
+@layer base {
+  button {
+    font: inherit;
+    color: inherit;
+  }
 }
 
 /* App shell */
@@ -197,23 +200,6 @@ button {
 .nav-bottom {
   margin-top: auto;
   padding-top: var(--space-16);
-}
-
-/* Modals fit their content, up to 80% of the viewport height, then scroll inside. */
-[role='dialog'] {
-  display: flex;
-  flex-direction: column;
-  max-height: 80vh;
-}
-
-.modal--picker {
-  min-height: 60vh;
-}
-
-[role='dialog'] [class*='modal__body'] {
-  flex: 1;
-  max-height: none;
-  overflow: auto;
 }
 
 /* Top bar */

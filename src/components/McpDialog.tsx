@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Check, Copy } from 'lucide-react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { ActionDialog } from './ActionDialog'
 import claude from '@/assets/mcp/claude.svg'
 import chatgpt from '@/assets/mcp/chatgpt.svg'
 import gemini from '@/assets/mcp/gemini.svg'
@@ -18,9 +18,9 @@ const CLIENTS = [
   { name: 'Cursor', icon: cursor },
 ]
 
-type McpDialogProps = { open: boolean; onOpenChange: (open: boolean) => void }
+type McpDialogProps = { onClose: () => void; onContactAdmin: () => void }
 
-export function McpDialog({ open, onOpenChange }: McpDialogProps) {
+export function McpDialog({ onClose, onContactAdmin }: McpDialogProps) {
   const [copied, setCopied] = useState(false)
 
   const copy = async () => {
@@ -34,13 +34,13 @@ export function McpDialog({ open, onOpenChange }: McpDialogProps) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="mcp-dialog sm:max-w-xl">
-        <DialogHeader>
-          <DialogTitle className="mcp-title">Appcharge MCP</DialogTitle>
-          <DialogDescription className="sr-only">Connect your AI assistant to Appcharge.</DialogDescription>
-        </DialogHeader>
-
+    <ActionDialog
+      size="md"
+      title="Get Appcharge MCP"
+      onClose={onClose}
+      secondaryAction={{ label: 'Cancel', onClick: onClose }}
+      primaryAction={{ label: 'Contact Admin', onClick: onContactAdmin }}
+    >
         <div className="mcp-body">
           <p>
             The Appcharge <strong>Model Context Protocol (MCP)</strong> server is a free, hosted endpoint that lets your
@@ -82,8 +82,11 @@ export function McpDialog({ open, onOpenChange }: McpDialogProps) {
               ))}
             </div>
           </div>
+
+          <p className="mcp-help">
+            Does this feel too technical? Feel free to contact your admin to get help setting this up.
+          </p>
         </div>
-      </DialogContent>
-    </Dialog>
+    </ActionDialog>
   )
 }

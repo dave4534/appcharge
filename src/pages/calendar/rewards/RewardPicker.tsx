@@ -6,10 +6,10 @@ import {
   Dropdown,
   Icon,
   IconButton,
-  Modal,
   Search,
   TextField,
 } from '../../../design-system/components'
+import { ActionDialog } from '@/components/ActionDialog'
 import { PRODUCTS, offeredOn, type Product } from './catalog'
 import { ensureWeeks, setDay } from './plan'
 import { RewardIcon } from './tiles'
@@ -140,12 +140,11 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
   }
 
   return (
-    <Modal
-      size="Large"
-      scroll
-      className="modal--picker"
+    <ActionDialog
+      size="lg"
+      className="min-h-[60vh]"
       title={`Select reward for Day ${dayNumber(week, day)}`}
-      subtitle={`Week ${week + 1}. Amounts are illustrative.`}
+      description={`Week ${week + 1}. Amounts are illustrative.`}
       onClose={onClose}
       secondaryAction={{ label: 'Cancel', onClick: onClose }}
       primaryAction={{
@@ -304,6 +303,6 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
 
         <p className="picker-selected">{items.length} selected</p>
       </div>
-    </Modal>
+    </ActionDialog>
   )
 }

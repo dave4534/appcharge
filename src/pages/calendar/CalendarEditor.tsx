@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ArrowLeft, Cloud, CloudCheck, Monitor, Smartphone } from 'lucide-react'
-import { Button, Icon, IconButton, Modal, Toast } from '../../design-system/components'
+import { Button, Icon, IconButton, Toast } from '../../design-system/components'
+import { ActionDialog } from '@/components/ActionDialog'
 import {
   Stepper,
   StepperItem,
@@ -251,10 +252,10 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
       </div>
 
       {publishing && (
-        <Modal
-          size="Medium"
+        <ActionDialog
+          size="md"
           title="Fix these before publishing"
-          subtitle="These need attention first."
+          description="These need attention first."
           onClose={() => setPublishing(false)}
           secondaryAction={{ label: 'Cancel', onClick: () => setPublishing(false) }}
           primaryAction={{ label: 'Back to rewards', onClick: () => setPublishing(false) }}
@@ -265,7 +266,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
             ))}
             {blockers.length > 8 && <li>and {blockers.length - 8} more.</li>}
           </ul>
-        </Modal>
+        </ActionDialog>
       )}
 
       {toast && (

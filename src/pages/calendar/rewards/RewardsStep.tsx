@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
 import { Plus } from 'lucide-react'
-import { AttentionBox, Link, Modal } from '../../../design-system/components'
+import { AttentionBox, Link } from '../../../design-system/components'
+import { ActionDialog } from '@/components/ActionDialog'
 import { Button } from '@/components/ui/button'
 import { formatUs } from '../../offers/dates'
 import type { CalendarSettings } from '../settings'
@@ -236,10 +237,10 @@ export function RewardsStep({
       )}
 
       {confirm && (
-        <Modal
-          size="Small"
+        <ActionDialog
+          size="sm"
           title={confirm.title}
-          subtitle={confirm.body}
+          description={confirm.body}
           onClose={() => setConfirm(null)}
           secondaryAction={{ label: 'Cancel', onClick: () => setConfirm(null) }}
           primaryAction={{
@@ -253,7 +254,7 @@ export function RewardsStep({
           }}
         >
           <p className="confirm-note">You can't undo this.</p>
-        </Modal>
+        </ActionDialog>
       )}
     </div>
   )

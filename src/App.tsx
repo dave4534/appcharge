@@ -87,7 +87,15 @@ export default function App() {
           </>
         )}
       </div>
-      <McpDialog open={mcpOpen} onOpenChange={setMcpOpen} />
+      {mcpOpen && (
+        <McpDialog
+          onClose={() => setMcpOpen(false)}
+          onContactAdmin={() => {
+            setMcpOpen(false)
+            setNotice('Your admin has been asked to help set up the Appcharge MCP.')
+          }}
+        />
+      )}
       {notice && (
         <div className="app-toast" role="status">
           <Toast type="Positive" onClose={() => setNotice(null)}>

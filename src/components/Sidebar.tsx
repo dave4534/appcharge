@@ -67,7 +67,7 @@ export function Sidebar({ activeId, onNavigate, onGetMcp }: SidebarProps) {
       })}
 
       <div className="nav-bottom">
-        <Button variant="outline" size="sm" className="mcp-cta" onClick={onGetMcp}>
+        <Button variant="ghost" size="sm" className="mcp-cta cursor-pointer" onClick={onGetMcp}>
           <Sparkles data-icon="inline-start" />
           Get Appcharge MCP
         </Button>
