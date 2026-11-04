@@ -1,16 +1,16 @@
 import { useState } from 'react'
 import { ChevronDown, Sparkles } from 'lucide-react'
 import { Icon, Label } from '../design-system/components'
+import { Button } from '@/components/ui/button'
 import { navSections } from './nav'
 
 type SidebarProps = {
   activeId: string
   onNavigate: (id: string) => void
-  // Charlie works inside a calendar's Rewards step, so it is only available there.
-  charlie: { available: boolean; open: boolean; onToggle: () => void }
+  onGetMcp: () => void
 }
 
-export function Sidebar({ activeId, onNavigate, charlie }: SidebarProps) {
+export function Sidebar({ activeId, onNavigate, onGetMcp }: SidebarProps) {
   const [collapsed, setCollapsed] = useState<Record<string, boolean>>({})
 
   return (
@@ -67,17 +67,10 @@ export function Sidebar({ activeId, onNavigate, charlie }: SidebarProps) {
       })}
 
       <div className="nav-bottom">
-        <button
-          type="button"
-          className="nav-item"
-          aria-pressed={charlie.open}
-          disabled={!charlie.available}
-          title={charlie.available ? undefined : 'Open the Rewards step of a calendar to use Charlie'}
-          onClick={charlie.onToggle}
-        >
-          <Icon icon={Sparkles} size={18} color="current" />
-          Charlie
-        </button>
+        <Button variant="outline" size="sm" className="mcp-cta" onClick={onGetMcp}>
+          <Sparkles data-icon="inline-start" />
+          Get Appcharge MCP
+        </Button>
       </div>
     </nav>
   )

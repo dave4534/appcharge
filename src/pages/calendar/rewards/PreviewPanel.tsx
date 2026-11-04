@@ -5,6 +5,7 @@ import { RewardIcon } from './tiles'
 import {
   DAY7_BADGE_IMAGE,
   DAYS_PER_WEEK,
+  dayNumber,
   itemName,
   formatQuantity,
   orderedItems,
@@ -40,7 +41,7 @@ function useCountdown(startSeconds: number) {
   return `${pad(Math.floor(left / 3600))}:${pad(Math.floor((left % 3600) / 60))}:${pad(left % 60)}`
 }
 
-function PlayerTile({ rewards, day, state }: { rewards: DayRewards; day: number; state: PlayerState }) {
+function PlayerTile({ rewards, week, day, state }: { rewards: DayRewards; week: number; day: number; state: PlayerState }) {
   const items = orderedItems(rewards)
   const lead = rewards.find((i) => i.kind === 'chips') ?? items[0]
   const isDay7 = day === DAYS_PER_WEEK - 1
@@ -49,7 +50,7 @@ function PlayerTile({ rewards, day, state }: { rewards: DayRewards; day: number;
     <div className={`pv-tile pv-tile--${state}${isDay7 ? ' pv-tile--wide' : ''}${items.length === 0 ? ' pv-tile--empty' : ''}`}>
       <span className="pv-day">
         {isDay7 && <img src={DAY7_BADGE_IMAGE} width={16} height={16} alt="" />}
-        Day {day + 1}
+        Day {dayNumber(week, day)}
       </span>
       {state === 'collected' && (
         <span className="pv-badge pv-badge--done" aria-label="Collected">
@@ -79,7 +80,6 @@ function PlayerTile({ rewards, day, state }: { rewards: DayRewards; day: number;
           )}
         </>
       )}
-      {state === 'ready' && <span className="pv-collect">Collect</span>}
     </div>
   )
 }
@@ -88,6 +88,8 @@ export function PreviewPanel({ plan, weekCount, week, device, onWeekChange }: Pr
   const countdown = useCountdown(12 * 3600 + 34 * 60 + 10)
   const rewards = plan[week] ?? []
   const blank = rewards.every((d) => d.length === 0)
+  // Only a week with a day ready to collect has something to collect.
+  const canCollect = Array.from({ length: DAYS_PER_WEEK }, (_, d) => playerState(week, d)).includes('ready')
 
   return (
     <aside className="preview" aria-label="Player preview">
@@ -136,9 +138,12 @@ export function PreviewPanel({ plan, weekCount, week, device, onWeekChange }: Pr
           </div>
           <div className="pv-grid">
             {Array.from({ length: DAYS_PER_WEEK }, (_, d) => (
-              <PlayerTile key={d} rewards={rewards[d] ?? []} day={d} state={playerState(week, d)} />
+              <PlayerTile key={d} rewards={rewards[d] ?? []} week={week} day={d} state={playerState(week, d)} />
             ))}
           </div>
+          <button type="button" className="pv-collect" disabled={!canCollect}>
+            Collect
+          </button>
           {blank && <p className="pv-hint">Add rewards to see them here</p>}
         </div>
 

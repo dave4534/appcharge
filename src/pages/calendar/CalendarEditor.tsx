@@ -34,10 +34,6 @@ type CalendarEditorProps = {
   // Saves the calendar and returns to the offers list, which shows `message` in a toast.
   onFinish: (offer: Offer, message: string) => void
   onClose: () => void
-  charlieOpen: boolean
-  onCharlieClose: () => void
-  // Lets the app know which step is showing, so Charlie only appears on Rewards.
-  onStepChange: (step: number) => void
 }
 
 const settingsOf = (offer: Offer | null): CalendarSettings => {
@@ -52,7 +48,7 @@ const settingsOf = (offer: Offer | null): CalendarSettings => {
   )
 }
 
-export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, onCharlieClose, onStepChange }: CalendarEditorProps) {
+export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEditorProps) {
   const [settings, setSettings] = useState(() => settingsOf(offer))
   const [rewards, setRewards] = useState<RewardWeek[]>(() => offer?.rewards ?? [])
   const [offerId, setOfferId] = useState(offer?.id ?? null)
@@ -68,7 +64,6 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
   const { errors, missing, valid } = validate(settings)
   const days = settings.startDate && settings.endDate ? Math.max(0, dayDiff(settings.startDate, settings.endDate) + 1) : 0
 
-  useEffect(() => onStepChange(step), [step, onStepChange])
 
   useEffect(() => {
     if (!toast) return
@@ -250,8 +245,6 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose, charlieOpen, 
             device={device}
             onPlanChange={setRewards}
             onLayoutChange={onLayoutChange}
-            charlieOpen={charlieOpen}
-            onCharlieClose={onCharlieClose}
             onEditSettings={() => setStep(0)}
           />
         )}

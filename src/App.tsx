@@ -7,6 +7,7 @@ import { loadOffers, saveOffers } from './lib/storage'
 import { CalendarEditor } from './pages/calendar/CalendarEditor'
 import { initialOffers, type Offer } from './pages/offers/data'
 import { OffersPage } from './pages/offers/OffersPage'
+import { McpDialog } from './components/McpDialog'
 
 const sectionOf = (id: string) => navSections.find((s) => s.items.some((i) => i.id === id))!
 const labelOf = (id: string) => sectionOf(id).items.find((i) => i.id === id)!.label
@@ -19,8 +20,7 @@ export default function App() {
   const [offers, setOffers] = useState<Offer[]>(() => loadOffers(initialOffers))
   const [editing, setEditing] = useState<Editing>(null)
   const [notice, setNotice] = useState<string | null>(null)
-  const [editorStep, setEditorStep] = useState(0)
-  const [charlieOpen, setCharlieOpen] = useState(false)
+  const [mcpOpen, setMcpOpen] = useState(false)
 
   useEffect(() => {
     if (!notice) return
@@ -37,8 +37,6 @@ export default function App() {
 
   const closeEditor = () => {
     setEditing(null)
-    setEditorStep(0)
-    setCharlieOpen(false)
   }
 
   const navigate = (id: string) => {
@@ -51,11 +49,7 @@ export default function App() {
       <Sidebar
         activeId={activeId}
         onNavigate={navigate}
-        charlie={{
-          available: editing !== null && editorStep === 1,
-          open: charlieOpen,
-          onToggle: () => setCharlieOpen((o) => !o),
-        }}
+        onGetMcp={() => setMcpOpen(true)}
       />
       <div className="main">
         {editing ? (
@@ -68,9 +62,6 @@ export default function App() {
               closeEditor()
               setNotice(message)
             }}
-            charlieOpen={charlieOpen}
-            onCharlieClose={() => setCharlieOpen(false)}
-            onStepChange={setEditorStep}
             onClose={closeEditor}
           />
         ) : (
@@ -96,6 +87,7 @@ export default function App() {
           </>
         )}
       </div>
+      <McpDialog open={mcpOpen} onOpenChange={setMcpOpen} />
       {notice && (
         <div className="app-toast" role="status">
           <Toast type="Positive" onClose={() => setNotice(null)}>

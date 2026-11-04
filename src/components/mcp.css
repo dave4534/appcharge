@@ -1,0 +1,129 @@
+/* The Get Appcharge MCP dialog. The install card follows PostHog's MCP page:
+   a light card, a code field with a copy button, and a tinted strip of client icons. */
+
+.mcp-cta {
+  width: 100%;
+  justify-content: flex-start;
+  color: var(--primary-color);
+  border-color: var(--primary-selected-color);
+  background: var(--primary-highlighted-color);
+}
+
+.mcp-title {
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h2);
+  font-weight: var(--font-weight-bold);
+}
+
+.mcp-body {
+  display: grid;
+  gap: var(--space-12);
+  font-size: var(--font-size-text1);
+  line-height: 1.55;
+  color: var(--primary-text-color);
+}
+
+.mcp-body p {
+  margin: 0;
+}
+
+.mcp-body h3 {
+  margin: var(--space-8) 0 0;
+  font-family: var(--font-family-heading);
+  font-size: var(--font-size-h3);
+  font-weight: var(--font-weight-bold);
+}
+
+.mcp-card {
+  width: min(100%, 440px);
+  overflow: hidden;
+  border: 1px solid var(--layout-border-color);
+  border-radius: 12px;
+  background: var(--primary-background-color);
+  box-shadow: 0 8px 24px rgba(16, 24, 40, 0.1), 0 1px 3px rgba(16, 24, 40, 0.08);
+}
+
+.mcp-card-main {
+  display: grid;
+  gap: var(--space-12);
+  padding: var(--space-16);
+}
+
+.mcp-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  font-size: var(--font-size-text1);
+}
+
+.mcp-card-head a {
+  color: var(--secondary-text-color);
+  font-size: var(--font-size-text2);
+  text-decoration: none;
+}
+
+.mcp-card-head a:hover {
+  color: var(--primary-text-color);
+}
+
+.mcp-command {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+  padding: var(--space-8) var(--space-12);
+  border: 1px solid var(--layout-border-color);
+  border-radius: 8px;
+  background: var(--allgrey-background-color);
+}
+
+.mcp-command code {
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 13px;
+}
+
+.tok-cmd {
+  color: #2f6fe4;
+}
+
+.tok-pkg {
+  color: #7a4fd8;
+}
+
+.tok-arg {
+  color: #e8590c;
+}
+
+.mcp-command button {
+  display: grid;
+  place-items: center;
+  padding: 4px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--secondary-text-color);
+  cursor: pointer;
+}
+
+.mcp-command button:hover {
+  background: var(--primary-background-hover-color);
+  color: var(--primary-text-color);
+}
+
+.mcp-supports {
+  color: var(--secondary-text-color);
+  font-size: var(--font-size-text2);
+}
+
+.mcp-clients {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-12) var(--space-16);
+  border-top: 1px solid var(--layout-border-color);
+  background: var(--allgrey-background-color);
+}
+
+.mcp-clients img {
+  display: block;
+}

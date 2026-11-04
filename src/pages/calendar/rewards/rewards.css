@@ -13,29 +13,6 @@
   position: relative;
 }
 
-/* On narrower screens Charlie slides over the weeks; on wide screens it docks beside them. */
-.charlie {
-  position: absolute;
-  z-index: 5;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 340px;
-  box-shadow: 8px 0 24px rgba(16, 24, 40, 0.12);
-}
-
-@media (min-width: 1700px) {
-  .rewards-layout.has-charlie {
-    grid-template-columns: 340px minmax(0, 1fr) 8px var(--preview-width, 460px);
-  }
-
-  .charlie {
-    position: static;
-    width: auto;
-    box-shadow: none;
-  }
-}
-
 .rewards-main {
   display: flex;
   flex-direction: column;
@@ -43,9 +20,7 @@
   min-height: 0;
 }
 
-/* The Rewards and Charlie headers share one height and style, so they line up. */
-.rewards-head,
-.charlie-head {
+.rewards-head {
   display: flex;
   flex: none;
   align-items: center;
@@ -54,16 +29,11 @@
   padding: 0 var(--space-24);
 }
 
-.rewards-head h2,
-.charlie-head h2 {
+.rewards-head h2 {
   margin: 0;
   font-family: var(--font-family-heading);
   font-size: var(--font-size-h3);
   font-weight: var(--font-weight-semibold);
-}
-
-.charlie-head {
-  justify-content: space-between;
 }
 
 .rewards-dates {
@@ -112,10 +82,6 @@
 .rewards-foot button {
   width: 100%;
   justify-content: center;
-}
-
-.foot-blank {
-  border-style: dashed !important;
 }
 
 /* Weeks and tiles */
@@ -613,13 +579,21 @@
 }
 
 .pv-collect {
-  position: absolute;
-  bottom: -1px;
-  padding: 1px 10px;
-  border-radius: 999px;
+  display: block;
+  width: 100%;
+  margin-top: var(--space-12);
+  padding: var(--space-8) var(--space-16);
+  border: 0;
+  border-radius: var(--radius);
   background: var(--primary-color);
   color: var(--text-color-on-primary);
   font-weight: var(--font-weight-semibold);
+  cursor: default;
+}
+
+.pv-collect:disabled {
+  background: var(--ui-background-color);
+  color: var(--disabled-text-color);
 }
 
 .pv-hint {
@@ -653,97 +627,6 @@
 
 .pv-offer span + span {
   height: 6px;
-}
-
-/* Charlie */
-
-.charlie {
-  display: flex;
-  flex-direction: column;
-  min-height: 0;
-  border-right: 1px solid var(--layout-border-color);
-  background: var(--primary-background-color);
-}
-
-.charlie-body {
-  flex: 1;
-  min-height: 0;
-  overflow: auto;
-  padding: var(--space-16);
-}
-
-.charlie-start {
-  display: grid;
-  justify-items: center;
-  gap: var(--space-12);
-  padding-top: var(--space-24);
-}
-
-.charlie-start > * {
-  width: 100%;
-}
-
-.charlie-start h3 {
-  margin: 0;
-  font-family: var(--font-family-heading);
-  font-size: var(--font-size-h2);
-  text-align: center;
-}
-
-.charlie-spark {
-  display: grid;
-  place-items: center;
-  width: 56px;
-  height: 56px;
-  margin: 0 auto;
-  border-radius: 50%;
-  background: var(--primary-selected-color);
-}
-
-.charlie-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-8);
-  margin-top: var(--space-8);
-}
-
-.charlie-chat {
-  display: grid;
-  gap: var(--space-12);
-}
-
-.bubble p {
-  margin: 0;
-  white-space: pre-line;
-}
-
-.bubble--user {
-  justify-self: end;
-  max-width: 85%;
-  padding: var(--space-8) var(--space-16);
-  border-radius: 12px;
-  background: var(--primary-color);
-  color: var(--text-color-on-primary);
-  font-weight: var(--font-weight-medium);
-}
-
-.bubble--charlie {
-  font-size: var(--font-size-text2);
-}
-
-.charlie-input {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  align-items: center;
-  gap: var(--space-8);
-  padding: var(--space-12) var(--space-16) 0;
-}
-
-.charlie-note {
-  margin: 0;
-  padding: var(--space-8) var(--space-16) var(--space-16);
-  color: var(--secondary-text-color);
-  font-size: 11px;
 }
 
 /* Reward picker */

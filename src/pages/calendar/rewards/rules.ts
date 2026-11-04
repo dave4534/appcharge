@@ -9,11 +9,14 @@ import { DEFAULT_SKU, productOf } from './catalog'
 // Every amount here is ILLUSTRATIVE: no public source documents
 // a real daily calendar, so the UI labels amounts as assumptions.
 //
-// Nothing in here depends on the screens. The editor, the preview and Charlie all
+// Nothing in here depends on the screens. The editor and the preview both
 // call these functions, so any calendar a manager creates is checked and
 // suggested the same way.
 
 export const DAYS_PER_WEEK = 7
+
+// Days count up across the whole calendar, so Week 2's first day is Day 8.
+export const dayNumber = (week: number, day: number) => week * DAYS_PER_WEEK + day + 1
 export const MAX_WEEKS = 10
 
 const M = 1_000_000

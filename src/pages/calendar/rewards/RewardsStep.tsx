@@ -1,12 +1,12 @@
 import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent, type PointerEvent } from 'react'
-import { AttentionBox, Button, Link, Modal } from '../../../design-system/components'
+import { Plus } from 'lucide-react'
+import { AttentionBox, Link, Modal } from '../../../design-system/components'
+import { Button } from '@/components/ui/button'
 import { formatUs } from '../../offers/dates'
 import type { CalendarSettings } from '../settings'
-import { CharliePanel, type Message } from './CharliePanel'
 import { PreviewPanel, type Device } from './PreviewPanel'
 import { RewardPicker } from './RewardPicker'
 import { WeekRow } from './WeekRow'
-import { HELP_TEXT, compareText, explainText, intentFor, reviewText, type Intent } from './charlie'
 import {
   activeInWeek,
   addBlankWeek,
@@ -21,7 +21,7 @@ import {
   weekCountFor,
   type Layout,
 } from './plan'
-import { MAX_WEEKS, chipsOf, daySummary, emptyActiveDays, validatePlan, type DayRewards, type RewardWeek } from './rules'
+import { MAX_WEEKS, dayNumber, daySummary, validatePlan, type DayRewards, type RewardWeek } from './rules'
 import './rewards.css'
 
 type RewardsStepProps = {
@@ -30,8 +30,6 @@ type RewardsStepProps = {
   // How many days the date range covers.
   days: number
   device: Device
-  charlieOpen: boolean
-  onCharlieClose: () => void
   onPlanChange: (plan: RewardWeek[]) => void
   // Adding or removing days and weeks moves the end date, so the editor updates Settings.
   onLayoutChange: (layout: Layout) => void
@@ -51,8 +49,6 @@ export function RewardsStep({
   plan,
   days,
   device,
-  charlieOpen,
-  onCharlieClose,
   onPlanChange,
   onLayoutChange,
   onEditSettings,
@@ -63,8 +59,6 @@ export function RewardsStep({
   const [picker, setPicker] = useState<{ week: number; day: number } | null>(null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
   const [previewWeek, setPreviewWeek] = useState(0)
-  const [messages, setMessages] = useState<Message[]>([])
-  const nextId = useRef(1)
   const layoutRef = useRef<HTMLDivElement>(null)
   const [previewWidth, setPreviewWidth] = useState(CHROME_DEFAULT)
 
@@ -72,7 +66,6 @@ export function RewardsStep({
   const errors = issues.filter((i) => i.severity === 'error')
   const shownWeek = Math.min(previewWeek, weekCount - 1)
   const atMaxWeeks = weekCount >= MAX_WEEKS
-  const nextEmpty = emptyActiveDays(weeks, days)[0] ?? null
 
   // ----- editing days
 
@@ -85,7 +78,7 @@ export function RewardsStep({
 
   const askClearDay = (week: number, day: number) =>
     setConfirm({
-      title: `Delete the reward for Week ${week + 1}, Day ${day + 1}?`,
+      title: `Delete the reward for Week ${week + 1}, Day ${dayNumber(week, day)}?`,
       body: `This removes ${daySummary(weeks[week][day])} from that day.`,
       label: 'Delete reward',
       run: () => onPlanChange(setDay(weeks, week, day, [])),
@@ -137,60 +130,12 @@ export function RewardsStep({
     if (e.key === 'ArrowRight') setPreviewWidth((w) => clampWidth(w - 24))
   }
 
-  // ----- Charlie
-
-  const say = (role: Message['role'], text: string, follow?: Message['follow']) =>
-    setMessages((m) => [...m, { id: nextId.current++, role, text, follow }])
-
-  const runIntent = (intent: Intent, label: string) => {
-    say('user', label)
-    switch (intent) {
-      case 'suggest-day': {
-        if (!nextEmpty) {
-          say('charlie', 'Every day in the calendar already has a reward.')
-          return
-        }
-        setPicker(nextEmpty)
-        say(
-          'charlie',
-          `Opened Week ${nextEmpty.week + 1}, Day ${nextEmpty.day + 1} with a suggestion based on your earlier days.\n\nAccept or reject it in the dialog. Nothing is added until you do.`,
-        )
-        return
-      }
-      case 'compare': {
-        // The latest week after Week 1 that already has chips.
-        const target = weeks.reduce((found, w, i) => (i > 0 && w.some((d) => chipsOf(d) > 0) ? i : found), 0)
-        say('charlie', compareText(weeks, target))
-        return
-      }
-      case 'review':
-        say('charlie', reviewText(weeks, days))
-        return
-      case 'explain':
-        say('charlie', explainText(settings, weeks, days))
-        return
-      default:
-        say('charlie', HELP_TEXT)
-    }
-  }
-
   return (
     <div
       ref={layoutRef}
-      className={`rewards-layout${charlieOpen ? ' has-charlie' : ''}`}
+      className="rewards-layout"
       style={{ '--preview-width': `${previewWidth}px` } as CSSProperties}
     >
-      {charlieOpen && (
-        <CharliePanel
-          messages={messages}
-          nextEmpty={nextEmpty}
-          onIntent={runIntent}
-          onSend={(text) => runIntent(intentFor(text), text)}
-          onReset={() => setMessages([])}
-          onClose={onCharlieClose}
-        />
-      )}
-
       <section className="rewards-main" aria-label="Rewards">
         <header className="rewards-head">
           <h2>Rewards</h2>
@@ -227,12 +172,12 @@ export function RewardsStep({
                         setPicker({ week: i.week, day: i.day })
                       }}
                     >
-                      Week {i.week + 1}, Day {i.day + 1}
+                      Week {i.week + 1}, Day {dayNumber(i.week, i.day)}
                     </Link>{' '}
                     {i.message}
                   </li>
                 ))}
-                {issues.length > 4 && <li>and {issues.length - 4} more. Ask Charlie to review all weeks.</li>}
+                {issues.length > 4 && <li>and {issues.length - 4} more.</li>}
               </ul>
             </AttentionBox>
           )}
@@ -255,8 +200,9 @@ export function RewardsStep({
         </div>
 
         <footer className="rewards-foot">
-          <Button kind="Secondary" size="Large" className="foot-blank" disabled={atMaxWeeks} onClick={() => apply(addBlankWeek(weeks, days))}>
-            + Add blank week
+          <Button variant="ghost" size="lg" className="foot-blank" disabled={atMaxWeeks} onClick={() => apply(addBlankWeek(weeks, days))}>
+            <Plus data-icon="inline-start" />
+            Add blank week
           </Button>
         </footer>
       </section>

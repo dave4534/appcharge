@@ -16,6 +16,7 @@ import { RewardIcon } from './tiles'
 import {
   REWARD_DEFS,
   chipsOf,
+  dayNumber,
   daySummary,
   formatChipsExact,
   formatQuantity,
@@ -130,7 +131,9 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
     }
   }
 
-  const accept = () => onSave(suggestion.items)
+  // Accepting keeps the dialog open: the suggestion is already picked, so this only
+  // dismisses the banner and enables the primary button.
+  const accept = () => setShowSuggestion(false)
   const reject = () => {
     setShowSuggestion(false)
     setSelection({})
@@ -141,12 +144,12 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
       size="Large"
       scroll
       className="modal--picker"
-      title={`Select reward for Day ${day + 1}`}
+      title={`Select reward for Day ${dayNumber(week, day)}`}
       subtitle={`Week ${week + 1}. Amounts are illustrative.`}
       onClose={onClose}
       secondaryAction={{ label: 'Cancel', onClick: onClose }}
       primaryAction={{
-        label: isNew ? `Add to Day ${day + 1}` : 'Save changes',
+        label: isNew ? `Add to Day ${dayNumber(week, day)}` : 'Save changes',
         disabled: suggestionPending || items.length === 0 || blocked || invalid !== null,
         onClick: () => onSave(items),
       }}
@@ -159,7 +162,7 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
             </span>
             <div className="suggested-text">
               <strong>
-                Suggested for Day {day + 1}: {daySummary(suggestion.items)}
+                Suggested for Day {dayNumber(week, day)}: {daySummary(suggestion.items)}
               </strong>
               <span>{suggestion.basis}</span>
             </div>
