@@ -324,45 +324,6 @@
 
 /* Suggestion banner in the reward picker */
 
-.suggest-banner {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-12);
-  padding: var(--space-12);
-  border: 1px solid var(--primary-color);
-  border-radius: var(--radius);
-  background: var(--primary-highlighted-color);
-}
-
-.suggested-icon {
-  display: inline-flex;
-  align-items: center;
-  /* The same height as the title line, so the sparkle sits level with the title. */
-  height: 20px;
-}
-
-.suggested-text {
-  display: grid;
-  flex: 1;
-  min-width: 0;
-  font-size: var(--font-size-text3);
-}
-
-.suggested-text strong {
-  font-size: var(--font-size-text2);
-  line-height: 20px;
-}
-
-.suggested-text span {
-  color: var(--secondary-text-color);
-}
-
-.suggested-actions {
-  display: flex;
-  align-self: center;
-  gap: var(--space-8);
-}
-
 /* Player preview */
 
 .preview {

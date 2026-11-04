@@ -1,7 +1,6 @@
 import { CircleAlert, Minus, Plus, Sparkles, TriangleAlert } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import {
-  Button,
   Checkbox,
   Dropdown,
   Icon,
@@ -10,6 +9,8 @@ import {
   TextField,
 } from '../../../design-system/components'
 import { ActionDialog } from '@/components/ActionDialog'
+import { Alert, AlertAction, AlertDescription, AlertTitle } from '@/components/reui/alert'
+import { Button } from '@/components/ui/button'
 import { PRODUCTS, offeredOn, type Product } from './catalog'
 import { ensureWeeks, setDay } from './plan'
 import { RewardIcon } from './tiles'
@@ -155,25 +156,21 @@ export function RewardPicker({ week, day, plan, activeDays, onClose, onSave }: R
     >
       <div className="picker">
         {suggestionPending && (
-          <div className="suggest-banner">
-            <span className="suggested-icon" aria-hidden="true">
-              <Icon icon={Sparkles} size="Small" color="primary" />
-            </span>
-            <div className="suggested-text">
-              <strong>
-                Suggested for Day {dayNumber(week, day)}: {daySummary(suggestion.items)}
-              </strong>
-              <span>{suggestion.basis}</span>
-            </div>
-            <div className="suggested-actions">
-              <Button kind="Secondary" size="Small" onClick={reject}>
+          <Alert variant="info" className="suggest-alert">
+            <Sparkles />
+            <AlertTitle className="line-clamp-none">
+              Suggested for Day {dayNumber(week, day)}: {daySummary(suggestion.items)}
+            </AlertTitle>
+            <AlertDescription>{suggestion.basis}</AlertDescription>
+            <AlertAction>
+              <Button variant="outline" size="sm" onClick={reject}>
                 Reject
               </Button>
-              <Button kind="Primary" size="Small" onClick={accept}>
+              <Button size="sm" onClick={accept}>
                 Accept
               </Button>
-            </div>
-          </div>
+            </AlertAction>
+          </Alert>
         )}
 
         <div className="picker-filters">
