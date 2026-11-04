@@ -43,6 +43,8 @@ type RewardsStepProps = {
   onEditSettings: () => void
   // A live calendar has players on it, so edits reach them.
   live: boolean
+  // Opens the reward picker on this day when the step appears.
+  initialPicker?: { week: number; day: number }
   // The summary banner only appears once the user has tried to publish.
   showIssues: boolean
 }
@@ -66,12 +68,13 @@ export function RewardsStep({
   onLayoutChange,
   onEditSettings,
   live,
+  initialPicker,
   showIssues,
 }: RewardsStepProps) {
   const weekCount = weekCountFor(days)
   const weeks = useMemo(() => ensureWeeks(plan, weekCount).slice(0, weekCount), [plan, weekCount])
 
-  const [picker, setPicker] = useState<{ week: number; day: number } | null>(null)
+  const [picker, setPicker] = useState<{ week: number; day: number } | null>(initialPicker ?? null)
   const [confirm, setConfirm] = useState<Confirm | null>(null)
   const [previewWeek, setPreviewWeek] = useState(0)
   const layoutRef = useRef<HTMLDivElement>(null)

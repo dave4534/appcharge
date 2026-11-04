@@ -2,14 +2,33 @@ import type { Offer, Version } from '../../pages/offers/data'
 import type { CalendarSettings } from '../../pages/calendar/settings'
 
 // A "place" is a spot in the prototype that a walkthrough step can open. Each one names
-// the calendar to open and what to have showing, so "Show me" lands on a prepared state
+// the calendar to open and what to have showing, so a chip lands on a prepared state
 // instead of just a screen.
-export type PlaceId = 'validation' | 'readiness' | 'live-warnings' | 'history'
+export type PlaceId =
+  | 'segmentation'
+  | 'validation'
+  | 'readiness'
+  | 'live-warnings'
+  | 'history'
+  | 'calendar'
+  | 'wizard'
+  | 'tabs'
+  | 'ai-suggestion'
 
 // What the calendar editor should have open when it appears.
-export type EditorScene = { step?: 0 | 1; readiness?: boolean; history?: boolean }
+export type EditorScene = {
+  step?: 0 | 1
+  readiness?: boolean
+  history?: boolean
+  // Scrolls this element (by id) into view, for places further down a long page.
+  scrollTo?: string
+  // Opens the reward picker on this day (zero-based week and day).
+  picker?: { week: number; day: number }
+}
 
 export const placeTargets: Record<PlaceId, { offerId: string | null; scene: EditorScene }> = {
+  // Settings, scrolled to the Audience card, on a draft that targets a segment.
+  segmentation: { offerId: 'november-reward-calendar', scene: { step: 0, scrollTo: 'settings-audience' } },
   // A new calendar: nothing is chosen yet, so Settings shows what is still needed.
   validation: { offerId: null, scene: { step: 0 } },
   // A draft whose Settings are done: the checklist lists what is still open on Rewards.
@@ -18,6 +37,14 @@ export const placeTargets: Record<PlaceId, { offerId: string | null; scene: Edit
   'live-warnings': { offerId: 'weekly-reward-calendar', scene: { step: 1 } },
   // The same live calendar, with its autosave history open.
   history: { offerId: 'weekly-reward-calendar', scene: { step: 1, history: true } },
+  // A finished calendar on its Rewards step.
+  calendar: { offerId: 'whales-streak', scene: { step: 1 } },
+  // First-time setup: a new calendar, with the two-step header.
+  wizard: { offerId: null, scene: { step: 0 } },
+  // A calendar that already exists: its header is tabs.
+  tabs: { offerId: 'whales-streak', scene: { step: 0 } },
+  // An empty day on a draft opens the picker with the suggestion already chosen.
+  'ai-suggestion': { offerId: 'november-reward-calendar', scene: { step: 1, picker: { week: 0, day: 0 } } },
 }
 
 const HOUR = 3_600_000

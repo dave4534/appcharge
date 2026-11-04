@@ -1,23 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react'
 import { X } from 'lucide-react'
-import { Button, Icon, IconButton } from '../../design-system/components'
+import { Button } from '@/components/ui/button'
 import { walkthroughSteps } from './steps'
 import type { PlaceId } from './places'
 import './walkthrough.css'
 
-// A guide from the designer. It is self-contained on purpose: it takes no props and
-// does not touch the rest of the app, so it can be moved or removed in one line.
+// A guide from the designer. It stays out of the app's way: the app only hands it a way to
+// open places in the prototype, and it can be dragged anywhere on screen.
 const KEY = 'appcharge-prototype:walkthrough'
 
-type Saved = { seen: boolean; step: number }
+const AVATAR = 56 // circle size in px
+const MARGIN = 8 // keeps the circle off the window edge
+const GAP = 16 // between the circle and the card
+
+type Point = { x: number; y: number }
+type Saved = { seen: boolean; step: number; pos: Point | null }
 
 function load(): Saved {
   try {
     const saved = JSON.parse(window.localStorage.getItem(KEY) ?? 'null') as Partial<Saved> | null
     const step = typeof saved?.step === 'number' ? saved.step : 0
-    return { seen: saved?.seen === true, step: Math.min(Math.max(step, 0), walkthroughSteps.length - 1) }
+    const pos = saved?.pos && typeof saved.pos.x === 'number' && typeof saved.pos.y === 'number' ? saved.pos : null
+    return { seen: saved?.seen === true, step: Math.min(Math.max(step, 0), walkthroughSteps.length - 1), pos }
   } catch {
-    return { seen: false, step: 0 }
+    return { seen: false, step: 0, pos: null }
   }
 }
 
@@ -29,6 +35,42 @@ function save(value: Saved) {
   }
 }
 
+const clampToWindow = ({ x, y }: Point): Point => ({
+  x: Math.min(Math.max(x, MARGIN), Math.max(MARGIN, window.innerWidth - AVATAR - MARGIN)),
+  y: Math.min(Math.max(y, MARGIN), Math.max(MARGIN, window.innerHeight - AVATAR - MARGIN)),
+})
+
+const timeOfDay = () => {
+  const hour = new Date().getHours()
+  return hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
+}
+
+// Plain text with [label](url) links; {timeOfDay} becomes morning, afternoon or evening.
+function RichText({ text }: { text: string }) {
+  const parts: Array<string | { label: string; href: string }> = []
+  const pattern = /\[([^\]]+)\]\(([^)\s]+)\)/g
+  const source = text.replace('{timeOfDay}', timeOfDay())
+  let last = 0
+  for (const m of source.matchAll(pattern)) {
+    parts.push(source.slice(last, m.index), { label: m[1].trim(), href: m[2] })
+    last = m.index + m[0].length
+  }
+  parts.push(source.slice(last))
+  return (
+    <>
+      {parts.map((p, i) =>
+        typeof p === 'string' ? (
+          <Fragment key={i}>{p}</Fragment>
+        ) : (
+          <a key={i} href={p.href} target="_blank" rel="noreferrer">
+            {p.label}
+          </a>
+        ),
+      )}
+    </>
+  )
+}
+
 type WalkthroughProps = {
   // Opens a place in the prototype. The guide stays open and the reviewer stays in control.
   onShowPlace?: (id: PlaceId) => void
@@ -38,19 +80,56 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   const [initial] = useState(load)
   const [seen, setSeen] = useState(initial.seen)
   const [step, setStep] = useState(initial.step)
+  // Where the circle was dragged to. Null until then, so it keeps its default spot.
+  const [pos, setPos] = useState<Point | null>(() => (initial.pos ? clampToWindow(initial.pos) : null))
   // The place the reviewer last opened from this step, so its note can show.
   const [place, setPlace] = useState<PlaceId | null>(null)
   // First visit: open once on the first step. After that the guide stays closed.
   const [open, setOpen] = useState(!initial.seen)
-  const avatarRef = useRef<HTMLButtonElement>(null)
-  const panelRef = useRef<HTMLDivElement>(null)
+  // Which side of the circle the card sits on, and how tall it may be there.
+  const [layout, setLayout] = useState<{ below: boolean; alignRight: boolean; maxHeight: number }>({ below: false, alignRight: false, maxHeight: 480 })
 
-  useEffect(() => save({ seen, step }), [seen, step])
+  const rootRef = useRef<HTMLDivElement>(null)
+  const avatarRef = useRef<HTMLButtonElement>(null)
+  const drag = useRef<{ startX: number; startY: number; originX: number; originY: number; moved: boolean } | null>(null)
+  const justDragged = useRef(false)
+
+  useEffect(() => save({ seen, step, pos }), [seen, step, pos])
 
   // Opening counts as seeing it, so the hint goes away and it won't auto-open again.
   useEffect(() => {
     if (open) setSeen(true)
   }, [open])
+
+  // A smaller window can leave the circle out of view; pull it back in.
+  useEffect(() => {
+    const onResize = () => setPos((p) => (p ? clampToWindow(p) : p))
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
+  // Put the card on whichever side of the circle has more room, and cap its height to fit.
+  const place_ = useCallback(() => {
+    const root = rootRef.current
+    if (!root) return
+    const r = root.getBoundingClientRect()
+    const above = r.top - GAP - MARGIN
+    const below = window.innerHeight - r.bottom - GAP - MARGIN
+    const isBelow = below > above
+    setLayout({
+      below: isBelow,
+      alignRight: r.left + 360 > window.innerWidth - MARGIN,
+      maxHeight: Math.max(220, Math.min(isBelow ? below : above, 640)),
+    })
+  }, [])
+  useLayoutEffect(() => {
+    if (open) place_()
+  }, [open, pos, place_])
+  useEffect(() => {
+    if (!open) return
+    window.addEventListener('resize', place_)
+    return () => window.removeEventListener('resize', place_)
+  }, [open, place_])
 
   const close = useCallback(() => {
     setOpen(false)
@@ -58,10 +137,13 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   }, [])
 
   const last = walkthroughSteps.length - 1
-  const goTo = (i: number) => {
-    setPlace(null)
-    setStep(Math.min(Math.max(i, 0), last))
-  }
+  const goTo = useCallback(
+    (i: number) => {
+      setPlace(null)
+      setStep(Math.min(Math.max(i, 0), last))
+    },
+    [last],
+  )
 
   useEffect(() => {
     if (!open) return
@@ -74,81 +156,115 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
     }
     document.addEventListener('keydown', onKey)
     return () => document.removeEventListener('keydown', onKey)
-    // goTo only uses state setters and constants.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open, close, last, step])
+  }, [open, close, goTo, step])
+
+  // Dragging the circle moves the card with it. A small movement still counts as a click.
+  const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
+    if (e.button !== 0 || !rootRef.current) return
+    const rect = rootRef.current.getBoundingClientRect()
+    drag.current = { startX: e.clientX, startY: e.clientY, originX: rect.left, originY: rect.top, moved: false }
+    e.currentTarget.setPointerCapture(e.pointerId)
+  }
+  const onPointerMove = (e: PointerEvent<HTMLButtonElement>) => {
+    const d = drag.current
+    if (!d) return
+    const dx = e.clientX - d.startX
+    const dy = e.clientY - d.startY
+    if (!d.moved && Math.hypot(dx, dy) < 4) return
+    d.moved = true
+    setPos(clampToWindow({ x: d.originX + dx, y: d.originY + dy }))
+  }
+  const onPointerUp = () => {
+    if (drag.current?.moved) justDragged.current = true
+    drag.current = null
+  }
+  const onAvatarClick = () => {
+    if (justDragged.current) {
+      justDragged.current = false
+      return
+    }
+    if (open) close()
+    else setOpen(true)
+  }
 
   const current = walkthroughSteps[step]
   const activePlace = current.places?.find((p) => p.id === place)
 
   return (
-    <div className="walkthrough">
+    <div
+      className="walkthrough"
+      ref={rootRef}
+      style={pos ? { left: pos.x, top: pos.y, bottom: 'auto' } : undefined}
+    >
       {open && (
-        <div className="walkthrough-panel" role="dialog" aria-label="Designer’s walkthrough" ref={panelRef}>
-          <div className="walkthrough-close">
-            <IconButton
-              kind="Tertiary"
-              size="Small"
-              aria-label="Close walkthrough"
-              onClick={close}
-              iconElement={<Icon icon={X} size="Small" color="secondary" />}
-            />
-          </div>
-
-          <ol className="walkthrough-steps" aria-label="Steps">
-            {walkthroughSteps.map((s, i) => (
-              <li key={s.title}>
-                <button
-                  type="button"
-                  className="walkthrough-dash"
-                  data-active={i === step ? 'true' : 'false'}
-                  aria-label={`Step ${i + 1}: ${s.title}`}
-                  aria-current={i === step ? 'step' : undefined}
-                  onClick={() => goTo(i)}
-                />
-              </li>
-            ))}
-          </ol>
-
-          <div className="walkthrough-count">
-            {step + 1} of {walkthroughSteps.length}
-          </div>
-          <h2 className="walkthrough-title">{current.title}</h2>
-          <div className="walkthrough-body" aria-live="polite">
-            {current.body.map((p) => (
-              <p key={p}>{p}</p>
-            ))}
-          </div>
-
-          {current.places && onShowPlace && (
-            <div className="walkthrough-places">
-              <div className="walkthrough-places-label">Where to see it</div>
-              <div className="walkthrough-chips">
-                {current.places.map((p) => (
+        <div
+          className="walkthrough-panel"
+          role="dialog"
+          aria-label="Designer’s walkthrough"
+          data-below={layout.below}
+          data-align={layout.alignRight ? 'right' : 'left'}
+          style={{ maxHeight: layout.maxHeight }}
+        >
+          <div className="walkthrough-top">
+            <ol className="walkthrough-steps" aria-label="Steps">
+              {walkthroughSteps.map((s, i) => (
+                <li key={s.title}>
                   <button
-                    key={p.id}
                     type="button"
-                    className="walkthrough-chip"
-                    data-active={p.id === place ? 'true' : 'false'}
-                    aria-pressed={p.id === place}
-                    onClick={() => {
-                      setPlace(p.id)
-                      onShowPlace(p.id)
-                    }}
-                  >
-                    {p.label}
-                  </button>
-                ))}
-              </div>
-              {activePlace && <p className="walkthrough-place-note">{activePlace.note}</p>}
+                    className="walkthrough-dash"
+                    data-active={i === step ? 'true' : 'false'}
+                    aria-label={`Step ${i + 1}: ${s.title}`}
+                    aria-current={i === step ? 'step' : undefined}
+                    onClick={() => goTo(i)}
+                  />
+                </li>
+              ))}
+            </ol>
+            <Button variant="ghost" size="icon-sm" aria-label="Close walkthrough" onClick={close}>
+              <X />
+            </Button>
+          </div>
+
+          <div className="walkthrough-scroll" aria-live="polite">
+            <h2 className="walkthrough-title">{current.title}</h2>
+            <div className="walkthrough-body">
+              {current.body.map((p) => (
+                <p key={p}>
+                  <RichText text={p} />
+                </p>
+              ))}
             </div>
-          )}
+
+            {current.places && onShowPlace && (
+              <div className="walkthrough-places">
+                <div className="walkthrough-places-label">Where to see it</div>
+                <div className="walkthrough-chips">
+                  {current.places.map((p) => (
+                    <Button
+                      key={p.id}
+                      type="button"
+                      variant={p.id === place ? 'default' : 'outline'}
+                      className="rounded-full px-3 text-[15px]"
+                      aria-pressed={p.id === place}
+                      onClick={() => {
+                        setPlace(p.id)
+                        onShowPlace(p.id)
+                      }}
+                    >
+                      {p.label}
+                    </Button>
+                  ))}
+                </div>
+                {activePlace?.note && <p className="walkthrough-place-note">{activePlace.note}</p>}
+              </div>
+            )}
+          </div>
 
           <div className="walkthrough-actions">
-            <Button kind="Tertiary" size="Medium" disabled={step === 0} onClick={() => goTo(step - 1)}>
+            <Button variant="ghost" size="lg" className="text-[15px]" disabled={step === 0} onClick={() => goTo(step - 1)}>
               Back
             </Button>
-            <Button kind="Primary" size="Medium" onClick={() => (step === last ? close() : goTo(step + 1))}>
+            <Button size="lg" className="text-[15px]" onClick={() => (step === last ? close() : goTo(step + 1))}>
               {step === last ? 'Done' : 'Next'}
             </Button>
           </div>
@@ -162,9 +278,14 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
           className="walkthrough-avatar"
           aria-label={open ? 'Close the designer’s walkthrough' : 'Open the designer’s walkthrough'}
           aria-expanded={open}
-          onClick={() => (open ? close() : setOpen(true))}
+          title="Drag to move"
+          onPointerDown={onPointerDown}
+          onPointerMove={onPointerMove}
+          onPointerUp={onPointerUp}
+          onPointerCancel={onPointerUp}
+          onClick={onAvatarClick}
         >
-          <img src="/walkthrough/dave.svg" alt="" width={56} height={56} />
+          <img src="/walkthrough/dave.svg" alt="" draggable={false} />
         </button>
         {!seen && !open && <span className="walkthrough-hint">Walk me through it</span>}
       </div>

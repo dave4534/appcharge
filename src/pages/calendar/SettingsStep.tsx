@@ -212,7 +212,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
         />
       </Card>
 
-      <Card title="Audience" hint="Who sees this calendar.">
+      <Card id="settings-audience" title="Audience" hint="Who sees this calendar.">
         <RadioSection
           legend="Audience"
           inline

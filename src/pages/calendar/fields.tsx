@@ -13,9 +13,9 @@ import { TODAY, formatLong } from '../offers/dates'
 import { segmentOptions, type FieldError as FieldErrorInfo } from './settings'
 
 // A section of the form: a shadcn Card with a title and a hint.
-export function Card({ title, hint, children }: { title: string; hint: string; children: ReactNode }) {
+export function Card({ title, hint, children, id }: { title: string; hint: string; children: ReactNode; id?: string }) {
   return (
-    <UiCard>
+    <UiCard id={id}>
       <CardHeader>
         <CardTitle className="text-base">{title}</CardTitle>
         <CardDescription>{hint}</CardDescription>

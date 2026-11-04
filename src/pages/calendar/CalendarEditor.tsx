@@ -116,6 +116,13 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
     return () => clearTimeout(t)
   }, [toast])
 
+  // A place that sits further down the page scrolls into view once the editor has appeared.
+  useEffect(() => {
+    if (!scene?.scrollTo) return
+    const t = setTimeout(() => document.getElementById(scene.scrollTo!)?.scrollIntoView({ block: 'center' }), 250)
+    return () => clearTimeout(t)
+  }, [scene])
+
   const update = (patch: Partial<CalendarSettings>) => setSettings((s) => ({ ...s, ...patch }))
 
   const build = (status: Offer['status'], history: Version[] = versions): Offer => ({
@@ -437,6 +444,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
             onLayoutChange={onLayoutChange}
             onEditSettings={() => setStep(0)}
             live={started}
+            initialPicker={scene?.picker}
             showIssues={attempted}
           />
         )}
