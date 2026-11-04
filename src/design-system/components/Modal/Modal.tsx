@@ -7,6 +7,8 @@ import styles from './Modal.module.css';
 export type ModalSize = 'Small' | 'Medium' | 'Large';
 
 export interface ModalAction {
+  /** Colors the action as destructive (Button color Negative). Use for delete and clear. */
+  destructive?: boolean;
   label: string;
   onClick?: () => void;
   loading?: boolean;
@@ -131,6 +133,7 @@ export function Modal({
           {primaryAction ? (
             <Button
               kind="Primary"
+              color={primaryAction.destructive ? 'Negative' : 'Primary'}
               size="Medium"
               onClick={primaryAction.onClick}
               loading={primaryAction.loading}

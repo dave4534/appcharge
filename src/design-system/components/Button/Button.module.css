@@ -68,6 +68,47 @@
   background-color: var(--brand-hover-color);
 }
 
+/* Color: Negative (destructive). Matches the Figma Button, Color=Negative. */
+.button--color-negative.button--kind-primary {
+  background-color: var(--negative-color);
+  color: var(--text-color-on-primary);
+}
+
+.button--color-negative.button--kind-primary:hover:not(:disabled) {
+  background-color: var(--negative-color-hover);
+}
+
+.button--color-negative.button--kind-secondary {
+  border-color: var(--negative-color);
+  color: var(--negative-color);
+}
+
+.button--color-negative.button--kind-secondary:hover:not(:disabled) {
+  background-color: var(--negative-color-selected);
+}
+
+.button--color-negative.button--kind-tertiary {
+  color: var(--negative-color);
+}
+
+.button--color-negative.button--kind-tertiary:hover:not(:disabled) {
+  background-color: var(--negative-color-selected);
+}
+
+.button--color-negative.button--loading.button--kind-primary:disabled {
+  background-color: var(--negative-color);
+  color: var(--text-color-on-primary);
+}
+
+.button--color-negative.button--loading.button--kind-secondary:disabled {
+  border-color: var(--negative-color);
+  color: var(--negative-color);
+}
+
+.button--color-negative.button--loading.button--kind-tertiary:disabled {
+  color: var(--negative-color);
+}
+
 /* Size */
 .button--size-xs {
   height: 24px;

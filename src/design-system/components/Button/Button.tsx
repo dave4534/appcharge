@@ -2,12 +2,16 @@ import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import styles from './Button.module.css';
 
 export type ButtonKind = 'Primary' | 'Secondary' | 'Tertiary' | 'Brand';
+// Negative is the destructive state: delete, clear, remove.
+export type ButtonColor = 'Primary' | 'Negative';
 export type ButtonSize = 'XS' | 'Small' | 'Medium' | 'Large';
 export type ButtonIcon = 'Default' | 'Left' | 'Right';
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   /** Figma: Kind */
   kind?: ButtonKind;
+  /** Figma: Color. Use Negative for destructive actions. Applies to Primary, Secondary and Tertiary. */
+  color?: ButtonColor;
   /** Figma: Size */
   size?: ButtonSize;
   /** Figma: Icon */
@@ -27,6 +31,11 @@ const kindClass: Record<ButtonKind, string> = {
   Brand: styles['button--kind-brand'],
 };
 
+const colorClass: Record<ButtonColor, string> = {
+  Primary: '',
+  Negative: styles['button--color-negative'],
+};
+
 const sizeClass: Record<ButtonSize, string> = {
   XS: styles['button--size-xs'],
   Small: styles['button--size-small'],
@@ -36,6 +45,7 @@ const sizeClass: Record<ButtonSize, string> = {
 
 export function Button({
   kind = 'Primary',
+  color = 'Primary',
   size = 'Medium',
   icon = 'Default',
   children = 'Button',
@@ -51,6 +61,7 @@ export function Button({
   const classes = [
     styles.button,
     kindClass[kind],
+    colorClass[color],
     sizeClass[size],
     icon === 'Left' ? styles['button--icon-left'] : '',
     icon === 'Right' ? styles['button--icon-right'] : '',

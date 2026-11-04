@@ -323,8 +323,14 @@
   position: absolute;
   top: 4px;
   right: 4px;
+  /* The destructive Primary button colors: red, a darker red on hover. */
   background: var(--negative-color);
   opacity: 0;
+}
+
+.tile .tile-delete:hover:not(:disabled),
+.tile .tile-delete:focus-visible {
+  background: var(--negative-color-hover);
 }
 
 .tile:hover .tile-delete,

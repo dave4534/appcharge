@@ -298,6 +298,8 @@ export function RewardsStep({
           secondaryAction={{ label: 'Cancel', onClick: () => setConfirm(null) }}
           primaryAction={{
             label: confirm.label,
+            // Every confirmation here removes something, so the action is destructive.
+            destructive: true,
             onClick: () => {
               confirm.run()
               setConfirm(null)
