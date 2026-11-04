@@ -56,6 +56,7 @@ export default function App() {
           <CalendarEditor
             key={editing.offerId ?? 'new'}
             offer={offers.find((o) => o.id === editing.offerId) ?? null}
+            offers={offers}
             onSave={saveOffer}
             onFinish={(finished, message) => {
               saveOffer(finished)

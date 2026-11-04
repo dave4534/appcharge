@@ -121,7 +121,7 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
     setAudience('all')
   }
 
-  const viewProps = { offers: visible, priorityOf, canReorder, onMove: move, onOpen, onDelete: setDeleting }
+  const viewProps = { offers: visible, priorityOf, canReorder, onMove: move, onOpen, onDelete: setDeleting, allOffers: offers }
 
   const confirmDelete = (offer: Offer) => {
     onChange(offers.filter((o) => o.id !== offer.id))

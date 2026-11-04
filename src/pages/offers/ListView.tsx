@@ -13,9 +13,11 @@ type ListViewProps = {
   onMove: (id: string, targetId: string, after: boolean) => void
   onOpen: (id: string) => void
   onDelete: (offer: Offer) => void
+  // Every offer, whatever the filters hide, so overlaps are found against all of them.
+  allOffers: Offer[]
 }
 
-export function ListView({ offers, priorityOf, canReorder, onMove, onOpen, onDelete }: ListViewProps) {
+export function ListView({ offers, priorityOf, canReorder, onMove, onOpen, onDelete, allOffers }: ListViewProps) {
   const reorder = useReorder(
     offers.map((o) => o.id),
     canReorder,
@@ -61,7 +63,7 @@ export function ListView({ offers, priorityOf, canReorder, onMove, onOpen, onDel
               )}
             </div>
             <div className="col-readiness">
-              <ReadinessCell offer={offer} />
+              <ReadinessCell offer={offer} offers={allOffers} />
             </div>
             <div className="col-status">
               <StatusPill status={offer.status} />

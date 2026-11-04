@@ -267,13 +267,13 @@
 }
 
 .tile--empty:hover,
-.tile--empty:focus-within {
+.tile--empty:has(:focus-visible) {
   border-color: var(--primary-color);
   background: var(--primary-highlighted-color);
 }
 
 .tile--empty:hover .tile-cta,
-.tile--empty:focus-within .tile-cta {
+.tile--empty:has(:focus-visible) .tile-cta {
   opacity: 1;
 }
 
@@ -329,12 +329,12 @@
 }
 
 .tile:hover .tile-delete,
-.tile:focus-within .tile-delete {
+.tile:has(:focus-visible) .tile-delete {
   opacity: 1;
 }
 
 .tile:hover .tile-flag,
-.tile:focus-within .tile-flag {
+.tile:has(:focus-visible) .tile-flag {
   display: none;
 }
 

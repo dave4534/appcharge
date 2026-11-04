@@ -1,8 +1,8 @@
-import { dayDiff } from '../offers/dates'
+import { dayDiff, formatDay } from '../offers/dates'
 import type { Offer } from '../offers/data'
 import { ensureWeeks, weekCountFor } from './rewards/plan'
 import { emptyActiveDays, validatePlan, DAYS_PER_WEEK, type RewardWeek } from './rewards/rules'
-import { emptySettings, validate, type CalendarSettings } from './settings'
+import { audienceOf, emptySettings, validate, type CalendarSettings } from './settings'
 
 // How ready a calendar is to publish. It never blocks publishing, except that the
 // required Settings must be filled in. Everything else is risk the user can accept.
@@ -20,6 +20,8 @@ export type Readiness = {
   // 0 to 100.
   percent: number
   items: ReadyItem[]
+  // Other calendars this one runs at the same time for the same audience.
+  overlaps: Offer[]
   // Counts the rewards screen shows in its summary banner.
   emptyDays: number
   // Days inside the date range that have a reward.
@@ -28,15 +30,35 @@ export type Readiness = {
   unusualDays: number
 }
 
-// Settings count for 40%, having a reward on every day for 40% and sensible values for
-// 20%. Schedule overlap is not checked yet, so it does not count.
-const WEIGHTS = { settings: 40, days: 40, values: 20 }
+// Settings and having a reward on every day count for 35% each, sensible values for 20%
+// and having no schedule overlap for 10%.
+const WEIGHTS = { settings: 35, days: 35, values: 20, overlap: 10 }
 // The most things validate() can report as missing.
 const SETTINGS_FIELDS = 8
 
 const plural = (n: number, one: string, many: string) => `${n} ${n === 1 ? one : many}`
 
-export function readinessOf(settings: CalendarSettings, rewards: RewardWeek[], days: number): Readiness {
+// What a calendar is checked against: the other offers, and which one this is.
+export type ReadinessContext = { offers: Offer[]; selfId: string | null }
+
+// Scheduled or live calendars for the same audience whose dates run at the same time.
+function overlapsOf(settings: CalendarSettings, context?: ReadinessContext): Offer[] {
+  if (!context || !settings.startDate || !settings.endDate) return []
+  const audience = audienceOf(settings).audience
+  return context.offers.filter(
+    (o) =>
+      o.id !== context.selfId &&
+      o.type === 'reward-calendar' &&
+      o.status !== 'draft' &&
+      o.audience === audience &&
+      !!o.start &&
+      !!o.end &&
+      o.start <= settings.endDate &&
+      o.end >= settings.startDate,
+  )
+}
+
+export function readinessOf(settings: CalendarSettings, rewards: RewardWeek[], days: number, context?: ReadinessContext): Readiness {
   // Settings
   const { missing, valid } = validate(settings)
   const settingsFraction = valid ? 1 : Math.max(0, 1 - missing.length / SETTINGS_FIELDS)
@@ -89,20 +111,31 @@ export function readinessOf(settings: CalendarSettings, rewards: RewardWeek[], d
     valuesItem = { id: 'values', label: 'Reward values', status: 'ready', detail: 'Amounts grow as expected' }
   }
 
-  const overlapItem: ReadyItem = {
-    id: 'overlap',
-    label: 'Schedule overlap',
-    status: 'unchecked',
-    detail: settings.startDate ? 'Not checked yet' : 'Needs a start date',
+  // Schedule overlap only shows up when there is one, and says which calendar it is.
+  const overlaps = overlapsOf(settings, context)
+  const items: ReadyItem[] = [settingsItem, daysItem, valuesItem]
+  if (overlaps.length > 0) {
+    const first = overlaps[0]
+    const more = overlaps.length > 1 ? ` and ${overlaps.length - 1} more` : ''
+    items.push({
+      id: 'overlap',
+      label: 'Schedule overlap',
+      status: 'warning',
+      detail: `Runs at the same time as ${first.name} (${formatDay(first.start!)} to ${formatDay(first.end!)})${more}`,
+    })
   }
 
   const percent = Math.round(
-    WEIGHTS.settings * settingsFraction + WEIGHTS.days * daysFraction + WEIGHTS.values * valuesFraction,
+    WEIGHTS.settings * settingsFraction +
+      WEIGHTS.days * daysFraction +
+      WEIGHTS.values * valuesFraction +
+      (overlaps.length === 0 ? WEIGHTS.overlap : 0),
   )
 
   return {
     percent,
-    items: [settingsItem, daysItem, valuesItem, overlapItem],
+    items,
+    overlaps,
     emptyDays: empty.length,
     filledDays: filled,
     emptyWeeks,
@@ -111,9 +144,9 @@ export function readinessOf(settings: CalendarSettings, rewards: RewardWeek[], d
 }
 
 // Readiness for a calendar in the offers list. Other offer types are not modeled.
-export function readinessOfOffer(offer: Offer): Readiness | null {
+export function readinessOfOffer(offer: Offer, offers: Offer[]): Readiness | null {
   if (offer.type !== 'reward-calendar') return null
   const settings = offer.settings ?? { ...emptySettings, name: offer.name, startDate: offer.start ?? '', endDate: offer.end ?? '' }
   const days = settings.startDate && settings.endDate ? Math.max(0, dayDiff(settings.startDate, settings.endDate) + 1) : 0
-  return readinessOf(settings, offer.rewards ?? [], days)
+  return readinessOf(settings, offer.rewards ?? [], days, { offers, selfId: offer.id })
 }

@@ -38,12 +38,12 @@ export function ReadinessPopover({ readiness, open, onOpenChange, confirmLabel, 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger className="readiness-trigger" aria-label={`Readiness: ${readiness.percent}% ready`}>
-        <ReadinessDonut percent={readiness.percent} size={32} />
+        <ReadinessDonut percent={readiness.percent} size={26} />
       </PopoverTrigger>
 
       <PopoverContent align="end" sideOffset={10} className="readiness-popover w-[380px] gap-0 p-0">
         <div className="readiness-head">
-          <ReadinessDonut percent={readiness.percent} size={44} />
+          <ReadinessDonut percent={readiness.percent} size={36} />
           <div>
             <div className="readiness-title">Readiness</div>
             <div className="readiness-sub">{complete ? 'Ready to publish' : `${readiness.percent}% ready`}</div>

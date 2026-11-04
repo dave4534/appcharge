@@ -39,6 +39,8 @@ const EDITOR_STEPS = [
 ]
 
 type CalendarEditorProps = {
+  // Every offer, so Readiness can spot calendars that overlap this one.
+  offers: Offer[]
   // The draft being reopened, or null for a new calendar.
   offer: Offer | null
   onSave: (offer: Offer) => void
@@ -59,7 +61,7 @@ const settingsOf = (offer: Offer | null): CalendarSettings => {
   )
 }
 
-export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEditorProps) {
+export function CalendarEditor({ offer, offers, onSave, onFinish, onClose }: CalendarEditorProps) {
   const [settings, setSettings] = useState(() => settingsOf(offer))
   const [rewards, setRewards] = useState<RewardWeek[]>(() => offer?.rewards ?? [])
   const [offerId, setOfferId] = useState(offer?.id ?? null)
@@ -127,6 +129,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
     onSave(next)
     setOfferId(next.id)
     setSavedAs(snapshot)
+    return next
   }
 
   // Everything is saved as a draft shortly after each change, so closing the page
@@ -139,9 +142,9 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [snapshot])
 
+  // Saving a draft takes the user back to the offers list.
   const saveDraft = () => {
-    persist()
-    setToast({ message: 'Draft saved', description: 'Your changes have been saved.', kind: 'success' })
+    onFinish(persist(), 'Draft saved')
   }
 
   const close = () => {
@@ -153,6 +156,8 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
 
   const here = (): Snap => ({ rewards, endDate: settings.endDate })
   const record = () => {
+    // Problems are called out when Publish is clicked, and clear as soon as the user edits.
+    setAttempted(false)
     setPast((p) => [...p.slice(-49), here()])
     setFuture([])
   }
@@ -184,6 +189,7 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   const undo = () => {
     const last = past[past.length - 1]
     if (!last) return setToast({ message: 'Nothing to undo.', kind: 'info' })
+    setAttempted(false)
     setPast(past.slice(0, -1))
     setFuture((f) => [...f, here()])
     restore(last)
@@ -192,12 +198,13 @@ export function CalendarEditor({ offer, onSave, onFinish, onClose }: CalendarEdi
   const redo = () => {
     const next = future[future.length - 1]
     if (!next) return setToast({ message: 'Nothing to redo.', kind: 'info' })
+    setAttempted(false)
     setFuture(future.slice(0, -1))
     setPast((p) => [...p, here()])
     restore(next)
   }
 
-  const readiness = readinessOf(settings, rewards, days)
+  const readiness = readinessOf(settings, rewards, days, { offers, selfId: offerId })
 
   // Publishing is never blocked by open items, but below 100% the readiness checklist
   // opens first so the risk is clear. "Publish anyway" in it carries on.

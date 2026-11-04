@@ -24,11 +24,15 @@ const pct = (days: number) => `${(days / TIMELINE_DAYS) * 100}%`
 
 const weekStarts = Array.from({ length: TIMELINE_DAYS / 7 }, (_, i) => i * 7)
 
+// Bars sit a few pixels inside their days, so they never touch the edge of the track
+// or the bar before or after them.
+const GAP = 4
+
 // Clamp a run of days to the visible range, or return null when it is out of view.
 function span(startDay: number, length: number) {
   const from = Math.max(startDay, 0)
   const to = Math.min(startDay + length, TIMELINE_DAYS)
-  return to > from ? { left: pct(from), width: pct(to - from) } : null
+  return to > from ? { left: `calc(${pct(from)} + ${GAP}px)`, width: `calc(${pct(to - from)} - ${GAP * 2}px)` } : null
 }
 
 function Track({ children }: { children?: ReactNode }) {
@@ -38,7 +42,7 @@ function Track({ children }: { children?: ReactNode }) {
 function Bars({ offer, from }: { offer: Offer; from: string }) {
   if (!offer.start || !offer.end) {
     return (
-      <div className="tl-bar tl-empty" style={{ left: '1%', width: '54%' }}>
+      <div className="tl-bar tl-empty" style={{ left: `calc(1% + ${GAP}px)`, width: '54%' }}>
         <span>Draft, no dates yet. Set a date range in Settings.</span>
       </div>
     )

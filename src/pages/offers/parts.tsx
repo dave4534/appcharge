@@ -93,13 +93,13 @@ export function OfferTitle({ offer, onOpen }: { offer: Offer; onOpen: (id: strin
 }
 
 // How ready a reward calendar is to run. Other offer types are not rated.
-export function ReadinessCell({ offer }: { offer: Offer }) {
-  const readiness = readinessOfOffer(offer)
+export function ReadinessCell({ offer, offers }: { offer: Offer; offers: Offer[] }) {
+  const readiness = readinessOfOffer(offer, offers)
   if (!readiness) return <span className="muted">–</span>
   const ready = readiness.percent >= 100
   return (
     <span className="readiness-cell" title={readiness.items.map((i) => `${i.label}: ${i.detail}`).join('\n')}>
-      <ReadinessDonut percent={readiness.percent} size={24} />
+      <ReadinessDonut percent={readiness.percent} size={20} />
       {ready ? 'Ready' : `${readiness.percent}% ready`}
     </span>
   )
