@@ -124,15 +124,6 @@ body {
   line-height: 1;
 }
 
-.store {
-  display: flex;
-  align-items: center;
-  gap: var(--space-8);
-  padding: 6px var(--space-8);
-  margin-bottom: var(--space-16);
-  font-weight: var(--font-weight-medium);
-}
-
 .nav-section + .nav-section {
   margin-top: var(--space-8);
 }
