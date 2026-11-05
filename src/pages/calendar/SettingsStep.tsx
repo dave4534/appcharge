@@ -72,7 +72,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
         title="Schedule"
         hint="When the calendar is available to players. Its length follows these dates and can be adjusted on the Rewards step."
       >
-        <div className="grid items-end gap-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
+        <div className="grid items-start gap-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
           <DateRangeField
             start={s.startDate}
             end={s.endDate}
@@ -92,7 +92,7 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
             onChange={(startTime) => onChange({ startTime })}
             onBlur={() => touch('startTime')}
           />
-          <span className="hidden pb-2 text-center text-muted-foreground sm:block" aria-hidden="true">
+          <span className="mt-7 hidden text-center text-muted-foreground sm:block" aria-hidden="true">
             –
           </span>
           <TimeField
