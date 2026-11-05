@@ -1,22 +1,25 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { CalendarIcon, InfoIcon, XIcon } from 'lucide-react'
+import { CalendarIcon, InfoIcon } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Calendar } from '@/components/ui/calendar'
 import { Card as UiCard, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/components/ui/field'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
-import { SelectCombobox } from '@/components/SelectCombobox'
 import {
   Combobox,
+  ComboboxChip,
+  ComboboxChips,
+  ComboboxChipsInput,
   ComboboxContent,
   ComboboxEmpty,
   ComboboxInput,
   ComboboxItem,
   ComboboxList,
+  ComboboxValue,
+  useComboboxAnchor,
 } from '@/components/ui/combobox'
 import { TODAY, formatLong } from '../offers/dates'
 import { segmentOptions, type FieldError as FieldErrorInfo } from './settings'
@@ -269,39 +272,47 @@ type SegmentPickerProps = {
   onChange: (names: string[]) => void
 }
 
-// A Combobox that adds segments, with removable Badges showing what is selected.
+// The segments picker: a multiple combobox, with each chosen segment shown as a removable chip.
 export function SegmentPicker({ selected, error, onChange }: SegmentPickerProps) {
-  const remaining = segmentOptions
-    .filter((s) => !selected.includes(s.name))
-    .map((s) => ({ value: s.name, label: `${s.name} (${s.size.toLocaleString('en-US')})` }))
+  const anchor = useComboboxAnchor()
+  const sizeOf = (name: string) => segmentOptions.find((s) => s.name === name)?.size ?? 0
+  const names = segmentOptions.map((s) => s.name)
 
   return (
     <Field data-invalid={!!error || undefined}>
-      <SelectCombobox
-        aria-label="Add a segment"
-        placeholder={selected.length === 0 ? 'Select segments' : 'Add another segment'}
-        invalid={!!error}
-        value=""
-        options={remaining}
-        onChange={(name) => onChange([...selected, name])}
-      />
-      {selected.length > 0 && (
-        <div className="flex flex-wrap gap-2">
-          {selected.map((name) => (
-            <Badge key={name} variant="secondary" className="h-6 gap-1 pr-1 text-sm">
-              {name}
-              <button
-                type="button"
-                className="grid size-4 cursor-pointer place-items-center rounded-full hover:bg-black/10"
-                aria-label={`Remove ${name}`}
-                onClick={() => onChange(selected.filter((n) => n !== name))}
-              >
-                <XIcon />
-              </button>
-            </Badge>
-          ))}
-        </div>
-      )}
+      <Combobox
+        multiple
+        autoHighlight
+        items={names}
+        value={selected}
+        onValueChange={(values) => onChange(values as string[])}
+      >
+        <ComboboxChips ref={anchor} aria-invalid={!!error || undefined}>
+          <ComboboxValue>
+            {(values: string[]) => (
+              <>
+                {values.map((name) => (
+                  <ComboboxChip key={name}>{name}</ComboboxChip>
+                ))}
+                <ComboboxChipsInput
+                  aria-label="Add a segment"
+                  placeholder={selected.length === 0 ? 'Select segments' : ''}
+                />
+              </>
+            )}
+          </ComboboxValue>
+        </ComboboxChips>
+        <ComboboxContent anchor={anchor}>
+          <ComboboxEmpty>No segments found.</ComboboxEmpty>
+          <ComboboxList>
+            {(name: string) => (
+              <ComboboxItem key={name} value={name}>
+                {name} ({sizeOf(name).toLocaleString('en-US')})
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
       {error && <FieldError>{error.message}</FieldError>}
     </Field>
   )
