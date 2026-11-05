@@ -6,7 +6,6 @@ import { TopBar } from './components/TopBar'
 import { Walkthrough } from './components/walkthrough/Walkthrough'
 import { demoVersions, placeTargets, type EditorScene, type PlaceId } from './components/walkthrough/places'
 import { navSections } from './components/nav'
-import { loadOffers, saveOffers } from './lib/storage'
 import { CalendarEditor } from './pages/calendar/CalendarEditor'
 import { initialOffers, type Offer } from './pages/offers/data'
 import { OffersPage } from './pages/offers/OffersPage'
@@ -21,15 +20,11 @@ type Editing = { offerId: string | null; scene?: EditorScene; nonce?: number } |
 
 export default function App() {
   const [activeId, setActiveId] = useState('reward-calendars')
-  // A first visit starts with no offers, so the empty state is the first thing seen. Browsers
-  // that already saved offers get them back. ?demo starts from the sample calendars instead,
-  // and ?empty shows the empty state without saving over what this browser holds.
-  const [preview] = useState(() => new URLSearchParams(window.location.search).has('empty'))
-  const [offers, setOffers] = useState<Offer[]>(() => {
-    if (preview) return []
-    if (new URLSearchParams(window.location.search).has('demo')) return initialOffers
-    return loadOffers([])
-  })
+  // Every load and refresh opens on the empty state: offers live only as long as the page is
+  // open and are not restored next time. ?demo starts from the sample calendars instead.
+  const [offers, setOffers] = useState<Offer[]>(() =>
+    new URLSearchParams(window.location.search).has('demo') ? initialOffers : [],
+  )
   const [editing, setEditing] = useState<Editing>(null)
   const [notice, setNotice] = useState<{ message: string; description?: string } | null>(null)
   const [mcpOpen, setMcpOpen] = useState(false)
@@ -39,11 +34,6 @@ export default function App() {
     const t = setTimeout(() => setNotice(null), 3500)
     return () => clearTimeout(t)
   }, [notice])
-
-  // Everything is saved as it changes, so a closed tab never loses a draft.
-  useEffect(() => {
-    if (!preview) saveOffers(offers)
-  }, [offers, preview])
 
   // A new draft joins the end of the list, so it gets the lowest priority, unless the
   // user already placed it among the other calendars (`rank` counts calendars only).

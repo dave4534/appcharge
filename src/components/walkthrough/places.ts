@@ -24,13 +24,23 @@ export type EditorScene = {
   scrollTo?: string
   // Opens the reward picker on this day (zero-based week and day).
   picker?: { week: number; day: number }
+  // Fills in some Settings and shows every problem, as if Next was clicked on a half-finished calendar.
+  prefill?: Partial<CalendarSettings>
+  validate?: boolean
 }
 
 export const placeTargets: Record<PlaceId, { offerId: string | null; scene: EditorScene }> = {
   // Settings, scrolled to the Audience card, on a draft that targets a segment.
   segmentation: { offerId: 'november-reward-calendar', scene: { step: 0, scrollTo: 'settings-audience' } },
-  // A new calendar: nothing is chosen yet, so Settings shows what is still needed.
-  validation: { offerId: null, scene: { step: 0 } },
+  // A half-finished new calendar with its problems already showing.
+  validation: {
+    offerId: null,
+    scene: {
+      step: 0,
+      validate: true,
+      prefill: { name: 'Spring Streak', startDate: '2026-11-10', missedDay: 'weekly', popupTrigger: 'automatic' },
+    },
+  },
   // A draft whose Settings are done: the checklist lists what is still open on Rewards.
   readiness: { offerId: 'november-reward-calendar', scene: { step: 1, readiness: true } },
   // A calendar players are on: Rewards says so and shows who each week reaches.

@@ -76,7 +76,7 @@ const settingsOf = (offer: Offer | null): CalendarSettings => {
 }
 
 export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onClose, scene }: CalendarEditorProps) {
-  const [settings, setSettings] = useState(() => settingsOf(offer))
+  const [settings, setSettings] = useState(() => ({ ...settingsOf(offer), ...scene?.prefill }))
   const [rewards, setRewards] = useState<RewardWeek[]>(() => offer?.rewards ?? [])
   const [offerId, setOfferId] = useState(offer?.id ?? null)
   // A calendar whose settings are already complete opens straight on its rewards.
@@ -94,7 +94,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
   // Problems are only called out once the user has tried to publish.
   const [attempted, setAttempted] = useState(false)
   // Set when Next is clicked while Settings is incomplete, which shows every problem at once.
-  const [triedNext, setTriedNext] = useState(0)
+  const [triedNext, setTriedNext] = useState(scene?.validate ? 1 : 0)
   // A scheduled or live calendar with complete Settings is already set up, so its two
   // sections are tabs rather than steps. Decided when it opens, so editing never swaps them.
   const [tabbed] = useState(() => !!offer && offer.status !== 'draft' && validate(settingsOf(offer)).valid)
