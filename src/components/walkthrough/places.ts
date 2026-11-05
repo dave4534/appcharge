@@ -80,6 +80,6 @@ export function demoVersions(offer: Offer): Version[] {
     settings: { ...offer.settings!, ...patch },
     rewards: offer.rewards!,
   }))
-  versions.push({ n: versions.length + 1, savedAt: now - 2 * HOUR, by: 'Dave', settings: offer.settings, rewards: offer.rewards })
+  versions.push({ n: versions.length + 1, savedAt: now - 2 * HOUR, by: 'Jonathan', settings: offer.settings, rewards: offer.rewards })
   return versions
 }

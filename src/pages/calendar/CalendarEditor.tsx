@@ -100,7 +100,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
   const [tabbed] = useState(() => !!offer && offer.status !== 'draft' && validate(settingsOf(offer)).valid)
   // A calendar opened without history starts at version 1, as it looked when opened.
   const [versions, setVersions] = useState<Version[]>(() =>
-    offer?.versions ?? (offer ? [{ n: 1, savedAt: Date.now(), by: 'Dave', settings: settingsOf(offer), rewards: offer.rewards ?? [] }] : []),
+    offer?.versions ?? (offer ? [{ n: 1, savedAt: Date.now(), by: 'Jonathan', settings: settingsOf(offer), rewards: offer.rewards ?? [] }] : []),
   )
 
   const snapshot = JSON.stringify({ settings, rewards })
@@ -166,7 +166,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
     let history = versions
     if (snapshot !== savedAs) {
       const n = (history[history.length - 1]?.n ?? 0) + 1
-      history = [...history, { n, savedAt: Date.now(), by: 'Dave', settings, rewards }].slice(-MAX_VERSIONS)
+      history = [...history, { n, savedAt: Date.now(), by: 'Jonathan', settings, rewards }].slice(-MAX_VERSIONS)
       setVersions(history)
     }
     const next = build(status, history)
