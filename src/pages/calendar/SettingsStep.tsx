@@ -7,7 +7,7 @@ import { Field as FormField, FieldError as FormError, FieldLabel as FormLabel } 
 import { Input } from '@/components/ui/input'
 import { TODAY, formatDay } from '../offers/dates'
 import type { Offer } from '../offers/data'
-import { Card, DateField, RadioSection, SegmentPicker, TimeField } from './fields'
+import { Card, DateRangeField, RadioSection, SegmentPicker, TimeField } from './fields'
 import { PrioritySection, type PriorityItem } from './PrioritySection'
 import {
   EXAMPLE_WEEKS,
@@ -39,8 +39,6 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
   // Required-field errors wait until the field has been visited; wrong values show at once.
   const [touched, setTouched] = useState<Partial<Record<Field, boolean>>>({})
   const [changingZone, setChangingZone] = useState(false)
-  // Choosing a start date opens the end date picker next.
-  const [endOpen, setEndOpen] = useState(false)
   // Closing the overlap notice hides it until the overlap itself changes.
   const [dismissed, setDismissed] = useState('')
   const overlapKey = overlaps.map((o) => `${o.id}:${s.startDate}:${s.endDate}`).join('|')
@@ -74,34 +72,27 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
         title="Schedule"
         hint="When the calendar is available to players. Its length follows these dates and can be adjusted on the Rewards step."
       >
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-[1.6fr_1fr_1.6fr_1fr]">
-          <DateField
-            label="Start date"
-            value={s.startDate}
-            error={errorFor('startDate')}
-            minDate={live ? undefined : TODAY}
-            onChange={(startDate) => {
-              onChange({ startDate })
-              setTimeout(() => setEndOpen(true), 80)
-            }}
-            onBlur={() => touch('startDate')}
-          />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="sm:col-span-2">
+            <DateRangeField
+              start={s.startDate}
+              end={s.endDate}
+              startError={errorFor('startDate')}
+              endError={errorFor('endDate')}
+              minDate={live ? undefined : TODAY}
+              onChange={(startDate, endDate) => onChange({ startDate, endDate })}
+              onBlur={() => {
+                touch('startDate')
+                touch('endDate')
+              }}
+            />
+          </div>
           <TimeField
             label="Start time"
             value={s.startTime}
             error={errorFor('startTime')}
             onChange={(startTime) => onChange({ startTime })}
             onBlur={() => touch('startTime')}
-          />
-          <DateField
-            label="End date"
-            value={s.endDate}
-            error={errorFor('endDate')}
-            minDate={s.startDate && s.startDate > TODAY ? s.startDate : TODAY}
-            open={endOpen}
-            onOpenChange={setEndOpen}
-            onChange={(endDate) => onChange({ endDate })}
-            onBlur={() => touch('endDate')}
           />
           <TimeField
             label="End time"

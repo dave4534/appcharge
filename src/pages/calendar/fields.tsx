@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import { CalendarIcon, InfoIcon, XIcon } from 'lucide-react'
+import type { DateRange } from 'react-day-picker'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -37,52 +38,76 @@ const fromDate = (date: Date) => {
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`
 }
 
-type DateFieldProps = {
-  label: string
-  value: string
-  error?: FieldErrorInfo
+type DateRangeFieldProps = {
+  start: string
+  end: string
+  startError?: FieldErrorInfo
+  endError?: FieldErrorInfo
   // Days before this one are greyed out and can't be picked.
   minDate?: string
-  // Lets the form open this picker itself, for example the end date after the start date.
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
-  onChange: (value: string) => void
+  onChange: (start: string, end: string) => void
   onBlur: () => void
 }
 
-// A date: a button that opens the shadcn Calendar in a popover.
-export function DateField({ label, value, error, minDate, open: controlledOpen, onOpenChange, onChange, onBlur }: DateFieldProps) {
-  const [ownOpen, setOwnOpen] = useState(false)
-  const open = controlledOpen ?? ownOpen
-  const setOpen = (next: boolean) => (onOpenChange ? onOpenChange(next) : setOwnOpen(next))
-  const date = toDate(value)
+// One date range: the start and end days are picked on the same calendar, which stays open
+// until both are chosen.
+export function DateRangeField({ start, end, startError, endError, minDate, onChange, onBlur }: DateRangeFieldProps) {
+  const [open, setOpen] = useState(false)
+  // The range being picked while the calendar is open. It is saved once both days are chosen,
+  // or when the calendar closes, so the form never holds a half-picked range.
+  const [picking, setPicking] = useState<DateRange | undefined>(undefined)
+  const error = startError ?? endError
+  const saved: DateRange | undefined = start ? { from: toDate(start), to: toDate(end || start) } : undefined
+  const label = start && end ? `${formatLong(start)} – ${formatLong(end)}` : start ? formatLong(start) : 'Pick a date range'
+
+  const commit = (range: DateRange | undefined) => {
+    if (!range?.from) return
+    const from = range.from
+    const to = range.to ?? range.from
+    // Keep the earlier day first, whichever order the calendar gave them in.
+    const [first, last] = from <= to ? [from, to] : [to, from]
+    onChange(fromDate(first), fromDate(last))
+  }
+
   return (
     <Field data-invalid={!!error || undefined}>
-      <FieldLabel>{label}</FieldLabel>
+      <FieldLabel>Dates</FieldLabel>
       <Popover
         open={open}
         onOpenChange={(next) => {
+          if (next) {
+            setPicking(saved)
+          } else {
+            commit(picking)
+            setPicking(undefined)
+            onBlur()
+          }
           setOpen(next)
-          if (!next) onBlur()
         }}
       >
         <PopoverTrigger
-          render={<Button variant="outline" className="w-full justify-start font-normal" aria-label={label} aria-invalid={!!error || undefined} />}
+          render={<Button variant="outline" className="w-full justify-start font-normal" aria-label="Dates" aria-invalid={!!error || undefined} />}
         >
           <CalendarIcon data-icon="inline-start" />
-          {date ? formatLong(value) : <span className="text-muted-foreground">Select a date</span>}
+          {start ? label : <span className="text-muted-foreground">{label}</span>}
         </PopoverTrigger>
         <PopoverContent align="start" className="w-auto p-0">
           <Calendar
-            mode="single"
-            selected={date}
-            defaultMonth={date ?? toDate(minDate ?? '')}
+            mode="range"
+            numberOfMonths={2}
+            selected={picking}
+            defaultMonth={picking?.from ?? toDate(minDate ?? '')}
             today={toDate(TODAY)}
             disabled={minDate ? { before: toDate(minDate)! } : undefined}
             onSelect={(next) => {
-              if (!next) return
-              onChange(fromDate(next))
-              setOpen(false)
+              setPicking(next)
+              // A second, different day completes the range: save it and close.
+              if (next?.from && next.to && next.to.getTime() !== next.from.getTime()) {
+                commit(next)
+                setOpen(false)
+                setPicking(undefined)
+                onBlur()
+              }
             }}
           />
         </PopoverContent>
