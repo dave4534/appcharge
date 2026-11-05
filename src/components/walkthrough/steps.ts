@@ -33,7 +33,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
   {
     title: 'Hi, I’m Dave!',
     body: [
-      'I had a lot of fun working on this. I hope this guide finds you well and is useful for showing you context-specific key decisions I made. You’ll see little text chips in each step, these are my way of showing you examples of what I’m talking about.',
+      'Welcome to my prototype. I had a lot of fun working on it. I hope this guide finds you well and is useful for showing you context-specific key decisions I made. You’ll see little text chips in some steps, these are my way of showing you examples of what I’m talking about.',
     ],
   },
   {

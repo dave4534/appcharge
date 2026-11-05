@@ -14,6 +14,8 @@ const AVATAR = 58 // circle size in px (1px stroke, 8px padding, 40px face)
 const ABOVE_MCP = 32 // default gap between the face and the Get Appcharge MCP button
 const MARGIN = 8 // keeps the circle off the window edge
 const GAP = 16 // between the circle and the card
+// If nobody has touched the face by then, the guide opens on its own.
+const AUTO_OPEN_MS = 60_000
 
 type Point = { x: number; y: number }
 type Saved = { seen: boolean; step: number; pos: Point | null }
@@ -153,10 +155,19 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   // The scrolling text of the current step, which starts again at the top on every step.
   const scrollRef = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLButtonElement>(null)
+  // Any press on the face counts as the reviewer finding it, so the automatic opening is cancelled.
+  const touchedFace = useRef(false)
   const drag = useRef<{ startX: number; startY: number; originX: number; originY: number; moved: boolean } | null>(null)
   const justDragged = useRef(false)
 
   useEffect(() => save({ seen, step: 0, pos }), [seen, pos])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      if (!touchedFace.current) setOpen(true)
+    }, AUTO_OPEN_MS)
+    return () => window.clearTimeout(timer)
+  }, [])
 
   // Opening counts as seeing it, so the hint goes away and it won't auto-open again.
   useEffect(() => {
@@ -233,6 +244,7 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
 
   // Dragging the circle moves the card with it. A small movement still counts as a click.
   const onPointerDown = (e: PointerEvent<HTMLButtonElement>) => {
+    touchedFace.current = true
     if (e.button !== 0 || !rootRef.current) return
     const rect = rootRef.current.getBoundingClientRect()
     drag.current = { startX: e.clientX, startY: e.clientY, originX: rect.left, originY: rect.top, moved: false }
@@ -252,6 +264,7 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
     drag.current = null
   }
   const onAvatarClick = () => {
+    touchedFace.current = true
     if (justDragged.current) {
       justDragged.current = false
       return
