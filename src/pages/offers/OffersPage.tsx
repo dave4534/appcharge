@@ -186,7 +186,7 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
       )}
 
       {firstTime ? (
-        <Empty className="offers-empty border-solid border bg-muted">
+        <Empty className="offers-empty mt-4 border-solid border bg-muted">
           <EmptyHeader className="max-w-md">
             <EmptyMedia style={{ marginBottom: 24 }}>
               <img src={chest} alt="" width={210} className="h-auto" />
@@ -198,7 +198,7 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
             </EmptyDescription>
           </EmptyHeader>
           <EmptyContent>
-            <Button size="lg" onClick={onNew}>
+            <Button variant="outline" size="lg" onClick={onNew}>
               Create Reward Calendar
             </Button>
           </EmptyContent>
