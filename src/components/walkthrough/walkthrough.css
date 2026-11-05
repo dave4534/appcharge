@@ -256,13 +256,11 @@
   font-size: 15px;
 }
 
-/* Carlton sits beside the face on the last step, about two spaces (16px) to its right. */
+/* Carlton sits inline in the text, about four spaces after the smiley, at text size. */
 .walkthrough-carlton {
-  position: absolute;
-  left: 100%;
-  bottom: 0;
-  margin-left: 16px;
-  height: 56px;
+  display: inline-block;
+  height: 1.5em;
   width: auto;
-  pointer-events: none;
+  margin-left: 0.9em;
+  vertical-align: middle;
 }

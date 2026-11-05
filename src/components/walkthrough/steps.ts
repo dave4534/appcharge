@@ -166,7 +166,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
   {
     title: 'Thanks for joining me!',
     body: [
-      'Thanks for joining me on this journey! I hope you have a great {timeOfDay} and I really look forward to coming in and presenting this in person :)',
+      'Thanks for joining me on this journey! I hope you have a great {timeOfDay} and I really look forward to coming in and presenting this in person :){carlton}',
     ],
   },
 ]

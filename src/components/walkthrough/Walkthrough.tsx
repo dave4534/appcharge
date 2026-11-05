@@ -46,6 +46,15 @@ const timeOfDay = () => {
   return hour < 12 ? 'morning' : hour < 18 ? 'afternoon' : 'evening'
 }
 
+// {carlton} marks where Carlton sits inline in the text, about four spaces after the smiley.
+const withCarlton = (text: string) =>
+  text.split('{carlton}').map((part, i, all) => (
+    <Fragment key={i}>
+      {part}
+      {i < all.length - 1 && <img className="walkthrough-carlton" src="/walkthrough/carlton.gif" alt="" draggable={false} />}
+    </Fragment>
+  ))
+
 // Plain text with [label](url) links; {timeOfDay} becomes morning, afternoon or evening.
 // A link starting with image: opens that image in the lightbox instead of leaving the page.
 function RichText({ text, onImage }: { text: string; onImage: (src: string) => void }) {
@@ -61,7 +70,7 @@ function RichText({ text, onImage }: { text: string; onImage: (src: string) => v
   return (
     <>
       {parts.map((p, i) => {
-        if (typeof p === 'string') return <Fragment key={i}>{p}</Fragment>
+        if (typeof p === 'string') return <Fragment key={i}>{withCarlton(p)}</Fragment>
         if (p.href.startsWith('image:')) {
           return (
             <button key={i} type="button" className="walkthrough-link" onClick={() => onImage(p.href.slice('image:'.length))}>
@@ -317,8 +326,6 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
 
       {image && <Lightbox src={image} onClose={() => setImage(null)} />}
 
-      {/* Carlton, a couple of spaces to the right of the face, on the last step only. */}
-      {open && step === last && <img className="walkthrough-carlton" src="/walkthrough/carlton.gif" alt="" draggable={false} />}
 
       <div className="walkthrough-anchor">
         <button
