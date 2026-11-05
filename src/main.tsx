@@ -8,6 +8,12 @@ import './index.css'
 import App from './App.tsx'
 import { ErrorBoundary } from './components/ErrorBoundary.tsx'
 import { IntroLoader } from './components/IntroLoader.tsx'
+import posthog from 'posthog-js'
+
+posthog.init('phc_sqbANF42qVd6BnjcQWNmyEMDPEifzYNoUjL55dzDqBM7', {
+  api_host: 'https://us.i.posthog.com',
+  person_profiles: 'always',
+})
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
