@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react'
 import loader from '@/assets/loader/appcharge-loader.svg'
 
 // How long the animation plays before the screen fades away, and how long the fade takes.
-const SHOW_MS = 2600
+// The animation loops every 5.2s and the wordmark is whole again by about 4.65s, so we hold
+// until just after that and the whole thing is always seen.
+const SHOW_MS = 4900
 const FADE_MS = 400
 // People who prefer less motion get a short, still frame instead.
 const REDUCED_SHOW_MS = 800
 // If the image cannot load, do not hold the app back.
-const GIVE_UP_MS = 1500
+const GIVE_UP_MS = 4000
 
 type Phase = 'show' | 'fade' | 'done'
 
@@ -15,7 +17,8 @@ type Phase = 'show' | 'fade' | 'done'
 // shown for a couple of seconds on every load and refresh, then dissolved into the app.
 export function IntroLoader() {
   const [phase, setPhase] = useState<Phase>('show')
-  // The timer starts when the image has loaded, so the whole animation is seen from its start.
+  // The timer starts after the image has loaded, decoded and painted, because the animation
+  // inside the SVG only begins at its first paint, not at the load event.
   const [ready, setReady] = useState(false)
 
   useEffect(() => {
@@ -51,7 +54,11 @@ export function IntroLoader() {
         width={360}
         height={206}
         style={{ width: 'min(360px, 75vw)', height: 'auto' }}
-        onLoad={() => setReady(true)}
+        onLoad={(e) => {
+          const img = e.currentTarget
+          const start = () => requestAnimationFrame(() => requestAnimationFrame(() => setReady(true)))
+          img.decode().then(start, start)
+        }}
         onError={() => setReady(false)}
       />
     </div>
