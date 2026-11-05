@@ -90,7 +90,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
     body: [
       'Segmentation in settings is also kept at a low scope, considering both the scope of this assignment but also considering this is a feature that has a wide spectrum of technicality and based on the assumption users aren’t tech savvy, I chose to let the user choose only which segments a calendar is shown to. Segmentation rules with conditionals and attributes seemed to me that they might overwhelm our user persona.',
     ],
-    places: [{ id: 'segmentation', label: 'Segmentation (in settings)' }],
+    places: [{ id: 'segmentation', label: 'Audience' }],
   },
   {
     title: 'A calendar, not a list view',
@@ -142,7 +142,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
       },
       {
         icon: MessageCircle,
-        text: 'Charlie AI: I [explored an AI chat](image:/walkthrough/ai-chat.png) addition under the assumption that users would not only expect it in today’s AI landscape, but they might also want to consult with it about best-performing day and week configurations.',
+        text: 'Charlie AI: I [explored an AI chat](image:/walkthrough/ai-chat.png) thinking users would not only expect it in today’s AI landscape, wanting to consult with it about best-performing day and week configurations. I ultimately decided against it under the assumption that in the long run users would likely default to their own agent (e.g. Claude) thus an MCP would be more relevant.',
       },
     ],
     places: [
