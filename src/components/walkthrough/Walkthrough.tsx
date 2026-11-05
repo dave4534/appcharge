@@ -335,6 +335,8 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
           aria-label={open ? 'Close the designer’s walkthrough' : 'Open the designer’s walkthrough'}
           aria-expanded={open}
           title="Drag to move"
+          // While the guide is closed, a rainbow ring draws attention to the face. It stops while the guide is open.
+          data-attention={open ? 'false' : 'true'}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}

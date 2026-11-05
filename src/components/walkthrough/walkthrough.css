@@ -23,8 +23,9 @@
   display: block;
   width: 56px;
   height: 56px;
+  position: relative;
+  isolation: isolate; /* keeps the rainbow ring behind the face */
   padding: 8px; /* breathing room around the face */
-  overflow: hidden;
   border: 0; /* so the 8px padding is the full space around the face */
   border-radius: 50%;
   background: var(--color-surface);
@@ -263,4 +264,32 @@
   width: auto;
   margin-left: 0.9em;
   vertical-align: middle;
+}
+
+/* Attention ring: the same technique as Magic UI's Rainbow Button. A gradient is scrolled
+   behind a solid layer, so only a thin edge shows colour. It runs until the guide is opened. */
+@keyframes walkthrough-rainbow {
+  0% {
+    background-position: 0% 0%;
+  }
+  100% {
+    background-position: 200% 0%;
+  }
+}
+
+.walkthrough-avatar[data-attention='true']::before {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  z-index: -1;
+  border-radius: 50%;
+  background: linear-gradient(90deg, hsl(0 100% 63%), hsl(270 100% 63%), hsl(210 100% 63%), hsl(195 100% 63%), hsl(90 100% 63%), hsl(0 100% 63%));
+  background-size: 200% 100%;
+  animation: walkthrough-rainbow 2s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .walkthrough-avatar[data-attention='true']::before {
+    animation: none;
+  }
 }
