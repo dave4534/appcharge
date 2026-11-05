@@ -53,6 +53,15 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
 
   return (
     <div className="mx-auto grid w-full max-w-3xl gap-5">
+        {/* Shown after Next is pressed while something is still missing. */}
+        {showAll && missing.length > 0 && (
+          <Alert variant="destructive">
+            <CircleAlertIcon />
+            <AlertTitle>Settings need attention</AlertTitle>
+            <AlertDescription>Set {missing.join(', ')} to continue.</AlertDescription>
+          </Alert>
+        )}
+
       <Card title="Basics" hint="Name the calendar so you can find it in the offers list.">
         <FormField data-invalid={!!errorFor('name') || undefined}>
           <FormLabel htmlFor="calendar-name">Name</FormLabel>
