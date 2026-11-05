@@ -186,20 +186,20 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
       )}
 
       {firstTime ? (
-        <Empty className="offers-empty mt-4 border-solid border bg-muted">
+        <Empty className="offers-empty mt-8 border-solid border bg-muted">
           <EmptyHeader className="max-w-md">
             <EmptyMedia style={{ marginBottom: 24 }}>
               <img src={chest} alt="" width={210} className="h-auto" />
             </EmptyMedia>
-            <EmptyTitle className="text-xl font-semibold">Give players a reason to come back</EmptyTitle>
+            <EmptyTitle className="text-xl font-semibold">No offers yet</EmptyTitle>
             <EmptyDescription className="text-base text-foreground">
               Reward calendars encourage users to play and spend. Pick the rewards, set the days, and check readiness before you
               publish.
             </EmptyDescription>
           </EmptyHeader>
-          <EmptyContent>
+          <EmptyContent className="mt-4">
             <Button variant="outline" size="lg" onClick={onNew}>
-              Create Reward Calendar
+              Create offer
             </Button>
           </EmptyContent>
         </Empty>

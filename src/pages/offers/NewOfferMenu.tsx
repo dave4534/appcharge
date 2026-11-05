@@ -1,8 +1,12 @@
 import { ChevronDown } from 'lucide-react'
+import { navSections } from '@/components/nav'
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 
-// "New offer" opens a menu of offer types. Only reward calendars are built so far.
+// The offer types are the Offers section of the left nav, in the same order. Only reward
+// calendars can be created so far; the rest do nothing, as they do in the nav.
+const offerTypes = navSections.find((s) => s.id === 'offers')!.items
+
 export function NewOfferMenu({ onNewCalendar }: { onNewCalendar: () => void }) {
   return (
     <DropdownMenu>
@@ -11,9 +15,12 @@ export function NewOfferMenu({ onNewCalendar }: { onNewCalendar: () => void }) {
         <ChevronDown data-icon="inline-end" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48" aria-label="Offer types">
-        <DropdownMenuItem onClick={onNewCalendar}>Reward Calendar</DropdownMenuItem>
-        <DropdownMenuItem disabled>Bundle</DropdownMenuItem>
-        <DropdownMenuItem disabled>Promotion</DropdownMenuItem>
+        {offerTypes.map((type) => (
+          <DropdownMenuItem key={type.id} onClick={() => type.id === 'reward-calendars' && onNewCalendar()}>
+            <type.icon />
+            {type.label}
+          </DropdownMenuItem>
+        ))}
       </DropdownMenuContent>
     </DropdownMenu>
   )
