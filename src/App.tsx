@@ -115,10 +115,10 @@ export default function App() {
           <>
             <TopBar
               trail={[
-                { name: 'Workspace', label: 'Company' },
-                { name: 'Folder', label: 'Store' },
-                { name: 'Group', label: sectionOf(activeId).label },
-                { name: 'Board', label: labelOf(activeId) },
+                { label: 'Company' },
+                { label: 'Store' },
+                { label: sectionOf(activeId).label },
+                { label: labelOf(activeId) },
               ]}
             />
             <main className="content">
