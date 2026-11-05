@@ -26,30 +26,50 @@ type SelectComboboxProps = {
 export function SelectCombobox({ value, options, onChange, placeholder, invalid, className, ...props }: SelectComboboxProps) {
   const selected = options.find((o) => o.value === value) ?? null
   return (
-    <Combobox
-      items={options}
-      value={selected}
-      onValueChange={(option) => option && onChange(option.value)}
-      isItemEqualToValue={(a, b) => a.value === b.value}
-      itemToStringLabel={(option) => option.label}
+    // Focusing selects the current label, so typing replaces it. A click is taken over so the
+    // browser does not place the cursor after the press.
+    <div
+      className="contents"
+      onMouseDown={(e) => {
+        const input = e.target
+        if (!(input instanceof HTMLInputElement) || document.activeElement === input) return
+        e.preventDefault()
+        input.focus()
+        input.select()
+      }}
+      onFocus={(e) => {
+        const input = e.target
+        if (input instanceof HTMLInputElement) input.select()
+      }}
     >
-      <ComboboxInput
-        placeholder={placeholder ?? 'Select'}
-        id={props.id}
-        aria-label={props['aria-label']}
-        aria-invalid={invalid || undefined}
-        className={cn('select-combobox', className)}
-      />
-      <ComboboxContent>
-        <ComboboxEmpty>No results</ComboboxEmpty>
-        <ComboboxList>
-          {(option: ComboboxOption) => (
-            <ComboboxItem key={option.value} value={option}>
-              {option.label}
-            </ComboboxItem>
-          )}
-        </ComboboxList>
-      </ComboboxContent>
-    </Combobox>
+      {/* autoHighlight: typing narrows the list and Enter picks the first match. Leaving the field
+          puts back the chosen label, so typed text never looks like a choice that did not apply. */}
+      <Combobox
+        autoHighlight
+        items={options}
+        value={selected}
+        onValueChange={(option) => option && onChange(option.value)}
+        isItemEqualToValue={(a, b) => a.value === b.value}
+        itemToStringLabel={(option) => option.label}
+      >
+        <ComboboxInput
+          placeholder={placeholder ?? 'Select'}
+          id={props.id}
+          aria-label={props['aria-label']}
+          aria-invalid={invalid || undefined}
+          className={cn('select-combobox', className)}
+        />
+        <ComboboxContent>
+          <ComboboxEmpty>No results</ComboboxEmpty>
+          <ComboboxList>
+            {(option: ComboboxOption) => (
+              <ComboboxItem key={option.value} value={option}>
+                {option.label}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+    </div>
   )
 }
