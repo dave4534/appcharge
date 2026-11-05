@@ -3,8 +3,8 @@ import loaderSvg from '@/assets/loader/appcharge-loader-inline.svg?raw'
 
 // The animation is a 5.2s loop: wordmark, then it collapses into a bouncing coin, then (from
 // about 4.0s) the wordmark comes back. We want it to play once and end on the coin, so we hold
-// until the coin has settled (about 3.1s), then freeze it and dissolve, well before the wordmark returns.
-const SHOW_MS = 3100
+// until the coin has settled (about 2.8s), then freeze it and dissolve, well before the wordmark returns.
+const SHOW_MS = 2800
 const FADE_MS = 400
 // People who prefer less motion get a short, still frame instead.
 const REDUCED_SHOW_MS = 800
