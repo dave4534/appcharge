@@ -62,6 +62,8 @@ export default function App() {
 
   // Opens a place the walkthrough points at: the right calendar, with the right thing showing.
   const showPlace = (id: PlaceId) => {
+    // Every chip starts clean: any dialog left open is closed first, so the place is never hidden behind it.
+    setMcpOpen(false)
     if (id === 'mcp') {
       setMcpOpen(true)
       return
