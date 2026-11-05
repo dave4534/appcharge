@@ -66,7 +66,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
   {
     title: 'Risk management',
     body: [
-      'The costliest mistake is editing a live calendar. In 2021, Marvel Strike Force players who logged in for 21 days found their final rewards missing. I took a very communicative approach to warnings that is used to help the user better understand what is at risk and how this change could impact their users.',
+      'The costliest mistake is editing a live calendar. In 2021, [Marvel Strike Force players who logged in for 21 days found their final rewards missing](https://devtrackers.gg/marvel-strike-force/p/291abf5e-1400-power-cores-issue). I took a very communicative approach to warnings that is used to help the user better understand what is at risk and how this change could impact their users.',
     ],
     places: [
       { id: 'validation', label: 'Validation' },

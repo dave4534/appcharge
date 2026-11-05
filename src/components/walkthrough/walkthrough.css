@@ -234,7 +234,7 @@
   width: auto;
   height: auto;
   max-width: min(100%, 1200px);
-  max-height: 70vh; /* a comfortable size with room around it */
+  max-height: 80vh; /* a comfortable size with room around it */
   margin: auto;
   border-radius: 8px;
   background: #fff;
@@ -254,4 +254,15 @@
   border-radius: 8px;
   background: var(--color-surface);
   font-size: 15px;
+}
+
+/* Carlton sits beside the face on the last step, about two spaces (16px) to its right. */
+.walkthrough-carlton {
+  position: absolute;
+  left: 100%;
+  bottom: 0;
+  margin-left: 16px;
+  height: 56px;
+  width: auto;
+  pointer-events: none;
 }

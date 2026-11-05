@@ -1,5 +1,5 @@
 import { Fragment, useCallback, useEffect, useLayoutEffect, useRef, useState, type PointerEvent } from 'react'
-import { ArrowUpRight, X } from 'lucide-react'
+import { ArrowUpRight, RotateCcw, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { walkthroughSteps, type WalkthroughBlock } from './steps'
 import { Lightbox } from './Lightbox'
@@ -302,13 +302,23 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
               Back
             </Button>
             <Button size="lg" className="text-[15px]" onClick={() => goTo(step === last ? 0 : step + 1)}>
-              {step === last ? 'Start over' : 'Next'}
+              {step === last ? (
+                <>
+                  Start over
+                  <RotateCcw data-icon="inline-end" aria-hidden="true" />
+                </>
+              ) : (
+                'Next'
+              )}
             </Button>
           </div>
         </div>
       )}
 
       {image && <Lightbox src={image} onClose={() => setImage(null)} />}
+
+      {/* Carlton, a couple of spaces to the right of the face, on the last step only. */}
+      {open && step === last && <img className="walkthrough-carlton" src="/walkthrough/carlton.gif" alt="" draggable={false} />}
 
       <div className="walkthrough-anchor">
         <button
