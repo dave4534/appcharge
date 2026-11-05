@@ -346,7 +346,12 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
 
         {tabbed ? (
           <div className="editor-steps editor-steps--tabs">
-            <EditorTabs tabs={EDITOR_STEPS} value={EDITOR_STEPS[step].id} onValueChange={(id) => setStep(id === 'rewards' ? 1 : 0)} />
+            <EditorTabs
+              tabs={EDITOR_STEPS}
+              value={EDITOR_STEPS[step].id}
+              disabled={valid ? [] : ['rewards']}
+              onValueChange={(id) => (id === 'rewards' ? goToRewards() : setStep(0))}
+            />
           </div>
         ) : (
           <Stepper
@@ -358,7 +363,7 @@ export function CalendarEditor({ offer, offers, onSave, onFinish, onReorder, onC
           >
             <StepperNav className="flex items-center gap-2">
               {EDITOR_STEPS.map((s, i) => (
-                <StepperItem key={s.id} stepId={s.id}>
+                <StepperItem key={s.id} stepId={s.id} disabled={i === 1 && !valid}>
                   <StepperTrigger>
                     <StepperIndicator>{i + 1}</StepperIndicator>
                     <StepperTitle>{s.title}</StepperTitle>
