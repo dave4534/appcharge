@@ -10,7 +10,8 @@ import './walkthrough.css'
 // open places in the prototype, and it can be dragged anywhere on screen.
 const KEY = 'appcharge-prototype:walkthrough'
 
-const AVATAR = 56 // circle size in px
+const AVATAR = 58 // circle size in px (1px stroke, 8px padding, 40px face)
+const ABOVE_MCP = 32 // default gap between the face and the Get Appcharge MCP button
 const MARGIN = 8 // keeps the circle off the window edge
 const GAP = 16 // between the circle and the card
 
@@ -145,6 +146,9 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   // Which side of the circle the card sits on, and how tall it may be there.
   const [layout, setLayout] = useState<{ below: boolean; alignRight: boolean; maxHeight: number }>({ below: false, alignRight: false, maxHeight: 480 })
 
+  // Where the face starts on landing: ABOVE_MCP px above the Get Appcharge MCP button.
+  const [defaultTop, setDefaultTop] = useState<number | null>(null)
+
   const rootRef = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLButtonElement>(null)
   const drag = useRef<{ startX: number; startY: number; originX: number; originY: number; moved: boolean } | null>(null)
@@ -156,6 +160,18 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   useEffect(() => {
     if (open) setSeen(true)
   }, [open])
+
+  // Keep the default spot tied to the MCP button, so it stays put as the window changes size.
+  useLayoutEffect(() => {
+    const place = () => {
+      const mcp = document.querySelector<HTMLElement>('.mcp-cta')
+      if (!mcp) return
+      setDefaultTop(mcp.getBoundingClientRect().top - ABOVE_MCP - AVATAR)
+    }
+    place()
+    window.addEventListener('resize', place)
+    return () => window.removeEventListener('resize', place)
+  }, [])
 
   // A smaller window can leave the circle out of view; pull it back in.
   useEffect(() => {
@@ -248,7 +264,13 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
     <div
       className="walkthrough"
       ref={rootRef}
-      style={pos ? { left: pos.x, top: pos.y, bottom: 'auto' } : undefined}
+      style={
+        pos
+          ? { left: pos.x, top: pos.y, bottom: 'auto' }
+          : defaultTop !== null
+            ? { top: defaultTop, bottom: 'auto' }
+            : undefined
+      }
     >
       {open && (
         <div
