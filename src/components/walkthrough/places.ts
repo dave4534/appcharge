@@ -14,6 +14,7 @@ export type PlaceId =
   | 'wizard'
   | 'tabs'
   | 'ai-suggestion'
+  | 'mcp'
 
 // What the calendar editor should have open when it appears.
 export type EditorScene = {
@@ -55,6 +56,8 @@ export const placeTargets: Record<PlaceId, { offerId: string | null; scene: Edit
   tabs: { offerId: 'whales-streak', scene: { step: 0 } },
   // An empty day on a draft opens the picker with the suggestion already chosen.
   'ai-suggestion': { offerId: 'november-reward-calendar', scene: { step: 1, picker: { week: 0, day: 0 } } },
+  // Not a calendar: opens the MCP setup dialog from the left nav.
+  mcp: { offerId: null, scene: {} },
 }
 
 const HOUR = 3_600_000

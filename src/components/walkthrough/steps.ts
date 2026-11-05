@@ -1,8 +1,11 @@
 import {
+  Copy,
+  Layers,
   MessageCircle,
   Map,
   MousePointerClick,
   Plug,
+  Route,
   Scale,
   Scissors,
   Search,
@@ -30,7 +33,7 @@ export const walkthroughSteps: WalkthroughStep[] = [
   {
     title: 'Hi, I’m Dave!',
     body: [
-      'Welcome, I had a lot of fun working on this. I hope this guide finds you well and is useful for showing you context-specific key decisions I made. You’ll see little text chips in each step, these are my way of showing you examples of what I’m talking about.',
+      'I had a lot of fun working on this. I hope this guide finds you well and is useful for showing you context-specific key decisions I made. You’ll see little text chips in each step, these are my way of showing you examples of what I’m talking about.',
     ],
   },
   {
@@ -92,8 +95,22 @@ export const walkthroughSteps: WalkthroughStep[] = [
   {
     title: 'A calendar, not a list view',
     body: [
-      'A node canvas suits marketing teams, but I assumed this audience isn’t technical, so I kept an actual calendar.',
-      'The trade-off is that it may appeal less to analytics-minded teams. With more research I’d test this at scale.',
+      {
+        icon: Route,
+        text: 'A node canvas suits marketing teams, but I assumed this audience isn’t technical, so I kept an actual calendar.',
+      },
+      {
+        icon: Scale,
+        text: 'The trade-off is that it may appeal less to analytics-minded teams. With more research I’d test this at scale.',
+      },
+      {
+        icon: Layers,
+        text: 'I explored and implemented a few mechanisms to help the user more easily edit content at scale.',
+      },
+      {
+        icon: Copy,
+        text: 'I did consider enabling a duplicate-a-day feature but decided against it under the assumption that days’ rewards typically increase in value rather being equivalent.',
+      },
     ],
     places: [{ id: 'calendar', label: 'Calendar' }],
   },
@@ -128,7 +145,10 @@ export const walkthroughSteps: WalkthroughStep[] = [
         text: 'Charlie AI: I [explored an AI chat](image:/walkthrough/ai-chat.png) addition under the assumption that users would not only expect it in today’s AI landscape, but they might also want to consult with it about best-performing day and week configurations.',
       },
     ],
-    places: [{ id: 'ai-suggestion', label: 'AI Suggestion' }],
+    places: [
+      { id: 'ai-suggestion', label: 'AI Suggestion' },
+      { id: 'mcp', label: 'MCP' },
+    ],
   },
   {
     title: 'What I’d do differently',

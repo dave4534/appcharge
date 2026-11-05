@@ -230,8 +230,12 @@
 }
 
 .walkthrough-lightbox img {
-  max-width: 100%;
-  max-height: 100%;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: min(100%, 1200px);
+  max-height: 70vh; /* a comfortable size with room around it */
+  margin: auto;
   border-radius: 8px;
   background: #fff;
   box-shadow: 0 8px 40px rgb(0 0 0 / 0.4);

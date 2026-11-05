@@ -62,6 +62,10 @@ export default function App() {
 
   // Opens a place the walkthrough points at: the right calendar, with the right thing showing.
   const showPlace = (id: PlaceId) => {
+    if (id === 'mcp') {
+      setMcpOpen(true)
+      return
+    }
     const { offerId, scene } = placeTargets[id]
     let target = offers.find((o) => o.id === offerId)
     // The tour points at the sample calendars, so bring them in when they are not there yet.
