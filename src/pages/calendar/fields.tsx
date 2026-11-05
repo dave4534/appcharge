@@ -169,7 +169,23 @@ export function TimeField({ label, value, error, onChange, onBlur }: TimeFieldPr
 
   const times = QUARTER_HOURS.includes(value) || !value ? QUARTER_HOURS : [value, ...QUARTER_HOURS]
   return (
-    <Field data-invalid={!!error || undefined} onBlur={onBlur}>
+    <Field
+      data-invalid={!!error || undefined}
+      onBlur={onBlur}
+      // A click selects the whole time, so a new one can be typed straight away. The browser
+      // would place the cursor on click, so the first press is taken over here.
+      onMouseDown={(e) => {
+        const input = e.target
+        if (!(input instanceof HTMLInputElement) || document.activeElement === input) return
+        e.preventDefault()
+        input.focus()
+        input.select()
+      }}
+      onFocus={(e) => {
+        const input = e.target
+        if (input instanceof HTMLInputElement) input.select()
+      }}
+    >
       <FieldLabel>{label}</FieldLabel>
       <Combobox
         items={times}
