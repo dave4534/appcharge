@@ -20,6 +20,12 @@
   min-height: 0;
 }
 
+/* Space between the filters and the list or timeline. */
+.offers > .list,
+.offers > .tl-scroll {
+  margin-top: var(--space-32);
+}
+
 .offers-head {
   display: flex;
   align-items: flex-start;
