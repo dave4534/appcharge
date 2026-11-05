@@ -16,7 +16,11 @@ export function NewOfferMenu({ onNewCalendar }: { onNewCalendar: () => void }) {
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48" aria-label="Offer types">
         {offerTypes.map((type) => (
-          <DropdownMenuItem key={type.id} onClick={() => type.id === 'reward-calendars' && onNewCalendar()}>
+          <DropdownMenuItem
+            key={type.id}
+            disabled={type.id !== 'reward-calendars'}
+            onClick={() => type.id === 'reward-calendars' && onNewCalendar()}
+          >
             <type.icon />
             {type.label}
           </DropdownMenuItem>

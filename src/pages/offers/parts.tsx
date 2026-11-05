@@ -75,7 +75,7 @@ export function OfferTitle({ offer, onOpen }: { offer: Offer; onOpen: (id: strin
     return (
       <a
         href="#"
-        className="offer-title text-base font-medium text-primary underline-offset-4 hover:underline"
+        className="offer-title text-base font-medium text-foreground underline-offset-4 hover:underline"
         onClick={(e) => {
           e.preventDefault()
           onOpen(offer.id)

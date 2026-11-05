@@ -458,7 +458,15 @@
   cursor: pointer;
 }
 
-.list-row.is-openable:hover,
+.list-row.is-openable {
+  cursor: pointer;
+}
+
+/* A light grey fill on hover, for the whole row. */
+.list-row.is-openable:hover {
+  background: var(--allgrey-background-color);
+}
+
 .tl-body.is-openable:hover {
   background: var(--primary-highlighted-color);
 }
