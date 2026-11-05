@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import loaderSvg from '@/assets/loader/appcharge-loader-inline.svg?raw'
 
-// The animation loops every 5.2s and the wordmark is whole again by about 4.65s, so we hold
-// until just after that and the whole thing is always seen.
-const SHOW_MS = 4900
+// The animation is a 5.2s loop: wordmark, then it collapses into a bouncing coin, then (from
+// about 4.0s) the wordmark comes back. We want it to play once and end on the coin, so we hold
+// until the coin has settled (about 3.4s), then freeze it and dissolve, well before the wordmark returns.
+const SHOW_MS = 3400
 const FADE_MS = 400
 // People who prefer less motion get a short, still frame instead.
 const REDUCED_SHOW_MS = 800
@@ -57,7 +58,7 @@ export function IntroLoader() {
       }}
     >
       <div
-        className={`acl [&>svg]:h-auto [&>svg]:w-[min(360px,75vw)] ${phase === 'wait' ? '' : 'acl-run'}`}
+        className={`acl [&>svg]:h-auto [&>svg]:w-[min(360px,75vw)] ${phase === 'wait' ? '' : 'acl-run'} ${phase === 'fade' ? 'acl-hold' : ''}`}
         dangerouslySetInnerHTML={{ __html: loaderSvg }}
       />
     </div>
