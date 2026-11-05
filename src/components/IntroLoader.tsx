@@ -1,33 +1,41 @@
 import { useEffect, useState } from 'react'
-import loader from '@/assets/loader/appcharge-loader.svg'
+import loaderSvg from '@/assets/loader/appcharge-loader-inline.svg?raw'
 
-// How long the animation plays before the screen fades away, and how long the fade takes.
 // The animation loops every 5.2s and the wordmark is whole again by about 4.65s, so we hold
 // until just after that and the whole thing is always seen.
 const SHOW_MS = 4900
 const FADE_MS = 400
 // People who prefer less motion get a short, still frame instead.
 const REDUCED_SHOW_MS = 800
-// If the image cannot load, do not hold the app back.
-const GIVE_UP_MS = 4000
 
-type Phase = 'show' | 'fade' | 'done'
+type Phase = 'wait' | 'show' | 'fade' | 'done'
 
-// A white screen with the Appcharge loading animation (an SVG with its own CSS animation),
-// shown for a couple of seconds on every load and refresh, then dissolved into the app.
+// A white screen with the Appcharge loading animation, shown on every load and refresh, then
+// dissolved into the app. The SVG is inline (not an <img>) and starts paused on its first frame.
+// An image's animation clock starts when the file loads and cannot be restarted, so it could
+// begin before it was ever painted or stutter while the app boots. Here the animation is released
+// after the first paint, so it always runs from frame one, and the hold timer starts with it.
 export function IntroLoader() {
-  const [phase, setPhase] = useState<Phase>('show')
-  // The timer starts after the image has loaded, decoded and painted, because the animation
-  // inside the SVG only begins at its first paint, not at the load event.
-  const [ready, setReady] = useState(false)
+  const [phase, setPhase] = useState<Phase>('wait')
+
+  useEffect(() => {
+    if (phase !== 'wait') return
+    let id2 = 0
+    const id1 = requestAnimationFrame(() => {
+      id2 = requestAnimationFrame(() => setPhase('show'))
+    })
+    return () => {
+      cancelAnimationFrame(id1)
+      cancelAnimationFrame(id2)
+    }
+  }, [phase])
 
   useEffect(() => {
     if (phase !== 'show') return
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    const wait = ready ? (reduced ? REDUCED_SHOW_MS : SHOW_MS) : GIVE_UP_MS
-    const t = setTimeout(() => setPhase('fade'), wait)
+    const t = setTimeout(() => setPhase('fade'), reduced ? REDUCED_SHOW_MS : SHOW_MS)
     return () => clearTimeout(t)
-  }, [phase, ready])
+  }, [phase])
 
   useEffect(() => {
     if (phase !== 'fade') return
@@ -48,18 +56,9 @@ export function IntroLoader() {
         transition: `opacity ${FADE_MS}ms ease-out`,
       }}
     >
-      <img
-        src={loader}
-        alt=""
-        width={360}
-        height={206}
-        style={{ width: 'min(360px, 75vw)', height: 'auto' }}
-        onLoad={(e) => {
-          const img = e.currentTarget
-          const start = () => requestAnimationFrame(() => requestAnimationFrame(() => setReady(true)))
-          img.decode().then(start, start)
-        }}
-        onError={() => setReady(false)}
+      <div
+        className={`acl [&>svg]:h-auto [&>svg]:w-[min(360px,75vw)] ${phase === 'wait' ? '' : 'acl-run'}`}
+        dangerouslySetInnerHTML={{ __html: loaderSvg }}
       />
     </div>
   )
