@@ -191,7 +191,7 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
             <EmptyMedia style={{ marginBottom: 24 }}>
               <img src={chest} alt="" width={210} className="h-auto" />
             </EmptyMedia>
-            <EmptyTitle className="text-xl font-semibold">No offers yet</EmptyTitle>
+            <EmptyTitle className="text-xl font-semibold">No reward calendars yet</EmptyTitle>
             <EmptyDescription className="text-base text-foreground">
               Reward calendars encourage users to play and spend. Pick the rewards, set the days, and check readiness before you
               publish.
@@ -199,7 +199,7 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
           </EmptyHeader>
           <EmptyContent className="mt-4">
             <Button variant="outline" size="lg" onClick={onNew}>
-              Create offer
+              Create reward calendar
             </Button>
           </EmptyContent>
         </Empty>
