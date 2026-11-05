@@ -152,7 +152,7 @@ export function OffersPage({ offers, onChange, onNew, onOpen, onNotify }: Offers
         <div>
           <h1>Offers</h1>
           <p className="offers-sub">
-            Popup offers players see in your web store. Sorted by priority: the lowest number shows first.
+            Create and manage the offers players see in your web store.
           </p>
         </div>
         <NewOfferMenu onNewCalendar={onNew} />
