@@ -65,6 +65,9 @@ export default function App() {
     // Every chip starts clean: any dialog left open is closed first, so the place is never hidden behind it.
     setMcpOpen(false)
     if (id === 'mcp') {
+      // The calendar editor holds its own dialogs (the reward picker, the readiness checklist),
+      // so it is closed too; nothing can sit underneath the MCP dialog.
+      setEditing(null)
       setMcpOpen(true)
       return
     }
