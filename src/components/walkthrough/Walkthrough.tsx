@@ -15,7 +15,7 @@ const ABOVE_MCP = 32 // default gap between the face and the Get Appcharge MCP b
 const MARGIN = 8 // keeps the circle off the window edge
 const GAP = 16 // between the circle and the card
 // If nobody has touched the face by then, the guide opens on its own.
-const AUTO_OPEN_MS = 60_000
+const AUTO_OPEN_MS = 30_000
 
 type Point = { x: number; y: number }
 type Saved = { seen: boolean; step: number; pos: Point | null }
