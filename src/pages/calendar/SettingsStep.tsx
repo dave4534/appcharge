@@ -72,21 +72,19 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
         title="Schedule"
         hint="When the calendar is available to players. Its length follows these dates and can be adjusted on the Rewards step."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="sm:col-span-2">
-            <DateRangeField
-              start={s.startDate}
-              end={s.endDate}
-              startError={errorFor('startDate')}
-              endError={errorFor('endDate')}
-              minDate={live ? undefined : TODAY}
-              onChange={(startDate, endDate) => onChange({ startDate, endDate })}
-              onBlur={() => {
-                touch('startDate')
-                touch('endDate')
-              }}
-            />
-          </div>
+        <div className="grid items-end gap-4 sm:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)_auto_minmax(0,1fr)]">
+          <DateRangeField
+            start={s.startDate}
+            end={s.endDate}
+            startError={errorFor('startDate')}
+            endError={errorFor('endDate')}
+            minDate={live ? undefined : TODAY}
+            onChange={(startDate, endDate) => onChange({ startDate, endDate })}
+            onBlur={() => {
+              touch('startDate')
+              touch('endDate')
+            }}
+          />
           <TimeField
             label="Start time"
             value={s.startTime}
@@ -94,6 +92,9 @@ export function SettingsStep({ settings: s, errors, missing, overlaps, priority,
             onChange={(startTime) => onChange({ startTime })}
             onBlur={() => touch('startTime')}
           />
+          <span className="hidden pb-2 text-center text-muted-foreground sm:block" aria-hidden="true">
+            –
+          </span>
           <TimeField
             label="End time"
             value={s.endTime}

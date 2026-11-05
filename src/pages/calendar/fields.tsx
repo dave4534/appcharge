@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { CalendarIcon, InfoIcon, XIcon } from 'lucide-react'
 import type { DateRange } from 'react-day-picker'
 import { Alert, AlertDescription } from '@/components/ui/alert'
@@ -10,6 +10,14 @@ import { Field, FieldError, FieldLabel, FieldLegend, FieldSet } from '@/componen
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { SelectCombobox } from '@/components/SelectCombobox'
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from '@/components/ui/combobox'
 import { TODAY, formatLong } from '../offers/dates'
 import { segmentOptions, type FieldError as FieldErrorInfo } from './settings'
 
@@ -86,7 +94,7 @@ export function DateRangeField({ start, end, startError, endError, minDate, onCh
         }}
       >
         <PopoverTrigger
-          render={<Button variant="outline" className="w-full justify-start font-normal" aria-label="Dates" aria-invalid={!!error || undefined} />}
+          render={<Button variant="outline" className="w-full min-w-0 justify-start font-normal" aria-label="Dates" aria-invalid={!!error || undefined} />}
         >
           <CalendarIcon data-icon="inline-start" />
           {start ? label : <span className="text-muted-foreground">{label}</span>}
@@ -121,6 +129,24 @@ const pad = (n: number) => String(n).padStart(2, '0')
 // Every quarter hour, plus the end of the day.
 const QUARTER_HOURS = [...Array.from({ length: 96 }, (_, i) => `${pad(Math.floor(i / 4))}:${pad((i % 4) * 15)}`), '23:59']
 
+// Reads what someone types as a time: 9, 930, 9:30, 9.30, 9:30pm, 9pm or 21:15. Returns
+// "HH:MM" in 24-hour time, or null when it is not a time.
+export function parseTime(text: string): string | null {
+  const match = text.trim().toLowerCase().match(/^(\d{1,2})(?:[:.]?(\d{2}))?\s*(am|pm|a|p)?$/)
+  if (!match) return null
+  let hours = Number(match[1])
+  const minutes = match[2] === undefined ? 0 : Number(match[2])
+  const suffix = match[3]
+  if (minutes > 59) return null
+  if (suffix) {
+    if (hours < 1 || hours > 12) return null
+    if (suffix.startsWith('p') && hours !== 12) hours += 12
+    if (suffix.startsWith('a') && hours === 12) hours = 0
+  }
+  if (hours > 23) return null
+  return `${pad(hours)}:${pad(minutes)}`
+}
+
 type TimeFieldProps = {
   label: string
   value: string
@@ -129,19 +155,52 @@ type TimeFieldProps = {
   onBlur: () => void
 }
 
-// A time of day, chosen from a shadcn Combobox.
+// A time of day. Pick a quarter hour from the list, or type any time. A typed time is saved as
+// soon as it reads as a time, and text that is not a time leaves the saved value alone.
 export function TimeField({ label, value, error, onChange, onBlur }: TimeFieldProps) {
+  const [text, setText] = useState(value)
+  // When the saved value changes from elsewhere (a pick from the list), show it. Typing that
+  // the form has already saved is left as typed, so the field never jumps while typing.
+  useEffect(() => {
+    if (parseTime(text) !== value) setText(value)
+    // Only a change to the saved value should reset the text.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [value])
+
   const times = QUARTER_HOURS.includes(value) || !value ? QUARTER_HOURS : [value, ...QUARTER_HOURS]
   return (
     <Field data-invalid={!!error || undefined} onBlur={onBlur}>
       <FieldLabel>{label}</FieldLabel>
-      <SelectCombobox
-        aria-label={label}
-        invalid={!!error}
+      <Combobox
+        items={times}
         value={value}
-        options={times.map((t) => ({ value: t, label: t }))}
-        onChange={onChange}
-      />
+        inputValue={text}
+        onInputValueChange={(next) => {
+          setText(next)
+          const parsed = parseTime(next)
+          if (parsed && parsed !== value) onChange(parsed)
+        }}
+        onValueChange={(next) => {
+          if (next) onChange(next)
+        }}
+      >
+        <ComboboxInput
+          aria-label={label}
+          aria-invalid={!!error || undefined}
+          placeholder="hh:mm"
+          className="w-full"
+        />
+        <ComboboxContent>
+          <ComboboxEmpty>No matching times</ComboboxEmpty>
+          <ComboboxList>
+            {(time: string) => (
+              <ComboboxItem key={time} value={time}>
+                {time}
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
       {error && <FieldError>{error.message}</FieldError>}
     </Field>
   )
