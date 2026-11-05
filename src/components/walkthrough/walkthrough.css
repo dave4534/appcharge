@@ -21,15 +21,14 @@
 
 .walkthrough-avatar {
   display: block;
-  width: 56px;
-  height: 56px;
-  position: relative;
-  isolation: isolate; /* keeps the rainbow ring behind the face */
+  /* 60px = 2px stroke + 8px padding + 40px face + 8px padding + 2px stroke */
+  width: 60px;
+  height: 60px;
   padding: 8px; /* breathing room around the face */
-  border: 0; /* so the 8px padding is the full space around the face */
+  border: 2px solid transparent; /* the stroke; shows as a rainbow while attention is needed */
   border-radius: 50%;
   background: var(--color-surface);
-  box-shadow: 0 0 0 2px var(--color-surface), 0 2px 10px rgb(0 0 0 / 0.2);
+  box-shadow: 0 2px 10px rgb(0 0 0 / 0.2);
   cursor: grab;
   touch-action: none;
   user-select: none;
@@ -266,8 +265,9 @@
   vertical-align: middle;
 }
 
-/* Attention ring: the same technique as Magic UI's Rainbow Button. A gradient is scrolled
-   behind a solid layer, so only a thin edge shows colour. It runs until the guide is opened. */
+/* Attention stroke: the same technique as Magic UI's Rainbow Button. The border is
+   transparent, and a gradient behind it is scrolled, so only the stroke shows colour.
+   The face and its fill are unchanged. It runs while the guide is closed. */
 @keyframes walkthrough-rainbow {
   0% {
     background-position: 0% 0%;
@@ -277,19 +277,18 @@
   }
 }
 
-.walkthrough-avatar[data-attention='true']::before {
-  content: '';
-  position: absolute;
-  inset: -3px;
-  z-index: -1;
-  border-radius: 50%;
-  background: linear-gradient(90deg, hsl(0 100% 63%), hsl(270 100% 63%), hsl(210 100% 63%), hsl(195 100% 63%), hsl(90 100% 63%), hsl(0 100% 63%));
+.walkthrough-avatar[data-attention='true'] {
+  background:
+    linear-gradient(var(--color-surface), var(--color-surface)) padding-box,
+    linear-gradient(90deg, hsl(0 100% 63%), hsl(270 100% 63%), hsl(210 100% 63%), hsl(195 100% 63%), hsl(90 100% 63%), hsl(0 100% 63%)) border-box;
   background-size: 200% 100%;
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
   animation: walkthrough-rainbow 2s linear infinite;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .walkthrough-avatar[data-attention='true']::before {
+  .walkthrough-avatar[data-attention='true'] {
     animation: none;
   }
 }

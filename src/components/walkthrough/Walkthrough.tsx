@@ -134,7 +134,8 @@ type WalkthroughProps = {
 export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   const [initial] = useState(load)
   const [seen, setSeen] = useState(initial.seen)
-  const [step, setStep] = useState(initial.step)
+  // Every page load starts the guide on its first step.
+  const [step, setStep] = useState(0)
   // Where the circle was dragged to. Null until then, so it keeps its default spot.
   const [pos, setPos] = useState<Point | null>(() => (initial.pos ? clampToWindow(initial.pos) : null))
   // The image open in the lightbox, if any.
@@ -149,7 +150,7 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   const drag = useRef<{ startX: number; startY: number; originX: number; originY: number; moved: boolean } | null>(null)
   const justDragged = useRef(false)
 
-  useEffect(() => save({ seen, step, pos }), [seen, step, pos])
+  useEffect(() => save({ seen, step: 0, pos }), [seen, pos])
 
   // Opening counts as seeing it, so the hint goes away and it won't auto-open again.
   useEffect(() => {
