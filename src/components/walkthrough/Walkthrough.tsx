@@ -150,6 +150,8 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
   const [defaultTop, setDefaultTop] = useState<number | null>(null)
 
   const rootRef = useRef<HTMLDivElement>(null)
+  // The scrolling text of the current step, which starts again at the top on every step.
+  const scrollRef = useRef<HTMLDivElement>(null)
   const avatarRef = useRef<HTMLButtonElement>(null)
   const drag = useRef<{ startX: number; startY: number; originX: number; originY: number; moved: boolean } | null>(null)
   const justDragged = useRef(false)
@@ -258,6 +260,10 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
     else setOpen(true)
   }
 
+  useLayoutEffect(() => {
+    if (scrollRef.current) scrollRef.current.scrollTop = 0
+  }, [step])
+
   const current = walkthroughSteps[step]
 
   return (
@@ -303,7 +309,7 @@ export function Walkthrough({ onShowPlace }: WalkthroughProps) {
 
           <h2 className="walkthrough-title">{current.title}</h2>
 
-          <div className="walkthrough-scroll" aria-live="polite">
+          <div className="walkthrough-scroll" ref={scrollRef} aria-live="polite">
             <div className="walkthrough-body">
               <Blocks blocks={current.body} onImage={setImage} />
             </div>
