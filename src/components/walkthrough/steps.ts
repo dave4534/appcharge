@@ -57,25 +57,6 @@ export const walkthroughSteps: WalkthroughStep[] = [
     ],
   },
   {
-    title: 'User segmentation',
-    body: [
-      'Segmentation in settings is also kept at a low scope, considering both the scope of this assignment but also considering this is a feature that has a wide spectrum of technicality and based on the assumption users aren’t tech savvy, I chose to let the user choose only which segments a calendar is shown to. Segmentation rules with conditionals and attributes seemed to me that they might overwhelm our user persona.',
-    ],
-    places: [{ id: 'segmentation', label: 'Segmentation (in settings)' }],
-  },
-  {
-    title: 'Risk management',
-    body: [
-      'The costliest mistake is editing a live calendar. In 2021, [Marvel Strike Force players who logged in for 21 days found their final rewards missing](https://devtrackers.gg/marvel-strike-force/p/291abf5e-1400-power-cores-issue). I took a very communicative approach to warnings that is used to help the user better understand what is at risk and how this change could impact their users.',
-    ],
-    places: [
-      { id: 'validation', label: 'Validation' },
-      { id: 'readiness', label: 'Readiness' },
-      { id: 'live-warnings', label: 'Live edit warnings' },
-      { id: 'history', label: 'Version history' },
-    ],
-  },
-  {
     title: 'Understanding the market',
     body: [
       {
@@ -91,6 +72,25 @@ export const walkthroughSteps: WalkthroughStep[] = [
         text: 'There also seems to be an active effort to integrate AI tools like an MCP server and AI store builder. Appcharge is investing in LiveOps retention and AI tools, so I designed with that direction in mind.',
       },
     ],
+  },
+  {
+    title: 'Risk management',
+    body: [
+      'The costliest mistake is editing a live calendar. In 2021, [Marvel Strike Force players who logged in for 21 days found their final rewards missing](https://devtrackers.gg/marvel-strike-force/p/291abf5e-1400-power-cores-issue). I took a very communicative approach to warnings that is used to help the user better understand what is at risk and how this change could impact their users.',
+    ],
+    places: [
+      { id: 'validation', label: 'Validation' },
+      { id: 'readiness', label: 'Readiness' },
+      { id: 'live-warnings', label: 'Live edit warnings' },
+      { id: 'history', label: 'Version history' },
+    ],
+  },
+  {
+    title: 'User segmentation',
+    body: [
+      'Segmentation in settings is also kept at a low scope, considering both the scope of this assignment but also considering this is a feature that has a wide spectrum of technicality and based on the assumption users aren’t tech savvy, I chose to let the user choose only which segments a calendar is shown to. Segmentation rules with conditionals and attributes seemed to me that they might overwhelm our user persona.',
+    ],
+    places: [{ id: 'segmentation', label: 'Segmentation (in settings)' }],
   },
   {
     title: 'A calendar, not a list view',
@@ -168,5 +168,4 @@ export const walkthroughSteps: WalkthroughStep[] = [
     body: [
       'Thanks for joining me on this journey! I hope you have a great {timeOfDay} and I really look forward to coming in and presenting this in person :){carlton}',
     ],
-  },
-]
+  },]
